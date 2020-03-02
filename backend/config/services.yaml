@@ -1,0 +1,65 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $bucketVideoInput: '%env(BUCKET_VIDEO_INPUT)%'
+            $tablePrefix: '%env(TABLE_PREFIX)%'
+            $mediaStorageLocation: '%env(MEDIAS_BUCKET)%'
+            $videoRawStorageLocation: '%env(BUCKET_VIDEO_INPUT)%'
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    Album\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    # controllers are imported separately to make sure services can be injected
+    # as action arguments even if you don't extend any base controller class
+    Album\Application\Controller\:
+        resource: '../src/Application/Controller'
+        tags: ['controller.service_arguments']
+
+    Album\Domain\User\UserManager:
+        $adminEmail: '%env(ADMIN_EMAIL)%'
+        $appEmail: '%env(APP_EMAIL)%'
+
+    Album\Application\Helper\JWTHelper:
+        $secret: '%env(APP_SECRET)%'
+
+    Album\Application\Notification\FireBaseNotification:
+        $firebaseKey: '%env(FIREBASE_KEY)%'
+        $channelSuffix: 'symfony'
+
+    Album\Application\EventListener\JWTCreatedListener:
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }    # add more service definitions when explicit configuration is needed
+
+    Album\Application\Storage\S3Storage:
+        arguments:
+            $albumBucket: '%env(ALBUM_BUCKET)%'
+            $proxyImage: '%env(PROXY_IMAGE)%'
+            $keyPairId: '%env(KEY_PAIR_ID)%'
+            $awsPk: '%env(AWS_PK)%'
+
+    Album\Lambda\LambdaHandler:
+        public: true
+        arguments:
+            $projectName: '%env(PROJECT_NAME)%'
+            $projectStage: '%env(PROJECT_STAGE)%'
+
+    Album\Application\Ingest\MediaIngestHandler:
+        tags:
+            - { name: app.lambda, functionName: 'mediaIngest' }
+
+    Album\Application\Ingest\VideoIngestHandler:
+        tags:
+            - { name: app.lambda, functionName: 'videoIngest' }

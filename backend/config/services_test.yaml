@@ -1,0 +1,16 @@
+services:
+  Album\Domain\User\Repository\UserRepositoryDynamoDB.test:
+    alias: Album\Domain\User\Repository\UserRepositoryDynamoDB
+    public: true
+
+  Album\Domain\Media\Repository\MediaRepositoryDynamoDB.test:
+    alias: Album\Domain\Media\Repository\MediaRepositoryDynamoDB
+    public: true
+
+  Album\Domain\Album\Repository\AlbumRepositoryDynamoDB.test:
+    alias: Album\Domain\Album\Repository\AlbumRepositoryDynamoDB
+    public: true
+
+  Album\Application\Notification\FireBaseNotification.test:
+    alias: Album\Application\Notification\FireBaseNotification
+    public: true

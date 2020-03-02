@@ -1,0 +1,91 @@
+[
+  {
+    "title": "The Clone war",
+    "description": "One of the biggest war of all time. Clones everywhere",
+    "slug": "the-clone-war",
+    "private": false,
+    "author": "yoda",
+    "medias": [
+      {
+        "key": "one",
+        "author": "yoda",
+        "type": 1
+      },
+      {
+        "key": "two",
+        "author": "yoda",
+        "type": 1,
+        "favorite": true
+      }
+    ],
+    "creationDate": 1553333828
+  },
+  {
+    "title": "Tatooine",
+    "description": "Sand everywhere",
+    "slug": "tatooine",
+    "private": false,
+    "author": "yoda",
+    "medias": [
+      {
+        "key": "one",
+        "author": "yoda",
+        "type": 2
+      }
+    ],
+    "creationDate": 1553333829
+  },
+  {
+    "title": "Hoth",
+    "description": "Snow everywhere",
+    "slug": "hoth",
+    "private": false,
+    "author": "yoda",
+    "creationDate": 1553333830
+  },
+  {
+    "title": "My droids",
+    "description": "Bliip",
+    "slug": "my-droids",
+    "private": false,
+    "author": "yoda",
+    "medias": [
+      {
+        "key": "one",
+        "author": "yoda",
+        "type": 1
+      }
+    ],
+    "creationDate": 1553333831
+  },
+  {
+    "title": "Jedi",
+    "description": "Ziouuum",
+    "slug": "jedi",
+    "private": true,
+    "author": "yoda",
+    "medias": [
+      {
+        "key": "one",
+        "author": "yoda",
+        "type": 1
+      }
+    ],
+    "creationDate": 1553333832
+  },
+  {
+    "title": "Sith",
+    "description": "Get stronger",
+    "slug": "sith",
+    "private": false,
+    "author": "Darth Vader",
+    "medias": [
+      {
+        "key": "one",
+        "author": "Darth Vader",
+        "type": 1
+      }
+    ],
+    "creationDate": 1553333813
+  }
+]

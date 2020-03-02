@@ -1,0 +1,44 @@
+[
+  {
+    "key": "1.jpg",
+    "author": "yoda",
+    "type": 1,
+    "folder": "jedi",
+    "uploadDate": 1553333831
+  },
+  {
+    "key": "2.jpg",
+    "author": "yoda",
+    "type": 1,
+    "folder": "jedi",
+    "uploadDate": 1553333832
+  },
+  {
+    "key": "3.jpg",
+    "author": "yoda",
+    "type": 1,
+    "folder": "jedi",
+    "uploadDate": 1553333833
+  },
+  {
+    "key": "4.jpg",
+    "author": "vader",
+    "type": 1,
+    "folder": "sith",
+    "uploadDate": 1553333834
+  },
+  {
+    "key": "5.jpg",
+    "author": "yoda",
+    "type": 1,
+    "folder": "jedi school",
+    "uploadDate": 1553333833
+  },
+  {
+    "key": "6.mp4",
+    "author": "obiwan",
+    "type": 2,
+    "folder": "hoth",
+    "uploadDate": 1553333836
+  }
+]

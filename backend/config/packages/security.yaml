@@ -1,0 +1,39 @@
+security:
+    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    providers:
+        jwt:
+            lexik_jwt: ~
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        register:
+            pattern: ^/v1/user/register
+            stateless: true
+            anonymous: true
+
+        resetPassword:
+            pattern: ^/v1/user/reset-password
+            stateless: true
+            anonymous: true
+
+
+        login:
+            pattern:  ^/v1/user/login
+            stateless: true
+            anonymous: true
+
+        api:
+            pattern: ^/
+            stateless: true
+            provider: jwt
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+
+    access_control:
+        - { path: ^/v1/user/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/v1/user/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/v1/user/reset-password, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/,       roles: IS_AUTHENTICATED_FULLY }

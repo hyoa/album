@@ -1,0 +1,169 @@
+service: album-backend
+
+custom:
+    bucket_raw_videos: ${self:service}-${self:provider.stage}-raw-videos
+    bucket_medias: ${self:service}-${self:provider.stage}-medias
+    prefix: ${self:service}-${self:provider.region}-${self:provider.stage}
+
+provider:
+    name: aws
+    region: eu-west-2
+    runtime: provided
+    stage: dev
+    environment:
+        APP_ENV: prod
+        ALBUM_STORAGE_REGION: ${file(../config.${self:provider.stage}.json):ALBUM_STORAGE_REGION}
+        ALBUM_STORAGE_API_KEY: ${ssm:/album/${self:provider.stage}/api-key}
+        ALBUM_STORAGE_API_SECRET: ${ssm:/album/${self:provider.stage}/api-secret}
+        ALBUM_MONGO_URI: ${ssm:/album/${self:provider.stage}/mongo-uri}
+        MEDIAS_BUCKET: ${self:custom.bucket_medias}
+        ALBUM_MONGO_DATABASE_NAME:  ${file(../config.${self:provider.stage}.json):ALBUM_MONGO_DATABASE_NAME}
+        SENDGRID_API_KEY: ${ssm:/album/${self:provider.stage}/sendgrid-key}
+        ADMIN_EMAIL:  ${file(../config.${self:provider.stage}.json):ADMIN_EMAIL}
+        APP_EMAIL:  ${file(../config.${self:provider.stage}.json):APP_EMAIL}
+        ALBUM_AUTH_SECRET: ${ssm:/album/${self:provider.stage}/auth-secret}
+        IMG_PROXY: ${file(../config.${self:provider.stage}.json):IMG_PROXY}
+        KEY_PAIR_ID: ${ssm:/album/${self:provider.stage}/key-pair-id}
+        AWS_PK: ${ssm:/album/${self:provider.stage}/aws-pk}
+        APP_URI: ${file(../config.${self:provider.stage}.json):APP_URI}
+        FIREBASE_KEY: ${ssm:/album/${self:provider.stage}/firebase-key}
+        FIREBASE_CHANNEL_SUFFIX: ${file(../config.${self:provider.stage}.json):FIREBASE_CHANNEL_SUFFIX}
+        BUCKET_VIDEO_INPUT: ${self:custom.bucket_raw_videos}
+        PROJECT_NAME: ${self:service}
+        PROJECT_STAGE: ${self:provider.stage}
+        TABLE_PREFIX: ${self:custom.prefix}
+    iamRoleStatements:
+        - Effect: Allow
+          Action:
+              - s3:*
+          Resource: "*"
+        - Effect: Allow
+          Action:
+              - logs:*
+          Resource: '*'
+    tags:
+        project: ${self:service}-${self:provider.stage}
+
+plugins:
+    - ./vendor/bref/bref
+
+functions:
+    api:
+        handler: public/index.php
+        description: ''
+        timeout: 28
+        layers:
+            - ${bref:layer.php-74-fpm}
+        events:
+            -   http: 'ANY /'
+            -   http: 'ANY /{proxy+}'
+
+    mediaIngest:
+        handler: src/Lambda/LambdaApplication.php
+        description: 'Handle image upload on S3'
+        timeout: 10
+        memorySize: 1024
+        layers:
+            - ${bref:layer.php-74}
+        events:
+            - s3:
+                  bucket: medias
+                  event: s3:ObjectCreated:*
+
+    videoIngest:
+        handler: src/Lambda/LambdaApplication.php
+        description: 'Handle video uploaded on S3'
+        timeout: 900
+        memorySize: 3008
+        layers:
+            - ${bref:layer.php-74}
+            - 'arn:aws:lambda:eu-west-2:557739470487:layer:ffmpeg:1'
+        events:
+            - s3:
+                  bucket: videos
+                  event: s3:ObjectCreated:*
+
+resources:
+    Resources:
+        S3BucketMedias:
+            Type: AWS::S3::Bucket
+            Properties:
+                BucketName: ${self:custom.bucket_medias}
+                PublicAccessBlockConfiguration:
+                    BlockPublicAcls: true
+                    BlockPublicPolicy: true
+                    IgnorePublicAcls: true
+                    RestrictPublicBuckets: true
+                CorsConfiguration:
+                    CorsRules:
+                        -
+                            AllowedHeaders:
+                                - '*'
+                            AllowedMethods:
+                                - 'PUT'
+                                - 'GET'
+                            AllowedOrigins:
+                                - '*'
+                            MaxAge: 3000
+        MediaIngestLambdaPermissionMediasS3:
+            Type: AWS::Lambda::Permission
+            Properties:
+                FunctionName:
+                    'Fn::GetAtt':
+                        - mediaIngestLambdaFunction
+                        - Arn
+                Principal: 's3.amazonaws.com'
+                Action: 'lambda:InvokeFunction'
+                SourceAccount:
+                    Ref: AWS::AccountId
+                SourceArn: 'arn:aws:s3:::${self:custom.bucket_medias}'
+        S3BucketVideos:
+            Type: AWS::S3::Bucket
+            Properties:
+                BucketName: ${self:custom.bucket_raw_videos}
+                PublicAccessBlockConfiguration:
+                    BlockPublicAcls: true
+                    BlockPublicPolicy: true
+                    IgnorePublicAcls: true
+                    RestrictPublicBuckets: true
+                CorsConfiguration:
+                    CorsRules:
+                        - AllowedHeaders:
+                              - '*'
+                          AllowedMethods:
+                              - 'PUT'
+                              - 'GET'
+                          AllowedOrigins:
+                              - '*'
+                          MaxAge: 3000
+        VideoIngestLambdaPermissionVideosS3:
+            Type: AWS::Lambda::Permission
+            Properties:
+                FunctionName:
+                    'Fn::GetAtt':
+                        - videoIngestLambdaFunction
+                        - Arn
+                Principal: 's3.amazonaws.com'
+                Action: 'lambda:InvokeFunction'
+                SourceAccount:
+                    Ref: AWS::AccountId
+                SourceArn: 'arn:aws:s3:::${self:custom.bucket_raw_videos}'
+
+        UsersTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: ${self:custom.prefix}-user
+                AttributeDefinitions:
+                    - AttributeName: email
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: email
+                      KeyType: HASH
+                ProvisionedThroughput:
+                    ReadCapacityUnits: 1
+                    WriteCapacityUnits: 1
+# Exclude files from deployment
+package:
+    exclude:
+        - 'node_modules/**'
+        - 'tests/**'
