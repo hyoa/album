@@ -1,0 +1,168 @@
+<template>
+  <div class="auth flex w-screen h-screen md:justify-center md:items-center">
+    <div v-if="disabled" class="rounded w-full md:w-5/6 lg:w-1/3 md:shadow-md bg-white">
+      <div class="text-3xl px-4 py-3 text-center">
+        Le site est actuellement indisponible ! Mais je travaille d'arrache pied à le remettre en ligne :)
+      </div>
+    </div>
+    <div v-else class="rounded w-full md:w-5/6 lg:w-1/3 md:shadow-md bg-white">
+      <div class="flex">
+        <div
+          class="w-1/2 h-12 flex justify-center items-center rounded-tl cursor-pointer bg-primary text-white "
+          :class="[ nav === 'login' ? '' : 'opacity-50' ]"
+          @click="nav = 'login'"
+        >
+          <span>Connexion</span>
+        </div>
+        <div
+          class="w-1/2 h-12 flex justify-center items-center rounded-tr cursor-pointer text-white bg-primary "
+          :class="[ nav === 'register' ? '' : 'opacity-50' ]"
+          @click="nav = 'register'"
+        >
+          <span>
+            Inscription
+          </span>
+        </div>
+      </div>
+      <div class="px-8 pt-6 pb-8 mb-4">
+        <Alert v-if="alert.type" :type="alert.type" :message="alert.message" :title="alert.title" />
+        <Login @onPasswordForget="nav = 'reset-password'" @onRegister="nav = 'register'" @onLogin="onLogin" v-if="nav === 'login'" :formStatus="formStatus.login"/>
+        <Register @onRegister="onRegister" v-else-if="nav === 'register'" :formStatus="formStatus.register"/>
+        <ResetPassword @onAskResetPassword="onAskResetPassword" v-else-if="nav === 'reset-password'" :formStatus="formStatus.reset"/>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { post } from '../utils/axiosHelper'
+import errorHelper from '../utils/errorHelper'
+
+import Login from '../components/auth/Login'
+import Register from '../components/auth/Register'
+import Alert from '../components/alerts/Alert'
+import ResetPassword from '../components/auth/ResetPassword'
+export default {
+  name: 'Auth',
+  components: { ResetPassword, Alert, Register, Login },
+  data () {
+    return {
+      nav: 'login',
+      alert: {
+        type: null,
+        title: null,
+        message: null
+      },
+      formStatus: {
+        login: 'ready',
+        register: 'ready',
+        reset: 'ready'
+      },
+      disabled: false
+    }
+  },
+  created () {
+    if (this.$store.state.flashMessage) {
+      this.alert = {
+        type: 'info',
+        title: 'Oups',
+        message: this.$store.state.flashMessage
+      }
+    }
+  },
+  methods: {
+    async onLogin (data) {
+      this.formStatus.login = 'pending'
+      this.alert.type = null
+      post('user/login', data)
+        .then(res => {
+          localStorage.setItem('album-token', res.data.token)
+          this.$router.push({ name: 'home' })
+          this.$store.commit('setToken', res.data.token)
+        })
+        .catch(({ response }) => {
+          let code = null
+          try {
+            code = response.data.code
+          } catch (e) {
+            code = 999
+          }
+
+          this.alert = {
+            type: 'error',
+            title: 'Oups',
+            message: errorHelper(code)
+          }
+        })
+        .finally(() => {
+          this.formStatus.login = 'ready'
+        })
+    },
+    onRegister (data) {
+      this.alert.type = null
+      this.formStatus.register = 'pending'
+      post('user/register', data)
+        .then(res => {
+          this.alert = {
+            type: 'success',
+            title: 'Bienvenue !',
+            message: 'Votre compte sera bientôt validé et vous pourrez ensuite vous connecter !'
+          }
+        })
+        .catch(({ response }) => {
+          let code = null
+          try {
+            code = response.data.code
+          } catch (e) {
+            code = 999
+          }
+
+          this.alert = {
+            type: 'error',
+            title: 'Oups',
+            message: errorHelper(code)
+          }
+        })
+        .finally(() => {
+          this.formStatus.register = 'ready'
+        })
+    },
+    onAskResetPassword (data) {
+      this.alert.type = null
+      this.formStatus.reset = 'pending'
+      post('user/reset-password/ask', data)
+        .then(res => {
+          this.alert = {
+            type: 'success',
+            title: 'Succès ',
+            message: 'Un email avec la procédure pour réinitialiser votre mot de passe a été envoyé à l\'email indiqué.'
+          }
+        })
+        .catch(({ response }) => {
+          let code = null
+          try {
+            code = response.data.code
+          } catch (e) {
+            code = 999
+          }
+
+          this.alert = {
+            type: 'error',
+            title: 'Oups',
+            message: errorHelper(code)
+          }
+        })
+        .finally(() => {
+          this.formStatus.reset = 'ready'
+        })
+    }
+  }
+}
+</script>
+
+<style scoped>
+  .auth {
+    background: url('../../public/img/background-auth.jpg') no-repeat;
+    background-size: cover;
+  }
+</style>

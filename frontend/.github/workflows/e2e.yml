@@ -1,0 +1,30 @@
+name: e2e
+
+on:
+  pull_request:
+    branches: 
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install, build, and test
+      run: |
+        yarn install
+        yarn test:e2e:ci
+      env:
+        CI: true
+        VUE_APP_API_URI: 'https://g1510072bj.execute-api.eu-west-2.amazonaws.com/Prod/'
+        VUE_APP_FIREBASE_SENDER_ID: '826160709885'
