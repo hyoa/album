@@ -147,7 +147,7 @@ class UserControllerTest extends AbstractControllerTest
             [
                 'email' => 'sidious@sith.emp',
             ],
-            true
+            self::JWT_ADMIN
         );
 
         self::assertEquals(Response::HTTP_CREATED, $response->getStatusCode());
@@ -164,7 +164,7 @@ class UserControllerTest extends AbstractControllerTest
             [
                 'email' => 'ahsoka@padawan.rep',
             ],
-            true
+            self::JWT_ADMIN
         );
 
         self::assertEquals(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
@@ -176,7 +176,7 @@ class UserControllerTest extends AbstractControllerTest
             'POST',
             '/v1/user/reset-password/ask',
             ['email' => 'yoda@jedi.rep', 'callbackUri' => 'http://test.com?token=resetToken'],
-            true
+            self::JWT_ADMIN
         );
 
         self::assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
@@ -188,7 +188,7 @@ class UserControllerTest extends AbstractControllerTest
             'POST',
             '/v1/user/reset-password/ask',
             ['email' => 'ahsoka@padawan.rep', 'callbackUri' => 'http://test.com?token=resetToken'],
-            true
+            self::JWT_ADMIN
         );
 
         self::assertEquals(Response::HTTP_INTERNAL_SERVER_ERROR, $response->getStatusCode());
@@ -226,7 +226,7 @@ class UserControllerTest extends AbstractControllerTest
             'GET',
             '/v1/users/resume',
             [],
-            true
+            self::JWT_ADMIN
         );
 
         $body = json_decode((string) $response->getContent(), true);

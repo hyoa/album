@@ -25,7 +25,7 @@ class MediaControllerTest extends AbstractControllerTest
 
     public function testFindMediasByFolderShouldReturnAllMediasWithTheGivenFolder(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/media/folder/jedi', [], true);
+        $response = $this->makeApiCall('GET', '/v1/media/folder/jedi', [], self::JWT_ADMIN);
 
         $toAssert = json_decode((string) $response->getContent(), true);
 
@@ -43,7 +43,7 @@ class MediaControllerTest extends AbstractControllerTest
 
     public function testFindFoldersShouldReturnAListOfAllFolders(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/medias/folders', [], true);
+        $response = $this->makeApiCall('GET', '/v1/medias/folders', [], self::JWT_ADMIN);
         $toAssert = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -61,7 +61,7 @@ class MediaControllerTest extends AbstractControllerTest
             'type' => 'image/jpeg',
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/media/signed-uri', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/media/signed-uri', $data, self::JWT_ADMIN);
 
         $toAssert = json_decode((string) $response->getContent(), true);
 
@@ -77,7 +77,7 @@ class MediaControllerTest extends AbstractControllerTest
             'type' => 'video/mp4',
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/media/signed-uri', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/media/signed-uri', $data, self::JWT_ADMIN);
 
         $toAssert = json_decode((string) $response->getContent(), true);
 
@@ -88,7 +88,7 @@ class MediaControllerTest extends AbstractControllerTest
 
     public function testDeleteFolderShouldReturnASuccess(): void
     {
-        $response = $this->makeApiCall('DELETE', '/v1/media/folder/jedi', [], true);
+        $response = $this->makeApiCall('DELETE', '/v1/media/folder/jedi', [], self::JWT_ADMIN);
         self::assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
 
         $toAssert = $this->query(
@@ -108,7 +108,7 @@ class MediaControllerTest extends AbstractControllerTest
             'newFolderName' => 'jedi updated',
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/medias/folder/name', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/medias/folder/name', $data, self::JWT_ADMIN);
         self::assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
 
         $toAssert = $this->query(
@@ -123,7 +123,7 @@ class MediaControllerTest extends AbstractControllerTest
 
     public function testGetAdminResumeShouldReturnCountOfVideoAndImage(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/medias/resume', [], true);
+        $response = $this->makeApiCall('GET', '/v1/medias/resume', [], self::JWT_ADMIN);
         $toAssert = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -142,7 +142,7 @@ class MediaControllerTest extends AbstractControllerTest
             'medias' => ['3.jpg', '2.jpg'],
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/medias/many/folder/name', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/medias/many/folder/name', $data, self::JWT_ADMIN);
         self::assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
 
         $toAssert = $this->query(

@@ -7,6 +7,7 @@ namespace Album\Application\Controller\V1;
 use Album\Domain\Media\MediaEntity;
 use Album\Domain\Media\MediaManager;
 use Album\Domain\Media\MediaStorageInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ class MediaController extends AbstractController
 {
     /**
      * @Route("/media/folder/{folderName}", methods={"GET"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function getByFolder(MediaManager $mediaManager, string $folderName): Response
     {
@@ -34,6 +36,7 @@ class MediaController extends AbstractController
 
     /**
      * @Route("/medias/folders", methods={"GET"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function getFolders(MediaManager $mediaManager): Response
     {
@@ -42,6 +45,7 @@ class MediaController extends AbstractController
 
     /**
      * @Route("/medias/folders/autocomplete", methods={"GET"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function getFoldersAutocomplete(Request $request, MediaManager $mediaManager): Response
     {
@@ -57,6 +61,7 @@ class MediaController extends AbstractController
 
     /**
      * @Route("/media/signed-uri", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function getSignedUri(Request $request, MediaStorageInterface $mediaStorage, string $bucketVideoInput): Response
     {
@@ -77,6 +82,7 @@ class MediaController extends AbstractController
 
     /**
      * @Route("/media/folder/{folderName}", methods={"DELETE"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function deleteFolder(MediaManager $mediaManager, string $folderName): Response
     {
@@ -87,6 +93,7 @@ class MediaController extends AbstractController
 
     /**
      * @Route("/medias/folder/name", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function updateFolderName(Request $request, MediaManager $mediaManager): Response
     {
@@ -101,6 +108,7 @@ class MediaController extends AbstractController
 
     /**
      * @Route("/medias/resume")
+     * @IsGranted("ROLE_ADMIN")
      */
     public function getAdminResume(MediaManager $mediaManager): Response
     {
@@ -109,6 +117,7 @@ class MediaController extends AbstractController
 
     /**
      * @Route("/medias/many/folder/name")
+     * @IsGranted("ROLE_ADMIN")
      */
     public function updateFolderNameForManyMedias(Request $request, MediaManager $mediaManager): Response
     {

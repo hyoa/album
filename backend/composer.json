@@ -12,6 +12,7 @@
         "lcobucci/jwt": "^3.3",
         "lexik/jwt-authentication-bundle": "^2.6",
         "php-ffmpeg/php-ffmpeg": "^0.14.0",
+        "sensio/framework-extra-bundle": "^5.5",
         "symfony/amazon-mailer": "5.0.*",
         "symfony/console": "5.0.*",
         "symfony/dotenv": "5.0.*",

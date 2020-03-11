@@ -13,6 +13,7 @@ use Album\Domain\Album\AlbumMediaEntity;
 use Album\Domain\Album\AlbumRepositoryInterface;
 use Album\Domain\Media\MediaEntity;
 use Album\Domain\Media\MediaStorageInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +28,7 @@ class AlbumController extends AbstractController
 {
     /**
      * @Route("/albums", methods={"GET"})
+     * @IsGranted("ROLE_USER")
      */
     public function getAlbums(Request $request, AlbumManager $albumManager, MediaStorageInterface $mediaStorage): Response
     {
@@ -76,6 +78,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/albums/autocomplete", methods={"GET"})
+     * @IsGranted("ROLE_USER")
      */
     public function getAlbumsAutocomplete(Request $request, AlbumManager $albumManager): Response
     {
@@ -98,6 +101,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/album/{slug}", methods={"GET"})
+     * @IsGranted("ROLE_USER")
      */
     public function getAlbum(AlbumManager $albumManager, string $slug): Response
     {
@@ -114,6 +118,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/album", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function addAlbum(
         Request $request,
@@ -153,6 +158,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/album/{slug}", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function editAlbum(Request $request, AlbumManager $albumManager, string $slug): Response
     {
@@ -177,6 +183,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/album/{slug}/medias/{type}", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function updateMedias(
         Request $request,
@@ -227,6 +234,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/album/{slug}", methods={"DELETE"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function delete(AlbumManager $albumManager, string $slug): Response
     {
@@ -243,6 +251,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/albums/resume", methods={"GET"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function adminResume(AlbumManager $albumManager): Response
     {
@@ -251,6 +260,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/album/{slug}/favorite/add", methods={"PUT"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function addFavorite(Request $request, AlbumManager $albumManager, string $slug): Response
     {
@@ -273,6 +283,7 @@ class AlbumController extends AbstractController
 
     /**
      * @Route("/album/{slug}/favorite/remove", methods={"PUT"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function removeFavorite(Request $request, AlbumManager $albumManager, string $slug): Response
     {

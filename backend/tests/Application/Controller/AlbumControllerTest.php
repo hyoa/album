@@ -13,7 +13,7 @@ class AlbumControllerTest extends AbstractControllerTest
 {
     public function testShouldGetTheLast3ThatContainMediasAndArePublic(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/albums', [], true);
+        $response = $this->makeApiCall('GET', '/v1/albums', [], self::JWT_USER);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -28,7 +28,7 @@ class AlbumControllerTest extends AbstractControllerTest
 
     public function testShouldGetAlbumThatMatchSearchTerm(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/albums?search=everywhere', [], true);
+        $response = $this->makeApiCall('GET', '/v1/albums?search=everywhere', [], self::JWT_USER);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -39,7 +39,7 @@ class AlbumControllerTest extends AbstractControllerTest
 
     public function testShouldGetAnAlbumThatMatchTheSlug(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/album/jedi', [], true);
+        $response = $this->makeApiCall('GET', '/v1/album/jedi', [], self::JWT_USER);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -62,7 +62,7 @@ class AlbumControllerTest extends AbstractControllerTest
             'private' => true,
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/album', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/album', $data, self::JWT_ADMIN);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -80,7 +80,7 @@ class AlbumControllerTest extends AbstractControllerTest
             'private' => false,
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/album/jedi', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/album/jedi', $data, self::JWT_ADMIN);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -102,7 +102,7 @@ class AlbumControllerTest extends AbstractControllerTest
             ],
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/album/jedi/medias/add', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/album/jedi/medias/add', $data, self::JWT_ADMIN);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -124,7 +124,7 @@ class AlbumControllerTest extends AbstractControllerTest
             ],
         ];
 
-        $response = $this->makeApiCall('POST', '/v1/album/jedi/medias/remove', $data, true);
+        $response = $this->makeApiCall('POST', '/v1/album/jedi/medias/remove', $data, self::JWT_ADMIN);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -136,7 +136,7 @@ class AlbumControllerTest extends AbstractControllerTest
 
     public function testShouldGetAllAlbumsIfUserIsAnAdmin(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/albums?private=1&noMedias=1&limit=100', [], true);
+        $response = $this->makeApiCall('GET', '/v1/albums?private=1&noMedias=1&limit=100', [], self::JWT_ADMIN);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -145,7 +145,7 @@ class AlbumControllerTest extends AbstractControllerTest
 
     public function testShouldReturnListOfAlbumsForAutocompleteThatMatchTerm(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/albums/autocomplete?search=everywhere', [], true);
+        $response = $this->makeApiCall('GET', '/v1/albums/autocomplete?search=everywhere', [], self::JWT_USER);
         $result = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -160,7 +160,7 @@ class AlbumControllerTest extends AbstractControllerTest
 
     public function testShouldReturnAdminResume(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/albums/resume', [], true);
+        $response = $this->makeApiCall('GET', '/v1/albums/resume', [], self::JWT_ADMIN);
         self::assertEquals(200, $response->getStatusCode());
         $toAssert = json_decode((string) $response->getContent(), true);
 
@@ -176,7 +176,7 @@ class AlbumControllerTest extends AbstractControllerTest
             'favorite' => 'one',
         ];
 
-        $response = $this->makeApiCall('PUT', '/v1/album/the-clone-war/favorite/add', $data, true);
+        $response = $this->makeApiCall('PUT', '/v1/album/the-clone-war/favorite/add', $data, self::JWT_ADMIN);
 
         self::assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
 
@@ -198,7 +198,7 @@ class AlbumControllerTest extends AbstractControllerTest
             'favorite' => 'two',
         ];
 
-        $response = $this->makeApiCall('PUT', '/v1/album/the-clone-war/favorite/remove', $data, true);
+        $response = $this->makeApiCall('PUT', '/v1/album/the-clone-war/favorite/remove', $data, self::JWT_ADMIN);
 
         self::assertEquals(Response::HTTP_ACCEPTED, $response->getStatusCode());
 
@@ -216,7 +216,7 @@ class AlbumControllerTest extends AbstractControllerTest
 
     public function testShouldDisplayMoreArticleThanTheFirst3(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/albums?limit=3&offset=3', [], true);
+        $response = $this->makeApiCall('GET', '/v1/albums?limit=3&offset=3', [], self::JWT_USER);
         $toAssert = json_decode((string) $response->getContent(), true);
 
         self::assertEquals(200, $response->getStatusCode());
@@ -233,7 +233,7 @@ class AlbumControllerTest extends AbstractControllerTest
             'private' => true,
         ];
 
-        $toAssert = $this->makeApiCall('POST', '/v1/album', $data, true);
+        $toAssert = $this->makeApiCall('POST', '/v1/album', $data, self::JWT_ADMIN);
         self::assertEquals(500, $toAssert->getStatusCode());
     }
 }

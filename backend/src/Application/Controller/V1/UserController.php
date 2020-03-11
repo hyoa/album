@@ -16,6 +16,7 @@ use Album\Domain\User\UserEntity;
 use Album\Domain\User\UserManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Response\JWTAuthenticationSuccessResponse;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\Http\Authentication\AuthenticationSuccessHandler;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -85,6 +86,7 @@ class UserController extends AbstractController
 
     /**
      * @Route("/user/activate", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      */
     public function activate(Request $request, UserManager $userManager): Response
     {
@@ -105,6 +107,8 @@ class UserController extends AbstractController
 
     /**
      * @Route("/users")
+     *
+     * @IsGranted("ROLE_ADMIN")
      */
     public function getUsers(UserManager $userManager): JsonResponse
     {
@@ -172,6 +176,8 @@ class UserController extends AbstractController
 
     /**
      * @Route("/users/resume")
+     *
+     * @IsGranted("ROLE_ADMIN")
      */
     public function adminResume(UserManager $userManager): Response
     {
@@ -180,6 +186,7 @@ class UserController extends AbstractController
 
     /**
      * @Route("/users/invite")
+     * @IsGranted("ROLE_ADMIN")
      */
     public function invite(Request $request, UserManager $userManager): Response
     {
