@@ -86,7 +86,7 @@ class MediaIngestManager
             throw new InvalidVideoSizeException('Video size cannot exceed 200Mo');
         }
 
-        $mediaUris = $this->mediaStorage->generateSignedUri($key, $this->videoRawsStorageLocation, 'GetObject');
+        $mediaUris = $this->mediaStorage->generateSignedUri($key, MediaStorageInterface::LOCATION_RAW_VIDEOS, 'GetObject');
         $pathVideoFormatted = $this->videoFormatter->run($mediaUris, $key);
         $this->mediaStorage->putObject($key, $this->mediaStorageLocation, $pathVideoFormatted, 'video/mp4');
 

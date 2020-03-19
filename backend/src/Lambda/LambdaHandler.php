@@ -32,7 +32,7 @@ class LambdaHandler
             return $this->handlers[$functionName]($context, $payload);
         }
 
-        return [];
+        throw new \Exception(sprintf('No handler to handle the function %s', $functionName));
     }
 
     protected function getFunctionName(string $invokedFunctionArn): ?string

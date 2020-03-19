@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class MediaController extends AbstractController
 {
     /**
-     * @Route("/media/folder/{folderName}", methods={"GET"})
+     * @Route("/medias/folder/{folderName}", methods={"GET"})
      * @IsGranted("ROLE_ADMIN")
      */
     public function getByFolder(MediaManager $mediaManager, string $folderName): Response
@@ -69,10 +69,10 @@ class MediaController extends AbstractController
         $file = $data['file'];
         $type = $data['type'];
 
-        $location = 'medias';
+        $location = MediaStorageInterface::LOCATION_MEDIAS;
 
         if (strpos($type, 'video') !== false) {
-            $location = $bucketVideoInput;
+            $location = MediaStorageInterface::LOCATION_RAW_VIDEOS;
         }
 
         $signedUri = $mediaStorage->generateSignedUri($file, $location, 'PutObject');

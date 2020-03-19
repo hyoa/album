@@ -13,8 +13,8 @@ provider:
     environment:
         APP_ENV: prod
         ALBUM_STORAGE_REGION: ${file(../config.${self:provider.stage}.json):ALBUM_STORAGE_REGION}
-        ALBUM_STORAGE_API_KEY: ${ssm:/album/${self:provider.stage}/api-key}
-        ALBUM_STORAGE_API_SECRET: ${ssm:/album/${self:provider.stage}/api-secret}
+        AWS_KEY: ${ssm:/album/${self:provider.stage}/api-key}
+        AWS_SECRET: ${ssm:/album/${self:provider.stage}/api-secret}
         ALBUM_MONGO_URI: ${ssm:/album/${self:provider.stage}/mongo-uri}
         MEDIAS_BUCKET: ${self:custom.bucket_medias}
         ALBUM_MONGO_DATABASE_NAME:  ${file(../config.${self:provider.stage}.json):ALBUM_MONGO_DATABASE_NAME}
@@ -22,7 +22,7 @@ provider:
         ADMIN_EMAIL:  ${file(../config.${self:provider.stage}.json):ADMIN_EMAIL}
         APP_EMAIL:  ${file(../config.${self:provider.stage}.json):APP_EMAIL}
         ALBUM_AUTH_SECRET: ${ssm:/album/${self:provider.stage}/auth-secret}
-        IMG_PROXY: ${file(../config.${self:provider.stage}.json):IMG_PROXY}
+        PROXY_IMAGE: ${file(../config.${self:provider.stage}.json):IMG_PROXY}
         KEY_PAIR_ID: ${ssm:/album/${self:provider.stage}/key-pair-id}
         AWS_PK: ${ssm:/album/${self:provider.stage}/aws-pk}
         APP_URI: ${file(../config.${self:provider.stage}.json):APP_URI}
@@ -48,7 +48,7 @@ plugins:
     - ./vendor/bref/bref
 
 functions:
-    api:
+    Api:
         handler: public/index.php
         description: ''
         timeout: 28
@@ -58,7 +58,7 @@ functions:
             -   http: 'ANY /'
             -   http: 'ANY /{proxy+}'
 
-    mediaIngest:
+    MediaIngest:
         handler: src/Lambda/LambdaApplication.php
         description: 'Handle image upload on S3'
         timeout: 10
@@ -70,7 +70,7 @@ functions:
                   bucket: medias
                   event: s3:ObjectCreated:*
 
-    videoIngest:
+    VideoIngest:
         handler: src/Lambda/LambdaApplication.php
         description: 'Handle video uploaded on S3'
         timeout: 900
@@ -110,7 +110,7 @@ resources:
             Properties:
                 FunctionName:
                     'Fn::GetAtt':
-                        - mediaIngestLambdaFunction
+                        - MediaIngestLambdaFunction
                         - Arn
                 Principal: 's3.amazonaws.com'
                 Action: 'lambda:InvokeFunction'
@@ -141,7 +141,7 @@ resources:
             Properties:
                 FunctionName:
                     'Fn::GetAtt':
-                        - videoIngestLambdaFunction
+                        - VideoIngestLambdaFunction
                         - Arn
                 Principal: 's3.amazonaws.com'
                 Action: 'lambda:InvokeFunction'
@@ -149,7 +149,7 @@ resources:
                     Ref: AWS::AccountId
                 SourceArn: 'arn:aws:s3:::${self:custom.bucket_raw_videos}'
 
-        UsersTable:
+        UserTable:
             Type: AWS::DynamoDB::Table
             Properties:
                 TableName: ${self:custom.prefix}-user
@@ -162,6 +162,47 @@ resources:
                 ProvisionedThroughput:
                     ReadCapacityUnits: 1
                     WriteCapacityUnits: 1
+
+        MediaTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: ${self:custom.prefix}-media
+                AttributeDefinitions:
+                    - AttributeName: mediaKey
+                      AttributeType: S
+                    - AttributeName: folder
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: mediaKey
+                      KeyType: HASH
+                GlobalSecondaryIndexes:
+                    - IndexName: folderIndex
+                      KeySchema:
+                          - AttributeName: folder
+                            KeyType: HASH
+                      Projection:
+                          ProjectionType: ALL
+                      ProvisionedThroughput:
+                          ReadCapacityUnits: 1
+                          WriteCapacityUnits: 1
+                ProvisionedThroughput:
+                    ReadCapacityUnits: 1
+                    WriteCapacityUnits: 1
+
+        AlbumTable:
+            Type: AWS::DynamoDB::Table
+            Properties:
+                TableName: ${self:custom.prefix}-album
+                AttributeDefinitions:
+                    - AttributeName: slug
+                      AttributeType: S
+                KeySchema:
+                    - AttributeName: slug
+                      KeyType: HASH
+                ProvisionedThroughput:
+                    ReadCapacityUnits: 1
+                    WriteCapacityUnits: 1
+
 # Exclude files from deployment
 package:
     exclude:

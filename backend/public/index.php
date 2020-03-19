@@ -20,6 +20,11 @@ if ($trustedHosts = $_SERVER['TRUSTED_HOSTS'] ?? $_ENV['TRUSTED_HOSTS'] ?? false
     Request::setTrustedHosts([$trustedHosts]);
 }
 
+$_SERVER['SCRIPT_NAME'] = '/dev/index.php';
+if (strpos($_SERVER['REQUEST_URI'], '/dev') === false) {
+    $_SERVER['REQUEST_URI'] = '/dev'.$_SERVER['REQUEST_URI'];
+}
+
 $kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
 $request = Request::createFromGlobals();
 $response = $kernel->handle($request);

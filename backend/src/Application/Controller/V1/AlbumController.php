@@ -100,6 +100,9 @@ class AlbumController extends AbstractController
     }
 
     /**
+     * FRONT CALL THE URL WITH // ...
+     *
+     * @Route("//album/{slug}", methods={"GET"})
      * @Route("/album/{slug}", methods={"GET"})
      * @IsGranted("ROLE_USER")
      */

@@ -6,6 +6,9 @@ namespace Album\Domain\Media;
 
 interface MediaStorageInterface
 {
+    const LOCATION_MEDIAS = 'medias';
+    const LOCATION_RAW_VIDEOS = 'raw_videos';
+
     public function getUrisToAccessStore(string $key, int $type = MediaEntity::TYPE_IMAGE): array;
 
     public function getUriToAccessImageProxy(string $key, ?int $width = null, ?int $height = null): string;

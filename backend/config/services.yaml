@@ -45,7 +45,6 @@ services:
 
     Album\Application\Storage\S3Storage:
         arguments:
-            $albumBucket: '%env(ALBUM_BUCKET)%'
             $proxyImage: '%env(PROXY_IMAGE)%'
             $keyPairId: '%env(KEY_PAIR_ID)%'
             $awsPk: '%env(AWS_PK)%'
@@ -58,8 +57,8 @@ services:
 
     Album\Application\Ingest\MediaIngestHandler:
         tags:
-            - { name: app.lambda, functionName: 'mediaIngest' }
+            - { name: app.lambda, functionName: 'MediaIngest' }
 
     Album\Application\Ingest\VideoIngestHandler:
         tags:
-            - { name: app.lambda, functionName: 'videoIngest' }
+            - { name: app.lambda, functionName: 'VideoIngest' }

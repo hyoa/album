@@ -20,3 +20,7 @@ cs-fix: ## Fix code style
 
 cs-ci: ## Run Continuous Integration code style check
 	vendor/bin/php-cs-fixer fix --dry-run --using-cache=no --verbose
+
+.PHONY: deploy
+deploy: ##Deploy
+	./build.sh && cd lambda_build && serverless deploy && cd ..

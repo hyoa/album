@@ -16,28 +16,32 @@ class S3Storage implements MediaStorageInterface
 
     protected ClockInterface $clock;
 
-    protected string $albumBucket;
-
     protected string $proxyImage;
 
     protected string $keyPairId;
 
     protected string $awsPk;
 
+    protected string $mediaStorageLocation;
+
+    protected string $videoRawStorageLocation;
+
     public function __construct(
         ClockInterface $clock,
         S3Client $s3Client,
-        string $albumBucket,
         string $proxyImage,
         string $keyPairId,
-        string $awsPk
+        string $awsPk,
+        string $mediaStorageLocation,
+        string $videoRawStorageLocation
     ) {
         $this->clock = $clock;
         $this->s3Client = $s3Client;
-        $this->albumBucket = $albumBucket;
         $this->proxyImage = $proxyImage;
         $this->keyPairId = $keyPairId;
         $this->awsPk = $awsPk;
+        $this->mediaStorageLocation = $mediaStorageLocation;
+        $this->videoRawStorageLocation = $videoRawStorageLocation;
     }
 
     public function generateSignedUri(string $key, string $location, string $commandType): string
@@ -55,7 +59,7 @@ class S3Storage implements MediaStorageInterface
     public function getUrisToAccessStore(string $key, int $type = MediaEntity::TYPE_IMAGE): array
     {
         if ($type === MediaEntity::TYPE_VIDEO) {
-            $uri = $this->generateSignedUri($key, 'medias', 'GetObject');
+            $uri = $this->generateSignedUri($key, self::LOCATION_MEDIAS, 'GetObject');
 
             return [
                 'small' => $uri,
@@ -76,22 +80,25 @@ class S3Storage implements MediaStorageInterface
         $this->writePkIntoFile();
         $signer = new UrlSigner($this->keyPairId, '/tmp/aws-key.pem');
         $data = [
-            'bucket' => $this->getBucket('medias'),
+            'bucket' => $this->getBucket(self::LOCATION_MEDIAS),
             'key' => $key,
+            'edits' => [
+                'rotate' => null
+            ]
         ];
 
         if (is_int($width) || is_int($height)) {
-            $edits = ['resize' => ['fit' => 'cover']];
+            $data['edits']['resize'] = [];
+            $data['edits']['resize']['fit'] = 'cover';
+
 
             if (is_int($width)) {
-                $edits['resize']['width'] = $width;
+                $data['edits']['resize']['width'] = $width;
             }
 
             if (is_int($height)) {
-                $edits['resize']['height'] = $height;
+                $data['edits']['resize']['height'] = $height;
             }
-
-            $data['edits'] = $edits;
         }
 
         $json = (string) json_encode($data);
@@ -137,8 +144,15 @@ EOT;
         }
     }
 
-    protected function getBucket(string $suffix): string
+    protected function getBucket(string $location): string
     {
-        return $this->albumBucket.'-'.$suffix;
+        switch ($location) {
+            case self::LOCATION_MEDIAS:
+                return $this->mediaStorageLocation;
+            case self::LOCATION_RAW_VIDEOS:
+                return $this->videoRawStorageLocation;
+            default:
+                throw new \Exception('Invalid storage location');
+        }
     }
 }

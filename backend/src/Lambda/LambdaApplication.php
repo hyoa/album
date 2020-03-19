@@ -14,7 +14,7 @@ class LambdaApplication implements Handler
 
     public function __construct()
     {
-        $this->kernel = new Kernel('dev', true);
+        $this->kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
     }
 
     public function run(Context $context, array $payload): array
@@ -31,7 +31,9 @@ class LambdaApplication implements Handler
 
     public function handle($event, Context $context)
     {
-        return $this->run($context, $event);
+        $this->run($context, $event);
+
+        return true;
     }
 }
 
