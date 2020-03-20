@@ -16,15 +16,15 @@ It propose an administration panel to manager medias, albums and user and vue fo
 
 `yarn serve`
 
-#####Build
+##### Build
 
 `yarn build`
 
-#####Lint
+##### Lint
 
 `yarn lint`
 
-#####Tests
+##### Tests
 
 `yarn test:e2e` and `yarn test:e2e:ci`
 
