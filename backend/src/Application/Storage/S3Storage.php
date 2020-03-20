@@ -83,14 +83,13 @@ class S3Storage implements MediaStorageInterface
             'bucket' => $this->getBucket(self::LOCATION_MEDIAS),
             'key' => $key,
             'edits' => [
-                'rotate' => null
-            ]
+                'rotate' => null,
+            ],
         ];
 
         if (is_int($width) || is_int($height)) {
             $data['edits']['resize'] = [];
             $data['edits']['resize']['fit'] = 'cover';
-
 
             if (is_int($width)) {
                 $data['edits']['resize']['width'] = $width;

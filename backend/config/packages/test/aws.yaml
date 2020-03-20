@@ -1,0 +1,13 @@
+aws:
+    region: '%env(AWS_REGION)%'
+    credentials:
+        key: '%env(AWS_KEY)%'
+        secret: '%env(AWS_SECRET)%'
+
+    DynamoDb:
+        region: 'local'
+        version: "latest"
+        endpoint: 'http://localhost:8000'
+    S3:
+        region: '%env(AWS_REGION)%'
+        version: "latest"

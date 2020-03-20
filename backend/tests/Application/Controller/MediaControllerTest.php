@@ -25,7 +25,7 @@ class MediaControllerTest extends AbstractControllerTest
 
     public function testFindMediasByFolderShouldReturnAllMediasWithTheGivenFolder(): void
     {
-        $response = $this->makeApiCall('GET', '/v1/media/folder/jedi', [], self::JWT_ADMIN);
+        $response = $this->makeApiCall('GET', '/v1/medias/folder/jedi', [], self::JWT_ADMIN);
 
         $toAssert = json_decode((string) $response->getContent(), true);
 

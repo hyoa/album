@@ -188,13 +188,24 @@ class AbstractControllerTest extends WebTestCase
             ],
         ];
 
-        $this->dynamoDbClient->deleteTable(['TableName' => 'local-user']);
+        $tables = $this->dynamoDbClient->listTables()->get('TableNames');
+
+        if (in_array('local-album', $tables, true)) {
+            $this->dynamoDbClient->deleteTable(['TableName' => 'local-album']);
+        }
+
+        if (in_array('local-user', $tables, true)) {
+            $this->dynamoDbClient->deleteTable(['TableName' => 'local-user']);
+        }
+
+        if (in_array('local-media', $tables, true)) {
+            $this->dynamoDbClient->deleteTable(['TableName' => 'local-media']);
+        }
+
         $this->dynamoDbClient->createTable($paramsUser);
 
-        $this->dynamoDbClient->deleteTable(['TableName' => 'local-media']);
         $this->dynamoDbClient->createTable($paramsMedia);
 
-        $this->dynamoDbClient->deleteTable(['TableName' => 'local-album']);
         $this->dynamoDbClient->createTable($paramsAlbum);
 
         $this->dynamoDbClient->batchWriteItem($this->getUsersFixtures());
