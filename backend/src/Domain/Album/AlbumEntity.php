@@ -10,7 +10,7 @@ class AlbumEntity
 {
     public string $title;
 
-    public string $description;
+    public ?string $description;
 
     public bool $private;
 
@@ -39,7 +39,7 @@ class AlbumEntity
         }
 
         if (array_key_exists('description', $data)) {
-            $this->description = $data['description'];
+            $this->description = !empty($data['description']) ? $data['description'] : null;
         }
 
         if (array_key_exists('private', $data)) {

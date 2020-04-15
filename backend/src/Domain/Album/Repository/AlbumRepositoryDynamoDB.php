@@ -22,6 +22,14 @@ class AlbumRepositoryDynamoDB extends AbstractDynamoDBRepository implements Albu
             'isPrivate' => $albumEntity->private,
             'creationDate' => $albumEntity->creationDate->getTimestamp(),
             'slug' => $albumEntity->slug,
+            'medias' => array_map(function (AlbumMediaEntity $media): array {
+                return [
+                    'mediaKey' => $media->key,
+                    'author' => $media->author,
+                    'mediaType' => $media->type,
+                    'favorite' => $media->isFavorite,
+                ];
+            }, $albumEntity->medias),
         ]);
 
         return $albumEntity->slug;
