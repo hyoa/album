@@ -1,14 +1,11 @@
 {
   "ALBUM_STORAGE_REGION": "",
-  "ALBUM_BUCKET": "",
   "ADMIN_EMAIL": "",
   "APP_EMAIL": "",
   "IMG_PROXY": "",
   "BUCKET_NAME": "",
   "APP_URI": "",
   "FIREBASE_CHANNEL_SUFFIX": "",
-  "BUCKET_VIDEO_INPUT": "",
-  "BUCKET_VIDEO_OUTPUT": "",
   "CORS_ALLOW_ORIGIN": "",
   "APP_NAME": ""
 }
