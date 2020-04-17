@@ -143,6 +143,18 @@
     "nikic/php-parser": {
         "version": "v4.3.0"
     },
+    "nyholm/psr7": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "7c0a9352a57376f04f5444e74565102c3a23d0c7"
+        },
+        "files": [
+            "config/packages/nyholm_psr7.yaml"
+        ]
+    },
     "ocramius/package-versions": {
         "version": "1.5.1"
     },
@@ -164,6 +176,9 @@
     "php-ffmpeg/php-ffmpeg": {
         "version": "v0.14"
     },
+    "php-http/message-factory": {
+        "version": "v1.0.2"
+    },
     "phpdocumentor/reflection-common": {
         "version": "2.0.0"
     },
@@ -175,6 +190,9 @@
     },
     "phpspec/prophecy": {
         "version": "v1.10.2"
+    },
+    "phpspec/prophecy-phpunit": {
+        "version": "v2.0.0"
     },
     "phpstan/phpstan": {
         "version": "0.12.12"
@@ -229,6 +247,9 @@
     "psr/event-dispatcher": {
         "version": "1.0.0"
     },
+    "psr/http-factory": {
+        "version": "1.0.1"
+    },
     "psr/http-message": {
         "version": "1.0.1"
     },
@@ -243,6 +264,9 @@
     },
     "riverline/multipart-parser": {
         "version": "2.0.8"
+    },
+    "sebastian/code-unit": {
+        "version": "1.0.0"
     },
     "sebastian/code-unit-reverse-lookup": {
         "version": "2.0.0"
