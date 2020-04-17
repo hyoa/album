@@ -70,7 +70,7 @@ class AlbumControllerTest extends AbstractControllerTest
         self::assertTrue($result['private']);
 
         $toAssert = $this->findOneInDatabase('local-album', ['slug' => $result['slug']]);
-        self::assertCount(6, $toAssert);
+        self::assertCount(7, $toAssert);
     }
 
     public function testShouldEditAnAlbum(): void

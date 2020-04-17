@@ -39,7 +39,7 @@ class AlbumEntity
         }
 
         if (array_key_exists('description', $data)) {
-            $this->description = !empty($data['description']) ? $data['description'] : null;
+            $this->description = $data['description'] !== '' ? $data['description'] : null;
         }
 
         if (array_key_exists('private', $data)) {
