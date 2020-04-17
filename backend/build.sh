@@ -15,6 +15,7 @@ cp -r $PWD/tests $PWD/lambda_build/tests
 cp -r $PWD/var $PWD/lambda_build/var
 cp -r $PWD/templates $PWD/lambda_build/templates
 cp -r $PWD/bin $PWD/lambda_build/bin
+cp -r $PWD/php $PWD/lambda_build/php
 cp  $PWD/symfony.lock $PWD/lambda_build/symfony.lock
 cp  $PWD/.env $PWD/lambda_build/.env
 
