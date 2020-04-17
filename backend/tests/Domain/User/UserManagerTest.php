@@ -46,6 +46,7 @@ class UserManagerTest extends TestCase
 
     const ADMIN_EMAIL = 'admin@admin.test';
     const APP_EMAIL = 'app@app.test';
+    const APP_NAME = 'AppName';
 
     public function setUp(): void
     {
@@ -82,7 +83,7 @@ class UserManagerTest extends TestCase
         $email = (new Email())
             ->from(self::ADMIN_EMAIL)
             ->to(...['kenobi@jedi.rep', 'windu@jedi.rep'])
-            ->subject('Pauline&Jules - Invitation')
+            ->subject('AppName - Invitation')
             ->text($mailContent)
         ;
 
@@ -301,7 +302,7 @@ class UserManagerTest extends TestCase
         $email = (new Email())
             ->from(self::APP_EMAIL)
             ->to($user->email)
-            ->subject('pauline-jules.fr - Mot de passe oublié')
+            ->subject('AppName - Mot de passe oublié')
             ->text('Utiliser le lien suivant pour changer votre mot de passe http://test.com?token='.$token)
         ;
 
@@ -387,7 +388,8 @@ class UserManagerTest extends TestCase
             $clock,
             $this->jwtHelperMock->reveal(),
             self::APP_EMAIL,
-            self::ADMIN_EMAIL
+            self::ADMIN_EMAIL,
+            self::APP_NAME
         );
     }
 }

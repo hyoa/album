@@ -15,6 +15,9 @@ use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Prophet;
 
+/**
+ * @group unit
+ */
 class MediaManagerTest extends TestCase
 {
     protected Prophet $prophet;

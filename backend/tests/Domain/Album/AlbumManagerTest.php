@@ -16,6 +16,9 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 
+/**
+ * @group unit
+ */
 class AlbumManagerTest extends TestCase
 {
     /** @var ObjectProphecy|AlbumRepositoryInterface */

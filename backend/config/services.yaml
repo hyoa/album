@@ -31,6 +31,7 @@ services:
     Album\Domain\User\UserManager:
         $adminEmail: '%env(ADMIN_EMAIL)%'
         $appEmail: '%env(APP_EMAIL)%'
+        $appName: '%env(APP_NAME)%'
 
     Album\Application\Helper\JWTHelper:
         $secret: '%env(APP_SECRET)%'

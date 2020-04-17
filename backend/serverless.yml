@@ -15,12 +15,10 @@ provider:
         ALBUM_STORAGE_REGION: ${file(../config.${self:provider.stage}.json):ALBUM_STORAGE_REGION}
         AWS_KEY: ${ssm:/album/${self:provider.stage}/api-key}
         AWS_SECRET: ${ssm:/album/${self:provider.stage}/api-secret}
-        ALBUM_MONGO_URI: ''
         MEDIAS_BUCKET: ${self:custom.bucket_medias}
-        ALBUM_MONGO_DATABASE_NAME: ''
         MAILER_DSN: sendgrid://${ssm:/album/${self:provider.stage}/sendgrid-key}@default
-        ADMIN_EMAIL:  ${file(../config.${self:provider.stage}.json):ADMIN_EMAIL}
-        APP_EMAIL:  ${file(../config.${self:provider.stage}.json):APP_EMAIL}
+        ADMIN_EMAIL: ${file(../config.${self:provider.stage}.json):ADMIN_EMAIL}
+        APP_EMAIL: ${file(../config.${self:provider.stage}.json):APP_EMAIL}
         ALBUM_AUTH_SECRET: ${ssm:/album/${self:provider.stage}/auth-secret}
         PROXY_IMAGE: ${file(../config.${self:provider.stage}.json):IMG_PROXY}
         KEY_PAIR_ID: ${ssm:/album/${self:provider.stage}/key-pair-id}
@@ -33,6 +31,7 @@ provider:
         PROJECT_STAGE: ${self:provider.stage}
         TABLE_PREFIX: ${self:custom.prefix}
         CORS_ALLOW_ORIGIN: ${file(../config.${self:provider.stage}.json):CORS_ALLOW_ORIGIN}
+        APP_NAME: ${file(../config.${self:provider.stage}.json):APP_NAME}
     iamRoleStatements:
         - Effect: Allow
           Action:
