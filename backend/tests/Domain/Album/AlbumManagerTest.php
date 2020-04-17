@@ -14,6 +14,7 @@ use Album\Domain\Media\MediaStorageInterface;
 use Album\Tests\TestUtility\TestClock;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
@@ -21,6 +22,8 @@ use Prophecy\Prophecy\ObjectProphecy;
  */
 class AlbumManagerTest extends TestCase
 {
+    use ProphecyTrait;
+
     /** @var ObjectProphecy|AlbumRepositoryInterface */
     protected ObjectProphecy $albumRepositoryMock;
 
