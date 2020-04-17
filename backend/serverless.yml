@@ -9,16 +9,16 @@ provider:
     name: aws
     region: eu-west-2
     runtime: provided
-    stage: dev
+    stage: ${opt:stage, 'dev'}
     environment:
         APP_ENV: prod
         ALBUM_STORAGE_REGION: ${file(../config.${self:provider.stage}.json):ALBUM_STORAGE_REGION}
         AWS_KEY: ${ssm:/album/${self:provider.stage}/api-key}
         AWS_SECRET: ${ssm:/album/${self:provider.stage}/api-secret}
-        ALBUM_MONGO_URI: ${ssm:/album/${self:provider.stage}/mongo-uri}
+        ALBUM_MONGO_URI: ''
         MEDIAS_BUCKET: ${self:custom.bucket_medias}
-        ALBUM_MONGO_DATABASE_NAME:  ${file(../config.${self:provider.stage}.json):ALBUM_MONGO_DATABASE_NAME}
-        SENDGRID_API_KEY: ${ssm:/album/${self:provider.stage}/sendgrid-key}
+        ALBUM_MONGO_DATABASE_NAME: ''
+        MAILER_DSN: sendgrid://${ssm:/album/${self:provider.stage}/sendgrid-key}@default
         ADMIN_EMAIL:  ${file(../config.${self:provider.stage}.json):ADMIN_EMAIL}
         APP_EMAIL:  ${file(../config.${self:provider.stage}.json):APP_EMAIL}
         ALBUM_AUTH_SECRET: ${ssm:/album/${self:provider.stage}/auth-secret}
@@ -32,6 +32,7 @@ provider:
         PROJECT_NAME: ${self:service}
         PROJECT_STAGE: ${self:provider.stage}
         TABLE_PREFIX: ${self:custom.prefix}
+        CORS_ALLOW_ORIGIN: ${file(../config.${self:provider.stage}.json):CORS_ALLOW_ORIGIN}
     iamRoleStatements:
         - Effect: Allow
           Action:
@@ -40,6 +41,10 @@ provider:
         - Effect: Allow
           Action:
               - logs:*
+          Resource: '*'
+        - Effect: Allow
+          Action:
+              - dynamodb:*
           Resource: '*'
     tags:
         project: ${self:service}-${self:provider.stage}
@@ -159,9 +164,7 @@ resources:
                 KeySchema:
                     - AttributeName: email
                       KeyType: HASH
-                ProvisionedThroughput:
-                    ReadCapacityUnits: 1
-                    WriteCapacityUnits: 1
+                BillingMode: PAY_PER_REQUEST
 
         MediaTable:
             Type: AWS::DynamoDB::Table
@@ -182,12 +185,7 @@ resources:
                             KeyType: HASH
                       Projection:
                           ProjectionType: ALL
-                      ProvisionedThroughput:
-                          ReadCapacityUnits: 1
-                          WriteCapacityUnits: 1
-                ProvisionedThroughput:
-                    ReadCapacityUnits: 1
-                    WriteCapacityUnits: 1
+                BillingMode: PAY_PER_REQUEST
 
         AlbumTable:
             Type: AWS::DynamoDB::Table
@@ -199,9 +197,7 @@ resources:
                 KeySchema:
                     - AttributeName: slug
                       KeyType: HASH
-                ProvisionedThroughput:
-                    ReadCapacityUnits: 1
-                    WriteCapacityUnits: 1
+                BillingMode: PAY_PER_REQUEST
 
 # Exclude files from deployment
 package:

@@ -22,5 +22,8 @@ cs-ci: ## Run Continuous Integration code style check
 	vendor/bin/php-cs-fixer fix --dry-run --using-cache=no --verbose
 
 .PHONY: deploy
-deploy: ##Deploy
-	./build.sh && cd lambda_build && serverless deploy && cd ..
+deploy-dev: ##Deploy
+	./build.sh && cd lambda_build && serverless deploy --stage dev && cd ..
+
+deploy-prod: ##Deploy
+	./build.sh && cd lambda_build && serverless deploy --stage prod && cd ..

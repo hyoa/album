@@ -61,10 +61,6 @@ class Kernel extends BaseKernel implements CompilerPassInterface
 
     public function getCacheDir()
     {
-        if (getenv('LAMBDA_TASK_ROOT') !== false) {
-            return '/tmp/cache/';
-        }
-
         return parent::getCacheDir();
     }
 
