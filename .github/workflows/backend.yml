@@ -32,7 +32,7 @@ jobs:
       env:
         PRIVATE_PEM: ${{secrets.private_pem_test}}
 
-    - name: Writing keys
+    - name: Writing PUBLIC_PEM
       run: 'echo "$PUBLIC_PEM" > ./backend/config/jwt/public.pem'
       shell: bash
       env:
