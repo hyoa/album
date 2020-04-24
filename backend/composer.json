@@ -1,6 +1,8 @@
 {
     "type": "project",
     "license": "proprietary",
+    "name": "hyoa/album-backend",
+    "description": "Backend for the album",
     "require": {
         "php": "^7.4",
         "ext-ctype": "*",
