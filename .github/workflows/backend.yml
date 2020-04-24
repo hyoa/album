@@ -26,6 +26,9 @@ jobs:
       run: composer install --prefer-dist --no-progress --no-suggest
       working-directory: ./backend
 
+    - name: Writing keys
+      run: ${{ secrets.private_pem_test }} > ./backend/config/jwt/private.pem && ${{ secrets.public_pem_test }} > ./backend/config/jwt/public.pem
+
     - name: Run test suite
       run: make test
       working-directory: ./backend
