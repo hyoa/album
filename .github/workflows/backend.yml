@@ -39,7 +39,7 @@ jobs:
         PUBLIC_PEM: ${{secrets.public_pem_test}}
     
     - name: Cleaning dependencies removed at deployment
-      run: 'sh ./clean_dependencies.sh'
+      run: 'sh ./clean_dependencies.sh $PWD'
       working-directory: ./backend
 
     - name: Run test suite

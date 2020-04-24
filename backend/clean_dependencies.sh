@@ -2,10 +2,8 @@
 
 if [[ -z "$1" ]]
 then
-  echo 'no arg'
     path=PWD
 else
-    echo 'args'
     path=$1
 fi
 
