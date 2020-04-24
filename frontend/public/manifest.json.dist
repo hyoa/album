@@ -1,6 +1,6 @@
 {
-  "name": "Pauline & Jules",
-  "short_name": "Pauline&Jules",
+  "name": "SITE_TITLE",
+  "short_name": "SITE_SHORT_TITLE",
   "icons": [
     {
       "src": "./img/icons/logo-192x192.png",

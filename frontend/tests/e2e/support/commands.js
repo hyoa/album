@@ -14,7 +14,7 @@ Cypress.Commands.add('login', (email, password) => {
   const apiUri = Cypress.env('VUE_APP_API_URI')
 
   return cy
-    .request('POST', `${apiUri}/user/login`, { email: 'jmatsounga@gmail.com', password: '###' })
+    .request('POST', `${apiUri}/user/login`, { email: 'test@test.com', password: '###' })
     .then(({ body: { token } }) => {
       window.localStorage.setItem('album-token', token)
     })
