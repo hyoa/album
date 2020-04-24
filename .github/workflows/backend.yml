@@ -42,4 +42,4 @@ jobs:
       run: make test
       working-directory: ./backend
       env:
-        AWS_PK: ${{secrets.aws_pk_test}}
+        AWS_PK: ${{secrets.aws_pk_secret}}

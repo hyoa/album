@@ -139,6 +139,7 @@ class S3Storage implements MediaStorageInterface
 EOT;
 
         if (!file_exists('/tmp/aws-key.pem')) {
+            dump($key);
             file_put_contents('/tmp/aws-key.pem', $key);
         }
     }
