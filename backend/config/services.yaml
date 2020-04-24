@@ -15,6 +15,10 @@ services:
             $tablePrefix: '%env(TABLE_PREFIX)%'
             $mediaStorageLocation: '%env(MEDIAS_BUCKET)%'
             $videoRawStorageLocation: '%env(BUCKET_VIDEO_INPUT)%'
+            $adminEmail: '%env(ADMIN_EMAIL)%'
+            $appEmail: '%env(APP_EMAIL)%'
+            $appName: '%env(APP_NAME)%'
+            $appUri: '%env(APP_URI)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -27,11 +31,6 @@ services:
     Album\Application\Controller\:
         resource: '../src/Application/Controller'
         tags: ['controller.service_arguments']
-
-    Album\Domain\User\UserManager:
-        $adminEmail: '%env(ADMIN_EMAIL)%'
-        $appEmail: '%env(APP_EMAIL)%'
-        $appName: '%env(APP_NAME)%'
 
     Album\Application\Helper\JWTHelper:
         $secret: '%env(APP_SECRET)%'

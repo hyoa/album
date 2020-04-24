@@ -16,6 +16,7 @@ use Album\Domain\User\Exception\UserPasswordNotEqualsException;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class UserManager
 {
@@ -29,20 +30,26 @@ class UserManager
 
     protected JWTTokenManagerInterface $jwtManager;
 
+    protected TranslatorInterface $translator;
+
     protected string $appEmail;
 
     protected string $adminEmail;
 
     protected string $appName;
 
+    protected string $appUri;
+
     public function __construct(
         UserRepositoryInterface $userRepository,
         MailerInterface $mailer,
         ClockInterface $clock,
         JWTHelper $jwtHelper,
+        TranslatorInterface $translator,
         string $appEmail,
         string $adminEmail,
-        string $appName
+        string $appName,
+        string $appUri
     ) {
         $this->userRepository = $userRepository;
         $this->mailer = $mailer;
@@ -51,6 +58,8 @@ class UserManager
         $this->clock = $clock;
         $this->jwtHelper = $jwtHelper;
         $this->appName = $appName;
+        $this->translator = $translator;
+        $this->appUri = $appUri;
     }
 
     public function register(string $email, string $name, string $password, string $passwordCheck): UserEntity
@@ -82,8 +91,8 @@ class UserManager
         $email = (new Email())
             ->to($this->adminEmail)
             ->from($this->appEmail)
-            ->subject('Album - Nouvelle inscription')
-            ->text($user->name.' a créé un compte avec l\'adresse email '.$user->email.' et attend d\'être validé.')
+            ->subject($this->translator->trans('mail.inscription.subject', ['appName' => $this->appName]))
+            ->text($this->translator->trans('mail.inscription.message', ['name' => $user->name, 'email' => $user->email]))
         ;
 
         $this->mailer->send($email);
@@ -118,8 +127,8 @@ class UserManager
     {
         $this->changeRole($email, $role);
 
-        $subject = sprintf('%s - Compte activé', $this->appName);
-        $message = 'Votre compte a été activé. Vous pouvez dorénavant vous connecter';
+        $subject = $this->translator->trans('mail.activation.subject', ['appName' => $this->appName]);
+        $message = $this->translator->trans('mail.activation.message');
 
         $mail = (new Email())
             ->from($this->appEmail)
@@ -160,8 +169,8 @@ class UserManager
         $email = (new Email())
             ->from($this->appEmail)
             ->to($user->email)
-            ->subject(sprintf('%s - Mot de passe oublié', $this->appName))
-            ->text('Utiliser le lien suivant pour changer votre mot de passe '.$uri)
+            ->subject($this->translator->trans('mail.resetPassword.subject', ['appName' => $this->appName]))
+            ->text($this->translator->trans('mail.resetPassword.message', ['uri' => $uri]))
         ;
 
         $this->mailer->send($email);
@@ -228,12 +237,12 @@ class UserManager
             }
         }
 
-        $message = sprintf('Je vous invite à découvrir notre album photos à l\'adresse suivante: %s. A très vite !', (string) getenv('APP_URI'));
+        $message = $this->translator->trans('mail.invitation.message', ['uri' => $this->appUri]);
 
         $email = (new Email())
             ->from($this->adminEmail)
             ->to(...$emailsAsArray)
-            ->subject(sprintf('%s - Invitation', $this->appName))
+            ->subject($this->translator->trans('mail.invitation.subject', ['appName' => $this->appName]))
             ->text($message)
         ;
 

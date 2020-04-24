@@ -24,6 +24,7 @@ use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Prophet;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @group unit
@@ -44,9 +45,13 @@ class UserManagerTest extends TestCase
     /** @var ObjectProphecy|JWTTokenManagerInterface */
     protected ObjectProphecy $jwtManagerMock;
 
+    /** @var ObjectProphecy|TranslatorInterface */
+    protected ObjectProphecy $translatorMock;
+
     const ADMIN_EMAIL = 'admin@admin.test';
     const APP_EMAIL = 'app@app.test';
     const APP_NAME = 'AppName';
+    const APP_URI = 'https://album-test.com';
 
     public function setUp(): void
     {
@@ -55,6 +60,7 @@ class UserManagerTest extends TestCase
         $this->mailerMock = $this->prophet->prophesize(MailerInterface::class);
         $this->jwtHelperMock = $this->prophet->prophesize(JWTHelper::class);
         $this->jwtManagerMock = $this->prophet->prophesize(JWTTokenManagerInterface::class);
+        $this->translatorMock = $this->prophet->prophesize(TranslatorInterface::class);
     }
 
     public function testShouldReturnTheListOfUsers(): void
@@ -73,17 +79,24 @@ class UserManagerTest extends TestCase
         self::assertContains($user2, $toAssert);
     }
 
+    /**
+     * @throws \Symfony\Component\Mailer\Exception\TransportExceptionInterface
+     */
     public function testShouldSendMailToAListOfEmails(): void
     {
         $user = new UserEntity();
         $user->email = 'yoda@jedi.rep';
 
         $mailContent = sprintf('Je vous invite à découvrir notre album photos à l\'adresse suivante: %s. A très vite !', (string) getenv('APP_URI'));
+        $mailSubject = 'AppName - Invitation';
+
+        $this->translatorMock->trans('mail.invitation.message', Argument::any())->willReturn($mailContent);
+        $this->translatorMock->trans('mail.invitation.subject', Argument::any())->willReturn($mailSubject);
 
         $email = (new Email())
             ->from(self::ADMIN_EMAIL)
             ->to(...['kenobi@jedi.rep', 'windu@jedi.rep'])
-            ->subject('AppName - Invitation')
+            ->subject($mailSubject)
             ->text($mailContent)
         ;
 
@@ -110,11 +123,17 @@ class UserManagerTest extends TestCase
         $this->userRepositoryMock->insert(Argument::any())->shouldBeCalledTimes(1);
         $this->userRepositoryMock->findByEmail(Argument::any())->willReturn([]);
 
+        $mailSubject = 'AppName - Nouvell inscription';
+        $mailContent = 'yoda a créé un compte avec l\'adresse email yoda@jedi.rep et attend d\'être validé.';
+
+        $this->translatorMock->trans('mail.inscription.message', Argument::any())->willReturn($mailContent);
+        $this->translatorMock->trans('mail.inscription.subject', Argument::any())->willReturn($mailSubject);
+
         $email = (new Email())
             ->to(self::ADMIN_EMAIL)
             ->from(self::APP_EMAIL)
-            ->subject('Album - Nouvelle inscription')
-            ->text('yoda a créé un compte avec l\'adresse email yoda@jedi.rep et attend d\'être validé.')
+            ->subject($mailSubject)
+            ->text($mailContent)
         ;
 
         $this->mailerMock->send($email)->shouldBeCalledTimes(1);
@@ -299,11 +318,17 @@ class UserManagerTest extends TestCase
 
         $clock = new TestClock(new \DateTimeImmutable('2019-01-01 12:34'));
 
+        $mailSubject = 'AppName - Mot de passe oublié';
+        $mailContent = sprintf('Utiliser le lien suivant pour changer votre mot de passe http://test.com?token=%s', $token);
+
+        $this->translatorMock->trans('mail.resetPassword.message', Argument::any())->willReturn($mailContent);
+        $this->translatorMock->trans('mail.resetPassword.subject', Argument::any())->willReturn($mailSubject);
+
         $email = (new Email())
             ->from(self::APP_EMAIL)
             ->to($user->email)
-            ->subject('AppName - Mot de passe oublié')
-            ->text('Utiliser le lien suivant pour changer votre mot de passe http://test.com?token='.$token)
+            ->subject($mailSubject)
+            ->text($mailContent)
         ;
 
         $this->mailerMock->send($email)->shouldBeCalledTimes(1);
@@ -387,9 +412,11 @@ class UserManagerTest extends TestCase
             $this->mailerMock->reveal(),
             $clock,
             $this->jwtHelperMock->reveal(),
+            $this->translatorMock->reveal(),
             self::APP_EMAIL,
             self::ADMIN_EMAIL,
-            self::APP_NAME
+            self::APP_NAME,
+            self::APP_URI
         );
     }
 }
