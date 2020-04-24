@@ -40,7 +40,6 @@ jobs:
     
     - name: Cleaning dependencies removed at deployment
       run: 'sh ./clean_dependencies.sh'
-      shell: bash
       working-directory: ./backend
 
     - name: Run test suite

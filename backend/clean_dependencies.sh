@@ -7,6 +7,8 @@ else
     path=$1
 fi
 
+echo $PWD
+
 echo "Cleaning useless code from vendor"
 rm -rf $path/vendor/php-ffmpeg/php-ffmpeg/tests/
 mkdir $path/vendor/aws/aws-sdk-php/src/data_to_keep
