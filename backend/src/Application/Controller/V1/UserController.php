@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/v1")
@@ -51,8 +52,14 @@ class UserController extends AbstractController
     /**
      * @Route("/user/register", methods={"POST"})
      */
-    public function register(Request $request, UserManager $userManager, NotificationInterface $notification): JsonResponse
-    {
+    public function register(
+        Request $request,
+        UserManager $userManager,
+        NotificationInterface $notification,
+        TranslatorInterface $translator,
+        string $appUri,
+        string $appName
+    ): JsonResponse {
         $data = (array) json_decode((string) $request->getContent(), true);
 
         $email = (string) filter_var($data['email'], FILTER_VALIDATE_EMAIL);
@@ -75,9 +82,9 @@ class UserController extends AbstractController
         }
 
         $notification->sendMessageToChannel(
-            'Nouvel utilisateur !',
-            sprintf('%s vient de s\'inscrire', $email),
-            sprintf('%s/#/admin/users', (string) getenv('APP_URI')),
+            $translator->trans('notification.user.new.title', ['appName' => $appName]),
+            $translator->trans('notification.user.new.message', ['email' => $email]),
+            sprintf('%s/#/admin/users', $appUri),
             'admin'
         );
 

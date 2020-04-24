@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/v1")
@@ -192,8 +193,11 @@ class AlbumController extends AbstractController
         Request $request,
         AlbumManager $albumManager,
         NotificationInterface $notification,
+        TranslatorInterface $translator,
         string $slug,
-        string $type
+        string $type,
+        string $appName,
+        string $appUri
     ): Response {
         $data = json_decode((string) $request->getContent(), true);
         $dispatchNotification = false;
@@ -225,9 +229,9 @@ class AlbumController extends AbstractController
 
         if ($dispatchNotification) {
             $notification->sendMessageToChannel(
-                'Un nouvel album vient d\'être créé !',
-                sprintf('%s vient d\'être ajouté par %s', $album->title, $album->author),
-                sprintf('%s/#/album/%s', (string) getenv('APP_URI'), $album->slug),
+                $translator->trans('notification.album.new.title', ['appName' => $appName]),
+                $translator->trans('notification.album.new.message', ['albumTitle' => $album->title, 'albumAuthor' => $album->author]),
+                sprintf('%s/#/album/%s', $appUri, $album->slug),
                 NotificationInterface::CHANNEL_ALBUM
             );
         }
