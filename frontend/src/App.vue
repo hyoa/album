@@ -63,6 +63,7 @@ export default {
   },
   async created () {
     const token = localStorage.getItem('album-token')
+    document.title = process.env.VUE_APP_SITE_TITLE
 
     if (token) {
       this.$store.commit('setToken', token)

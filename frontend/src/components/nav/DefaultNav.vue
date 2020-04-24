@@ -1,7 +1,7 @@
 <template>
   <nav class="nav flex justify-between items-center py-3 px-4 relative">
     <div>
-      <router-link :to="{ name: 'home' }" class="text-3xl no-underline text-black font-manuscript text-primary">Pauline & Jules</router-link>
+      <router-link :to="{ name: 'home' }" class="text-3xl no-underline text-black font-manuscript text-primary">{{ title }}</router-link>
     </div>
     <i @click="isMenuOpen = !isMenuOpen" class="material-icons text-3xl text-darker-primary">account_circle</i>
     <div v-if="isMenuOpen" class="menu">
@@ -29,7 +29,8 @@ export default {
   },
   data () {
     return {
-      isMenuOpen: false
+      isMenuOpen: false,
+      title: process.env.VUE_APP_SITE_TITLE
     }
   },
   methods: {
