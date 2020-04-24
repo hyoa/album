@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
 
@@ -37,6 +37,11 @@ jobs:
       shell: bash
       env:
         PUBLIC_PEM: ${{secrets.public_pem_test}}
+    
+    - name: Cleaning dependencies removed at deployment
+      run: 'sh ./clean_dependencies.sh'
+      shell: bash
+      working-directory: ./backend
 
     - name: Run test suite
       run: make test
