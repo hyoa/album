@@ -26,8 +26,17 @@ jobs:
       run: composer install --prefer-dist --no-progress --no-suggest
       working-directory: ./backend
 
+    - name: Writing PRIVATE_PEM
+      run: 'echo "$PRIVATE_PEM" > ./backend/config/jwt/private.pem'
+      shell: bash
+      env:
+        PRIVATE_PEM: ${{secret.private_pem_test}}
+
     - name: Writing keys
-      run: ${{ secrets.private_pem_test }} > ./backend/config/jwt/private.pem && ${{ secrets.public_pem_test }} > ./backend/config/jwt/public.pem
+      run: 'echo "$PUBLIC_PEM" > ./backend/config/jwt/public.pem'
+      shell: bash
+      env:
+        PUBLIC_PEM: ${{secret.public_pem_test}}
 
     - name: Run test suite
       run: make test
