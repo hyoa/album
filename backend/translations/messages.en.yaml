@@ -10,7 +10,6 @@ mail:
     message: "{name} has created an account with the following mail {email}"
   invitation:
     subject: '{appName} - Invitation'
-    message: "Je vous invite à découvrir notre album photos à l'adresse suivante: {uri}. A très vite !"
     message: "I invite you discover my albums at the following adresse: {uri}. See you soon !"
 
 notification:
