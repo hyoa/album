@@ -41,3 +41,5 @@ jobs:
     - name: Run test suite
       run: make test
       working-directory: ./backend
+      env:
+        AWS_PK: ${{secrets.aws_pk_test}}
