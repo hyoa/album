@@ -7,7 +7,7 @@ else
     path=$1
 fi
 
-echo $PWD
+echo $path
 
 echo "Cleaning useless code from vendor"
 rm -rf $path/vendor/php-ffmpeg/php-ffmpeg/tests/
