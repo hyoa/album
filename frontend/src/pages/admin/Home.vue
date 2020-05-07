@@ -3,49 +3,49 @@
     <div class="px-3">
       <AdminCard>
         <template v-slot:header>
-          Albums
+          {{ $t('admin.home.albumCard.title') }}
         </template>
         <template v-slot:default>
-          <div>{{ albumsData.publicCount }} albums publics</div>
-          <div>{{ albumsData.privateCount }} albums privés</div>
+          <div>{{ albumsData.publicCount }} {{ $t('admin.home.albumCard.publicCount') }}</div>
+          <div>{{ albumsData.privateCount }} {{ $t('admin.home.albumCard.privateCount') }}</div>
         </template>
         <template v-slot:footer>
           <router-link :to="{ name: 'admin_album_list' }" class="">
-            <IconLabel icon="remove_red_eye" label="Voir" />
+            <IconLabel icon="remove_red_eye" :label="$t('admin.home.albumCard.see')" />
           </router-link>
           <router-link :to="{name: 'admin_album_add' }">
-            <IconLabel icon="add" label="Créer" />
+            <IconLabel icon="add" :label="$t('admin.home.albumCard.add')" />
           </router-link>
         </template>
       </AdminCard>
       <AdminCard class="mt-8">
         <template v-slot:header>
-          Médias
+          {{ $t('admin.home.mediaCard.title') }}
         </template>
         <template v-slot:default>
-          <div>{{ mediasData.imagesCount }} photos</div>
-          <div>{{ mediasData.videosCount }} vidéos</div>
+          <div>{{ mediasData.imagesCount }} {{ $t('admin.home.mediaCard.photos') }}</div>
+          <div>{{ mediasData.videosCount }} {{ $t('admin.home.mediaCard.videos') }}</div>
         </template>
         <template v-slot:footer>
           <router-link :to="{ name: 'admin_medias_folders_list' }">
-            <IconLabel icon="remove_red_eye" label="Voir" />
+            <IconLabel icon="remove_red_eye" :label="$t('admin.home.mediaCard.see')" />
           </router-link>
           <router-link :to="{ name: 'admin_medias_add' }">
-            <IconLabel icon="add" label="Ajouter" />
+            <IconLabel icon="add" :label="$t('admin.home.mediaCard.add')" />
           </router-link>
         </template>
       </AdminCard>
       <AdminCard class="mt-8">
         <template v-slot:header>
-          Utilisateurs
+          {{ $t('admin.home.userCard.title') }}
         </template>
         <template v-slot:default>
-          <div>{{ usersData.total }} utilisateurs</div>
-          <div>{{ usersData.unverifiedCount }} en attente de validation</div>
+          <div>{{ usersData.total }} {{ $t('admin.home.userCard.count') }}</div>
+          <div>{{ usersData.unverifiedCount }} {{ $t('admin.home.userCard.waitingValidation') }}</div>
         </template>
         <template v-slot:footer>
           <router-link :to="{ name: 'admin_users_list' }">
-            <IconLabel icon="remove_red_eye" label="Voir" />
+            <IconLabel icon="remove_red_eye" :label="$t('admin.home.userCard.see')" />
           </router-link>
         </template>
       </AdminCard>

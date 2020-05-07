@@ -1,10 +1,10 @@
 <template>
   <section>
-    <h1 class="mb-4">S'inscrire</h1>
+    <h1 class="mb-4">{{ $t('auth.registerPage.title') }}</h1>
     <form @submit.prevent="onRegister">
       <div class="mb-4">
         <label class="block text-grey-darker text-sm font-bold mb-2" for="email">
-          Email
+          {{ $t('auth.registerPage.form.email') }}
         </label>
         <input
           v-model="email"
@@ -18,28 +18,28 @@
       </div>
       <div class="mb-4">
         <label class="block text-grey-darker text-sm font-bold mb-2" for="name">
-          Nom/Prénom
+          {{ $t('auth.registerPage.form.name') }}
         </label>
         <input required v-model="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" placeholder="Jules" :class="{ 'border border-red-600': errors.name }">
         <span class="text-red-600" v-if="errors.name">Un nom/prénom doit être renseigné</span>
       </div>
       <div class="mb-6">
         <label class="block text-grey-darker text-sm font-bold mb-2" for="password">
-          Mot de passe
+          {{ $t('auth.registerPage.form.password') }}
         </label>
         <input required v-model="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="******************" :class="{ 'border border-red-600': errors.password }">
         <span class="text-red-600" v-if="errors.password">Les mot de passe ne correspondent pas</span>
       </div>
       <div class="mb-6">
         <label class="block text-grey-darker text-sm font-bold mb-2" for="passwordCheck">
-          Confirmation du mot de passe
+          {{ $t('auth.registerPage.form.passwordCheck') }}
         </label>
         <input required v-model="checkPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" id="passwordCheck" type="password" placeholder="******************" :class="{ 'border border-red-600': errors.checkPassword }">
         <span class="text-red-600" v-if="errors.checkPassword">Les mot de passe ne correspondent pas</span>
       </div>
       <div class="flex items-center justify-between">
         <SimpleAnimateButton :status="formStatus">
-          S'inscrire
+          {{ $t('auth.registerPage.form.submit') }}
         </SimpleAnimateButton>
       </div>
     </form>

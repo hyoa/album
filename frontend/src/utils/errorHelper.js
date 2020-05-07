@@ -1,12 +1,12 @@
 export default code => {
   switch (code) {
     case 11:
-      return 'Cet adresse email est déjà utilisé !'
+      return 'error.emailAlreadyUsed'
     case 20:
-      return 'Cet album existe déjà'
+      return 'error.albumAlreadyExist'
     case 21:
-      return 'Le titre ne peut pas être vide !'
+      return 'error.titleCannotBeEmpty'
     default:
-      return 'Quelque chose ne s\'est pas déroulé comme il faut !'
+      return 'error.default'
   }
 }

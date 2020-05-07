@@ -6,23 +6,23 @@
         v-model="folderName"
         id="name"
         :placeholder="folderName"
-        label="Nom du dossier"
+        :label="$t('admin.mediaFolder.form.folderName')"
         type="text"
       />
       <FormButton type="submit">
-        Mettre à jour
+        {{ $t('admin.mediaFolder.form.submit') }}
       </FormButton>
     </form>
     <div v-if="mediasSelected.length" class="sticky top-0 left-0 shadow-md rounded z-20 bg-white">
       <div class="flex justify-between items-center px-4 py-3">
-        <div class="title">{{ mediasSelected.length }} média(s) sélectionné(s)</div>
+        <div class="title">{{ $t('admin.mediaFolder.mediaSelected.count', { count: mediasSelected.length }) }}</div>
         <div>
-          <InputSimple label="Dossier" placeholder="Nouveau dossier" id="folder" type="text" v-model="newFolderName"/>
+          <InputSimple :label="$t('admin.mediaFolder.mediaSelected.form.folder')" :placeholder="$t('admin.mediaFolder.mediaSelected.form.folderPlaceholder')" id="folder" type="text" v-model="newFolderName"/>
           <button
             class="bg-transparent font-semibold py-2 px-4 border hover:border-transparent rounded"
             @click="onChangeFolder"
           >
-            Changer de dossier
+            {{ $t('admin.mediaFolder.mediaSelected.form.submit') }}
           </button>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default {
     onSubmit () {
       post('medias/folder/name', { folderToUpdate: this.$route.params.folder, newFolderName: this.folderName })
         .then(() => {
-          this.$notify({ group: 'success', text: 'Enregistrement effectué' })
+          this.$notify({ group: 'success', text: this.$t('admin.mediaFolder.notify.submitSuccess') })
         })
         .catch(({ response }) => {
           let code = null
@@ -72,7 +72,7 @@ export default {
             code = 999
           }
 
-          this.$notify({ group: 'error', text: errorHelper(code) })
+          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
         })
     },
     async onChangeFolder () {
@@ -87,7 +87,7 @@ export default {
       get(`medias/folder/${this.folderName}`)
         .then(({ data }) => {
           this.medias = data
-          this.$notify({ group: 'success', text: 'Les médias sélectionnés ont correctement été déplacés' })
+          this.$notify({ group: 'success', text: this.$t('admin.mediaFolder.notify.moveSuccess') })
         })
         .catch(({ response }) => {
           let code = null
@@ -98,7 +98,7 @@ export default {
             code = 999
           }
 
-          this.$notify({ group: 'error', text: errorHelper(code) })
+          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
         })
     }
   },

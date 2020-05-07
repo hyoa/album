@@ -12,11 +12,11 @@
           class="text-blue-500 text-underline text-sm mt-3 focus:outline-none active:outline-none border border-blue-500 p-1 rounded"
           v-if="album.description && album.description.length > 200"
         >
-          {{ readMoreLabel }}
+          {{ $t(readMoreLabel) }}
         </button>
       </div>
       <p data-e2e="album-informations" class="mt-2 text-grey-700 text-sm">
-        <span>Créé le {{ album.creationDate }} par {{ album.author }}</span>
+        <span>{{ $t('album.createAtBy', { date: album.creationDate, author: album.author }) }}</span>
       </p>
     </div>
     <Grid :medias="album.medias" :editable="false" :can-delete-media="false" />
@@ -44,7 +44,7 @@ export default {
       this.album = res.data
     } catch ({ response: { status } }) {
       if (status === 401) {
-        this.$store.commit('setFlashMessage', 'Par mesure de sécurité, vous avez été déconnecté. Vous pouvez vous reconnecter avec le formulaire ci-dessous.')
+        this.$store.commit('setFlashMessage', 'auth.alert.disconnect.message')
         localStorage.removeItem('album-token')
         this.$router.push({ name: 'auth' })
       }
@@ -53,7 +53,7 @@ export default {
   computed: {
     readMoreLabel () {
       if (this.album.description && this.album.description.length > 200) {
-        return this.readMore ? 'Cacher' : 'Lire la suite'
+        return this.readMore ? 'album.readMore.hide' : 'album.readMore.show'
       }
 
       return true

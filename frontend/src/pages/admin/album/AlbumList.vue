@@ -1,17 +1,17 @@
 <template>
   <AdminLayout>
-    <PageTitle title="Liste des albums" />
-    <InputForm label="Filtrer" placeholder="vacances" v-model="filter" />
+    <PageTitle :title="$t('admin.albumList.title')" />
+    <InputForm :label="$t('admin.albumList.form.filter')" placeholder="vacances" v-model="filter" />
     <ul>
       <ListItem
         :key="album.slug"
         v-for="album of filteredAlbum"
         :to="{ name: 'admin_album_edit', params: { slug: album.slug }}"
         :title="album.title"
-        :subtitle="`Créer par ${album.author}`"
+        :subtitle="$t('admin.albumList.item.createBy', { author: album.author })"
       >
-        <div v-if="album.medias">{{ album.medias.length }} médias </div>
-        <div v-else>Aucun médias</div>
+        <div v-if="album.medias">{{ $t('admin.albumList.item.mediasCount', { number: album.medias.length }) }}</div>
+        <div v-else>{{ $t('admin.albumList.item.noMedias') }}</div>
       </ListItem>
     </ul>
   </AdminLayout>

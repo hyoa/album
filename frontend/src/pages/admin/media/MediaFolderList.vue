@@ -1,6 +1,6 @@
 <template>
   <AdminLayout>
-    <PageTitle title="Liste des dossiers" />
+    <PageTitle :title="$t('admin.mediaFolderList.title')" />
     <ul>
       <ListItem :key="folder" v-for="folder of folders" :to="{ name: 'admin_medias_folder', params: { folder } }" :title="folder" />
     </ul>

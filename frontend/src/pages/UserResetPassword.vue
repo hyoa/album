@@ -2,24 +2,24 @@
   <div class="flex w-screen h-screen justify-center items-center">
     <div class="rounded w-1/3 shadow-md">
       <div class="px-8 pt-6 pb-8 mb-4">
-        <h1>Réinitialiser mon mot de passe</h1>
+        <h1>{{ $t('userResetPassword.title') }}</h1>
         <Alert v-if="alert.type" :type="alert.type" :message="alert.message" :title="alert.title" />
         <form @submit.prevent="onUpdatePassword" class="mt-3">
           <div class="mb-6">
             <label class="block text-grey-darker text-sm font-bold mb-2" for="password">
-              Mot de passe
+              {{ $t('userResetPassword.form.password') }}
             </label>
             <input v-model="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="******************">
           </div>
           <div class="mb-6">
             <label class="block text-grey-darker text-sm font-bold mb-2" for="passwordCheck">
-              Confirmation du mot de passe
+              {{ $t('userResetPassword.form.checkPassword') }}
             </label>
             <input v-model="checkPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" id="passwordCheck" type="password" placeholder="******************">
           </div>
           <div class="flex items-center justify-between">
             <button class="bg-blue hover:bg-blue-dark text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-              Réinitialiser mon mot de passe
+              {{ $t('userResetPassword.form.submit') }}
             </button>
           </div>
         </form>

@@ -51,7 +51,7 @@
       :class="{ 'opacity-100': !isVisible, 'opacity-0': isVisible }"
       v-if="!isMobile"
     >
-      Chargement en cours...
+      {{ $t('grid.loading') }}
     </div>
     <VueGallery
       v-if="!editable"
@@ -144,7 +144,7 @@ export default {
           return {
             href: media.uris.original,
             urlset: `${media.uris.medium} 600w, ${media.uris.original} 1000w`,
-            description: `Photo prise par ${media.author}`,
+            description: this.$t('grid.media.description', { author: media.author }),
             type: media.type === 'video' ? 'video/mp4' : 'image/jpg'
           }
         })

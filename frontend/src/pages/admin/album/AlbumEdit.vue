@@ -4,10 +4,10 @@
       <Sidebar v-if="addMediaMenuIsVisible" side="right" size="big">
         <section class="border-b px-5 py-3">
           <div class="flex justify-between items-center mb-3">
-            <h3 class="text-xl">Dossiers</h3>
+            <h3 class="text-xl">{{ $t('admin.albumEdit.sidebar.title') }}</h3>
             <span @click="addMediaMenuIsVisible = false" class="text-red-400">Fermer</span>
           </div>
-          <InputSimple v-model="folderFilter" placeholder="Rechercher un dossier"/>
+          <InputSimple v-model="folderFilter" :placeholder="$t('admin.albumEdit.sidebar.searchPlaceholder')"/>
           <ul class="foldersList">
             <li class="p-1" :class="{ 'bg-light-primary text-white' : isFolderSelected(folder) }" @click="selectFolder(folder)" v-for="folder of foldersFiltered" :key="folder">{{ folder }}</li>
           </ul>
@@ -19,9 +19,9 @@
               :status="formStatus.addToAlbum"
               v-if="mediasSelected.length"
             >
-              Ajouter
+              {{ $t('admin.albumEdit.sidebar.addButton') }}
             </SimpleAnimateButton>
-            <div class="text-sm" v-else>Sélectioner un ou plusieurs médias</div>
+            <div class="text-sm" v-else>{{ $t('admin.albumEdit.sidebar.selectMedia') }}</div>
           </div>
           <div v-if="formStatus.loadingMediaAvailable === 'ready'" class="flex flex-wrap mediasToAdd mt-3">
             <div
@@ -45,19 +45,19 @@
     </template>
     <PageTitle :title="title" />
     <form @submit.prevent="onSubmit" class="mt-3">
-      <InputSimple v-model="title" id="title" placeholder="Mon super album" label="Titre" type="text" />
-      <TextareaSimple v-model="description" id="description" placeholder="Raconte moi une histoire..." label="Description" />
-      <CheckboxSimple v-model="isPrivate" label="Privé" />
+      <InputSimple v-model="title" id="title" placeholder="Mon super album" :label="$t('admin.albumEdit.form.title')" type="text" />
+      <TextareaSimple v-model="description" id="description" placeholder="Raconte moi une histoire..." :label="$t('admin.albumEdit.form.description')" />
+      <CheckboxSimple v-model="isPrivate" :label="$t('admin.albumEdit.form.private')" />
       <div class="flex justify-between">
         <div class="w-1/2 px-1">
           <SimpleAnimateButton :status="formStatus.editAlbum">
-            Enregistrer
+            {{ $t('admin.albumEdit.form.submit') }}
           </SimpleAnimateButton>
         </div>
 
         <div class="w-1/2 px-1">
           <FormButton @click.prevent.stop="toggleAddMediaMenu">
-            Bibliothèque
+            {{ $t('admin.albumEdit.library') }}
           </FormButton>
         </div>
       </div>
@@ -65,13 +65,13 @@
     <hr class="border-t border-grey-light">
     <div v-if="mediasSelected.length > 0 && !addMediaMenuIsVisible" class="sticky pin-t pin-l shadow-md rounded z-20 bg-white">
       <div class="flex justify-between items-center px-4 py-3">
-        <div class="title">{{ mediasSelected.length }} média(s) sélectionné(s)</div>
+        <div class="title">{{ $t('admin.albumEdit.mediaSelected.count', { count: mediasSelected.length}) }}</div>
         <div>
           <SimpleAnimateButton
             @click="onRemoveFromAlbum"
             :status="formStatus.removeFromAlbum"
           >
-            Retirer de l'album
+            {{ $t('admin.albumEdit.mediaSelected.remove') }}
           </SimpleAnimateButton>
         </div>
       </div>
@@ -140,7 +140,7 @@ export default {
       const res = await get('medias/folders')
       this.folders = res.data
     } catch (e) {
-      this.$notify({ group: 'info', text: 'Cet album n\'existe pas' })
+      this.$notify({ group: 'info', text: this.$t('admin.albumEdit.notify.albumDoesNotExist') })
 
       this.$router.push({ name: 'admin_album_add' })
     }
@@ -156,7 +156,7 @@ export default {
 
       post(`album/${this.$route.params.slug}`, data)
         .then(({ data }) => {
-          this.$notify({ group: 'success', text: 'La modification a été enregistré' })
+          this.$notify({ group: 'success', text: this.$t('admin.albumEdit.notify.editSuccess') })
 
           if (data.slug !== this.$route.params.slug) {
             this.$router.push({ name: 'admin_album_edit', params: { slug: data.slug } })
@@ -170,7 +170,7 @@ export default {
             code = 999
           }
 
-          this.$notify({ group: 'error', text: errorHelper(code) })
+          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
         })
         .finally(() => {
           this.formStatus.editAlbum = 'ready'
@@ -194,7 +194,7 @@ export default {
 
       post(`album/${this.$route.params.slug}/medias/remove`, mediasObject)
         .then(({ data }) => {
-          this.$notify({ group: 'success', text: 'Les médias ont correctement été retiré' })
+          this.$notify({ group: 'success', text: this.$t('admin.albumEdit.notify.mediaRemoveSuccess') })
           this.$store.commit('resetMediaSelection')
           this.medias = data.medias
         })
@@ -206,7 +206,7 @@ export default {
             code = 999
           }
 
-          this.$notify({ group: 'error', text: errorHelper(code) })
+          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
         })
         .finally(() => {
           this.formStatus.removeFromAlbum = 'ready'
@@ -267,7 +267,7 @@ export default {
         .then(({ data: { medias } }) => {
           this.medias = medias
 
-          this.$notify({ group: 'success', text: 'Les médias ont été ajoutés' })
+          this.$notify({ group: 'success', text: this.$t('admin.albumEdit.notify.mediaAddSuccess') })
           this.$store.commit('resetMediaSelection')
         })
         .catch(({ response }) => {
@@ -278,7 +278,7 @@ export default {
             code = 999
           }
 
-          this.$notify({ group: 'success', text: errorHelper(code) })
+          this.$notify({ group: 'success', text: this.$t(errorHelper(code)) })
         })
         .finally(() => {
           this.formStatus.addToAlbum = 'ready'
