@@ -1,13 +1,13 @@
 <template>
   <AdminLayout>
-    <PageTitle title="Ajouter des médias" />
+    <PageTitle :title="$t('admin.mediaAdd.title')" />
     <div v-if="upload.state === 'running'">
       <div class="text-white">
-        <h3>Téléchargement en cours...</h3>
-        <div v-if="upload.timeRemaining">Temps restant: {{ upload.timeRemaining }}</div>
-        <div>Total: {{ upload.total }}</div>
-        <div>Réussi: {{ upload.uploaded }} </div>
-        <div>Echec: {{ upload.failed }} </div>
+        <h3>{{ $t('admin.mediaAdd.uploadRunning.title') }}</h3>
+        <div v-if="upload.timeRemaining">{{ $t('admin.mediaAdd.uploadRunning.timeRemaining', { time: upload.timeRemaining }) }}</div>
+        <div>{{ $t('admin.mediaAdd.uploadRunning.totalUploaded', { count: upload.total }) }}</div>
+        <div>{{ $t('admin.mediaAdd.uploadRunning.successUploaded', { time: upload.uploaded }) }}</div>
+        <div>{{ $t('admin.mediaAdd.uploadRunning.failUploaded', { time: upload.failed }) }}</div>
       </div>
       <ul>
         <li v-for="media of upload.medias" :key="media.key">
@@ -21,14 +21,14 @@
       </ul>
     </div>
     <form @submit.prevent="uploadMedias" v-show="upload.state !== 'running'">
-      <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" label="Dossier" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
+      <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
       <div class="mb-3" v-if="folder.trim() !== ''">
-        <label class="text-white" for="files">Medias</label>
+        <label class="text-white" for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
         <div
           class="shadow-inner bg-white hover:bg-white border border-white hover:border-gray-400 rounded-sm relative h-16"
         >
           <div class="shadow-inner absolute w-full h-full pin-t flex justify-center items-center">
-            <span>Clique ou dépose tes fichiers ici </span>
+            <span>{{ $t('admin.mediaAdd.form.dragAndDrop') }}</span>
           </div>
           <input
             id="files"
@@ -93,7 +93,7 @@ export default {
       }
 
       if (target.files.length > 20) {
-        this.$notify({ group: 'warning', text: 'Il n\'est pas possible d\'envoyer plus de 20 fichier à la fois' })
+        this.$notify({ group: 'warning', text: this.$t('admin.mediaAdd.notify.tooManyMedia') })
         return null
       }
 
@@ -159,14 +159,14 @@ export default {
 
       const intervalDisplayTime = setInterval(() => {
         if (uploadSpeed === null) {
-          this.upload.timeRemaining = 'Calcul du temps restant en cours'
+          this.upload.timeRemaining = this.$t('admin.mediaAdd.uploadRunning.timeRemaingingCalculation')
         } else {
           const sizeUploaded = this.upload.medias.reduce(reduceAdd, 0)
 
           const timeRemaining = (totalSize - sizeUploaded) / uploadSpeed
 
           if (timeRemaining < 1000) {
-            this.upload.timeRemaining = 'C\'est bientôt terminé !'
+            this.upload.timeRemaining = this.$t('admin.mediaAdd.uploadRunning.almostDone')
           }
 
           this.upload.timeRemaining = `~ ${prettyMs(timeRemaining)}`
@@ -177,7 +177,7 @@ export default {
         this.medias = []
         this.upload.state = 'end'
 
-        this.$notify({ group: 'success', text: 'Les fichiers ont été transférés sur le serveur' })
+        this.$notify({ group: 'success', text: this.$t('admin.mediaAdd.notify.uploadSuccess') })
         clearInterval(intervalTimeEstimation)
         clearInterval(intervalDisplayTime)
         this.noSleep.disable()

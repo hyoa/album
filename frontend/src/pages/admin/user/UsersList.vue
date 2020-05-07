@@ -1,18 +1,18 @@
 <template>
   <AdminLayout>
-    <PageTitle title="Liste des utilisateurs" />
+    <PageTitle :title="$t('admin.userList.title')" />
     <Alert v-if="alert.type" :type="alert.type" :message="alert.message" :title="alert.title" />
     <section>
-      <h2>Envoyer une invation</h2>
+      <h2>{{ $t('admin.userList.sectionInvitation.title') }}</h2>
       <InputForm v-model="emailsToInvite" placeholder="email1@gmail.com,email2@gmail.com" id="emails" />
-      <ButtonForm @click="onInvite" :status="formStatus.invite">Inviter</ButtonForm>
+      <ButtonForm @click="onInvite" :status="formStatus.invite">{{ $t('admin.userList.sectionInvitation.submit') }}</ButtonForm>
     </section>
     <section>
       <table class="w-full mt-6">
         <tr class="text-left bg-light-primary">
-          <th class="p-1">Name</th>
-          <th class="p-1">Role</th>
-          <th class="p-1">Actions</th>
+          <th class="p-1">{{ $t('admin.userList.sectionList.table.name') }}</th>
+          <th class="p-1">{{ $t('admin.userList.sectionList.table.role') }}</th>
+          <th class="p-1">{{ $t('admin.userList.sectionList.table.action') }}</th>
         </tr>
         <tr class="hover:bg-lighter-primary bg-white" v-for="user of users" :key="user.email">
           <td class="py-2 px-1">
@@ -26,7 +26,7 @@
               @click.stop="onActivate(user.email)"
               v-if="user.role === 0"
             >
-              Activer
+              {{ $t('admin.userList.sectionList.table.activate') }}
             </button>
           </td>
         </tr>
@@ -69,7 +69,7 @@ export default {
     onActivate (email) {
       post('user/activate', { email, role: 1 })
         .then(() => {
-          this.$notify({ group: 'success', text: 'Le compte a été activé' })
+          this.$notify({ group: 'success', text: this.$t('admin.userList.notify.accountActivate') })
         })
         .catch(({ response }) => {
           let code = null
@@ -79,7 +79,7 @@ export default {
             code = 999
           }
 
-          this.$notify({ group: 'error', text: errorHelper(code) })
+          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
         })
     },
     onInvite () {
@@ -91,7 +91,7 @@ export default {
 
       post('users/invite', { emails: this.emailsToInvite })
         .then(() => {
-          this.$notify({ group: 'success', text: 'Invitations envoyées' })
+          this.$notify({ group: 'success', text: this.$t('admin.userList.notify.invitationSend') })
         })
         .catch(({ response }) => {
           let code = null
@@ -101,7 +101,7 @@ export default {
             code = 999
           }
 
-          this.$notify({ group: 'error', text: errorHelper(code) })
+          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
         })
         .finally(() => {
           this.formStatus.invite = 'ready'

@@ -7,6 +7,8 @@ import './registerServiceWorker'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
 import Notifications from 'vue-notification'
+import VueI18n from 'vue-i18n'
+import messages from './i18n/fr'
 
 Vue.component('v-icon', Icon)
 
@@ -47,8 +49,15 @@ Vue.filter('truncate', (value, limit) => {
   return value
 })
 
+Vue.use(VueI18n)
+const i18n = new VueI18n({
+  locale: 'fr',
+  messages
+})
+
 new Vue({
   router,
   store,
+  i18n,
   render: h => h(App)
 }).$mount('#app')

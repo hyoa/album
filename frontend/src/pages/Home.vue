@@ -1,15 +1,15 @@
 <template>
   <LayoutGrid>
     <section data-e2e="notification-feature-section" v-if="hasAcceptedNotification === 'default'" class="border border-blue-500 p-2 rounded-sm">
-      <h3 class="border-b border-blue-800 text-xl">Notifications</h3>
+      <h3 class="border-b border-blue-800 text-xl">{{ $t('home.notificationSection.title') }}</h3>
       <div class="my-2">
         <p>
-          Vous pouvez désormais recevoir des notifications pour savoir quand de nouveaux albums sont disponibles !
+          {{ $t('home.notificationSection.message') }}
         </p>
         <p class="mt-1" v-if="!isRunningAsPwa">
-          Il est préférable d'installer l'application pour bénéficier au mieux des notifications.
+          {{ $t('home.notificationSection.advice') }}
           <a class="text-blue-700 " @click.stop="showPwaHelp = true">
-            Aide
+            {{ $t('home.notificationSection.help') }}
             <i class="material-icons align-top">
               help_outline
             </i>
@@ -22,15 +22,15 @@
           @click="acceptNotification"
           size="small"
         >
-          Accepter de recevoir des notifications
+          {{ $t('home.notificationSection.form.accept') }}
         </SimpleButton>
         <button @click="declineNotification" class="text-red-500 mt-2">
-          Refuser
+          {{ $t('home.notificationSection.form.refuse') }}
         </button>
       </div>
     </section>
     <section data-e2e="search-form-section" class="mb-6">
-      <h2 class="mb-3 text-xl">Rechercher des albums</h2>
+      <h2 class="mb-3 text-xl">{{ $t('home.searchFormSection.title') }}</h2>
       <form @submit.prevent="onSearch">
         <input
           title="search"
@@ -39,18 +39,18 @@
           v-model="searchTerm"
         />
         <button class="bg-primary text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline text-sm md:text-md" type="submit">
-          Rechercher
+          {{ $t('home.searchFormSection.form.submit') }}
         </button>
       </form>
     </section>
     <section data-e2e="search-result-section" v-if="searchedTerm">
-        <h2 class="text-xl">Résultat de la recherche</h2>
+        <h2 class="text-xl">{{ $t('home.searchResultSection.title') }}</h2>
         <div class="searchResult">
           <AlbumCard v-for="album in albums" :key="album.slug" :album="album" />
         </div>
     </section>
     <section data-e2e="last-albums-section" v-else>
-      <h2 class="text-xl">Les derniers albums</h2>
+      <h2 class="text-xl">{{ $t('home.lastAlbumSection.title') }}</h2>
       <div class="showroom">
         <div class="grid1" v-if="albums[0]">
           <AlbumCard :isFirst="true" :key="albums[0].slug" :album="albums[0]" />
@@ -74,7 +74,7 @@
             v-if="!loadingMore"
             class="text-blue-500 text-underline text-sm mt-3 focus:outline-none active:outline-none border border-blue-500 p-1 rounded"
           >
-            Voir plus d'album
+            {{ $t('home.lastAlbumSection.loadMore') }}
           </button>
           <CubicLoader v-else />
         </div>
@@ -141,7 +141,7 @@ export default {
         this.searchedTerm = this.searchTerm
       } catch ({ response: { satus } }) {
         if (status === 401) {
-          this.$store.commit('setFlashMessage', 'Par mesure de sécurité, vous avez été déconnecté. Vous pouvez vous reconnecter avec le formulaire ci-dessous.')
+          this.$store.commit('setFlashMessage', 'auth.alert.disconnected')
           localStorage.removeItem('album-token')
           this.$router.push({ name: 'auth' })
         }
@@ -164,7 +164,7 @@ export default {
         this.currentPage++
       } catch ({ response: { satus } }) {
         if (status === 401) {
-          this.$store.commit('setFlashMessage', 'Par mesure de sécurité, vous avez été déconnecté. Vous pouvez vous reconnecter avec le formulaire ci-dessous.')
+          this.$store.commit('setFlashMessage', 'auth.alert.disconnect')
           localStorage.removeItem('album-token')
           this.$router.push({ name: 'auth' })
         }

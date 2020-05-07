@@ -7,11 +7,11 @@
     <div v-if="isMenuOpen" class="menu">
       <ul>
         <li v-if="isAdmin">
-            <router-link class="text-black no-underline hover:underline" :to="{ name: 'admin_home' }">Administration</router-link>
+            <router-link class="text-black no-underline hover:underline" :to="{ name: 'admin_home' }">{{ $t('defaultNav.admin') }}</router-link>
         </li>
         <li v-if="isAdmin" class="border-t-2 border-darker-primary my-2"></li>
         <li @click="logout">
-          Se déconnecter
+          {{ $t('defaultNav.disconnect') }}
         </li>
       </ul>
     </div>

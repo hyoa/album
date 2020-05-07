@@ -2,7 +2,7 @@
   <div class="auth flex w-screen h-screen md:justify-center md:items-center">
     <div v-if="disabled" class="rounded w-full md:w-5/6 lg:w-1/3 md:shadow-md bg-white">
       <div class="text-3xl px-4 py-3 text-center">
-        Le site est actuellement indisponible ! Mais je travaille d'arrache pied à le remettre en ligne :)
+        {{ $t('auth.unavailableWebsite') }}
       </div>
     </div>
     <div v-else class="rounded w-full md:w-5/6 lg:w-1/3 md:shadow-md bg-white">
@@ -12,7 +12,7 @@
           :class="[ nav === 'login' ? '' : 'opacity-50' ]"
           @click="nav = 'login'"
         >
-          <span>Connexion</span>
+          <span>{{ $t('auth.connection') }}</span>
         </div>
         <div
           class="w-1/2 h-12 flex justify-center items-center rounded-tr cursor-pointer text-white bg-primary "
@@ -20,12 +20,12 @@
           @click="nav = 'register'"
         >
           <span>
-            Inscription
+            {{ $t('auth.register') }}
           </span>
         </div>
       </div>
       <div class="px-8 pt-6 pb-8 mb-4">
-        <Alert v-if="alert.type" :type="alert.type" :message="alert.message" :title="alert.title" />
+        <Alert v-if="alert.type" :type="alert.type" :message="$t(alert.message)" :title="$t(alert.title)" />
         <Login @onPasswordForget="nav = 'reset-password'" @onRegister="nav = 'register'" @onLogin="onLogin" v-if="nav === 'login'" :formStatus="formStatus.login"/>
         <Register @onRegister="onRegister" v-else-if="nav === 'register'" :formStatus="formStatus.register"/>
         <ResetPassword @onAskResetPassword="onAskResetPassword" v-else-if="nav === 'reset-password'" :formStatus="formStatus.reset"/>
@@ -65,7 +65,7 @@ export default {
     if (this.$store.state.flashMessage) {
       this.alert = {
         type: 'info',
-        title: 'Oups',
+        title: 'alert.info.title',
         message: this.$store.state.flashMessage
       }
     }
@@ -90,7 +90,7 @@ export default {
 
           this.alert = {
             type: 'error',
-            title: 'Oups',
+            title: 'alert.info.title',
             message: errorHelper(code)
           }
         })
@@ -105,8 +105,8 @@ export default {
         .then(res => {
           this.alert = {
             type: 'success',
-            title: 'Bienvenue !',
-            message: 'Votre compte sera bientôt validé et vous pourrez ensuite vous connecter !'
+            title: 'auth.registerPage.alert.success.title',
+            message: 'auth.registerPage.alert.success.message'
           }
         })
         .catch(({ response }) => {
@@ -119,7 +119,7 @@ export default {
 
           this.alert = {
             type: 'error',
-            title: 'Oups',
+            title: 'alert.error.title',
             message: errorHelper(code)
           }
         })
@@ -134,8 +134,8 @@ export default {
         .then(res => {
           this.alert = {
             type: 'success',
-            title: 'Succès ',
-            message: 'Un email avec la procédure pour réinitialiser votre mot de passe a été envoyé à l\'email indiqué.'
+            title: 'auth.askResetPasswordPage.alert.success ',
+            message: 'auth.askResetPasswordPage.alert.message'
           }
         })
         .catch(({ response }) => {
@@ -148,7 +148,7 @@ export default {
 
           this.alert = {
             type: 'error',
-            title: 'Oups',
+            title: 'auth.alert.error',
             message: errorHelper(code)
           }
         })
