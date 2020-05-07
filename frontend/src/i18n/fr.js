@@ -108,7 +108,8 @@ export default {
     grid: {
       media: {
         description: 'Photo prise par {author}'
-      }
+      },
+      loading: "Chargement en cours..."
     },
     admin: {
       adminNav: {
