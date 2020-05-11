@@ -1,6 +1,7 @@
 <template>
   <div data-e2e="medias-grid" class="relative">
     <div
+      id="grid"
       class="grid z-10"
       :class="{ 'opacity-100': isVisible, 'opacity-0': !isVisible }"
     >
@@ -102,7 +103,7 @@ export default {
   },
   methods: {
     updateGrid () {
-      const elem = document.querySelector('.grid')
+      const elem = document.getElementById('grid')
 
       /* eslint-disable no-new */
       this.masonry = new Masonry(elem, {

@@ -23,9 +23,9 @@
     <form @submit.prevent="uploadMedias" v-show="upload.state !== 'running'">
       <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
       <div class="mb-3" v-if="folder.trim() !== ''">
-        <label class="text-white" for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
+        <label for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
         <div
-          class="shadow-inner bg-white hover:bg-white border border-white hover:border-gray-400 rounded-sm relative h-16"
+          class="shadow-inner bg-white hover:bg-white border-2 border-gray-lighter rounded-sm relative h-16"
         >
           <div class="shadow-inner absolute w-full h-full pin-t flex justify-center items-center">
             <span>{{ $t('admin.mediaAdd.form.dragAndDrop') }}</span>

@@ -1,5 +1,5 @@
 <template>
-  <label class="md:w-2/3 block text-white font-bold mb-3">
+  <label class="md:w-2/3 block mb-3">
     <input
       :value="value"
       @input="$emit('input', !value)"

@@ -76,7 +76,9 @@
         </div>
       </div>
     </div>
+    <div class="relative">
     <Grid :medias="medias" :editable="true" :canStar="true" @toggleFavorite="onToggleFavorite" />
+    </div>
   </AdminLayout>
 </template>
 
