@@ -2,7 +2,7 @@
   <AdminLayout>
     <PageTitle :title="$t('admin.mediaAdd.title')" />
     <div v-if="upload.state === 'running'">
-      <div class="text-white">
+      <div>
         <h3>{{ $t('admin.mediaAdd.uploadRunning.title') }}</h3>
         <div v-if="upload.timeRemaining">{{ $t('admin.mediaAdd.uploadRunning.timeRemaining', { time: upload.timeRemaining }) }}</div>
         <div>{{ $t('admin.mediaAdd.uploadRunning.totalUploaded', { count: upload.total }) }}</div>
@@ -11,7 +11,7 @@
       </div>
       <ul>
         <li v-for="media of upload.medias" :key="media.key">
-          <div class="text-white">{{ media.key }}</div>
+          <div>{{ media.key }}</div>
           <div class="shadow w-full bg-white mt-2 rounded">
             <div class="bg-blue-500 text-xs leading-none py-1 text-center text-white rounded" :style="`width: ${media.progress}%`">
               {{ media.progress }}%
