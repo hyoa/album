@@ -87,7 +87,7 @@ export default {
     }
   },
   methods: {
-    loadMedia ({ target }) {
+    async loadMedia ({ target }) {
       if (!target.validity.valid && target.files.length <= 0) {
         return null
       }
@@ -99,9 +99,9 @@ export default {
 
       this.medias = [...this.medias, ...target.files]
 
-      this.uploadMedias()
+      await this.uploadMedias()
     },
-    uploadMedias () {
+    async uploadMedias () {
       this.noSleep.enable()
       this.upload.state = null
       this.upload.progress = 0
@@ -109,6 +109,8 @@ export default {
       this.upload.total = this.medias.length
 
       let totalSize = 0
+
+      let mediasConfigToUpload = []
 
       for (let media of this.medias) {
         totalSize += media.size
@@ -134,14 +136,27 @@ export default {
           }
         }
 
-        const req = post('media/signed-uri', { file: key, type: media.type })
-          .then(res => {
-            return axios.put(res.data.uri, media, putConfig).then(() => this.upload.uploaded++)
-          }).catch(() => {
-            this.upload.failed++
-          })
+        mediasConfigToUpload.push({
+          key,
+          media,
+          putConfig
+        })
+      }
+      const signedUrisResponse = await post('medias/signed-uri', mediasConfigToUpload.map(({ key, media: { type } }) => { return { type, file: key } }), {}, 'v2')
 
-        promises.push(req)
+      for (let signedUri of signedUrisResponse.data) {
+        for (let config of mediasConfigToUpload) {
+          if (config.key === signedUri.key) {
+            const req = axios
+              .put(signedUri.uri, config.media, config.putConfig)
+              .then(() => this.upload.uploaded++)
+              .catch(() => this.upload.failed++)
+
+            promises.push(req)
+
+            break
+          }
+        }
       }
 
       this.upload.state = 'running'

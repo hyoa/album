@@ -154,4 +154,31 @@ class MediaControllerTest extends AbstractControllerTest
 
         self::assertCount(2, $toAssert);
     }
+
+    public function testSignUriV2ShouldReturnAPreSignedUriForAllImagesInRequestPayload(): void
+    {
+        $data = [
+            [
+                'file' => 'example1.jpg',
+                'type' => 'image/jpeg',
+            ],
+            [
+                'file' => 'example2.jpg',
+                'type' => 'image/jpeg',
+            ],
+        ];
+
+        $response = $this->makeApiCall('POST', '/v2/medias/signed-uri', $data, self::JWT_ADMIN);
+
+        $toAssert = json_decode((string) $response->getContent(), true);
+
+        self::assertEquals(200, $response->getStatusCode());
+        self::assertCount(2, $toAssert);
+
+        foreach ($toAssert as $itemToAssert) {
+            self::assertStringContainsString('aws', $itemToAssert['uri']);
+            self::assertStringContainsString('medias', $itemToAssert['uri']);
+            self::assertArrayHasKey('key', $itemToAssert);
+        }
+    }
 }
