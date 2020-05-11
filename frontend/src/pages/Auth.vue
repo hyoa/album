@@ -65,7 +65,7 @@ export default {
     if (this.$store.state.flashMessage) {
       this.alert = {
         type: 'info',
-        title: 'alert.info.title',
+        title: 'auth.alert.info.title',
         message: this.$store.state.flashMessage
       }
     }
@@ -90,7 +90,7 @@ export default {
 
           this.alert = {
             type: 'error',
-            title: 'alert.info.title',
+            title: 'auth.alert.info.title',
             message: errorHelper(code)
           }
         })
