@@ -9,18 +9,18 @@ const getConfig = (headers = {}) => {
   return { ...defaultHeaders, ...headers }
 }
 
-export const post = (route, data, headers) => {
-  return axios.post(`${BASE_URI}/${route}`, data, getConfig(headers))
+export const post = (route, data, headers, version = 'v1') => {
+  return axios.post(`${BASE_URI}/${version}/${route}`, data, getConfig(headers))
 }
 
-export const put = (route, data) => {
-  return axios.put(`${BASE_URI}/${route}`, data, getConfig())
+export const put = (route, data, version = 'v1') => {
+  return axios.put(`${BASE_URI}/${version}/${route}`, data, getConfig())
 }
 
-export const get = (route) => {
-  return axios.get(`${BASE_URI}/${route}`, getConfig())
+export const get = (route, version = 'v1') => {
+  return axios.get(`${BASE_URI}/${version}/${route}`, getConfig())
 }
 
-export const deleteMethod = route => {
-  return axios.delete(`${BASE_URI}/${route}`, getConfig())
+export const deleteMethod = (route, version = 'v1') => {
+  return axios.delete(`${BASE_URI}/${version}/${route}`, getConfig())
 }
