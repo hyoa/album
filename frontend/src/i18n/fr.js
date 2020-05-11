@@ -109,7 +109,7 @@ export default {
       media: {
         description: 'Photo prise par {author}'
       },
-      loading: "Chargement en cours..."
+      loading: 'Chargement en cours...'
     },
     admin: {
       adminNav: {

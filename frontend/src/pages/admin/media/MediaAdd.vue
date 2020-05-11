@@ -2,7 +2,7 @@
   <AdminLayout>
     <PageTitle :title="$t('admin.mediaAdd.title')" />
     <div v-if="upload.state === 'running'">
-      <div class="text-white">
+      <div>
         <h3>{{ $t('admin.mediaAdd.uploadRunning.title') }}</h3>
         <div v-if="upload.timeRemaining">{{ $t('admin.mediaAdd.uploadRunning.timeRemaining', { time: upload.timeRemaining }) }}</div>
         <div>{{ $t('admin.mediaAdd.uploadRunning.totalUploaded', { count: upload.total }) }}</div>
@@ -11,7 +11,7 @@
       </div>
       <ul>
         <li v-for="media of upload.medias" :key="media.key">
-          <div class="text-white">{{ media.key }}</div>
+          <div>{{ media.key }}</div>
           <div class="shadow w-full bg-white mt-2 rounded">
             <div class="bg-blue-500 text-xs leading-none py-1 text-center text-white rounded" :style="`width: ${media.progress}%`">
               {{ media.progress }}%
@@ -23,9 +23,9 @@
     <form @submit.prevent="uploadMedias" v-show="upload.state !== 'running'">
       <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
       <div class="mb-3" v-if="folder.trim() !== ''">
-        <label class="text-white" for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
+        <label for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
         <div
-          class="shadow-inner bg-white hover:bg-white border border-white hover:border-gray-400 rounded-sm relative h-16"
+          class="shadow-inner bg-white hover:bg-white border-2 border-gray-lighter rounded-sm relative h-16"
         >
           <div class="shadow-inner absolute w-full h-full pin-t flex justify-center items-center">
             <span>{{ $t('admin.mediaAdd.form.dragAndDrop') }}</span>

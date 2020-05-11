@@ -1,5 +1,5 @@
 <template>
-  <li class="bg-white p-2 rounded-sm mt-2">
+  <li class="bg-gray-200 p-2 rounded-md mt-2">
     <router-link :to="to">
       <div>
         <h2 class="text-xl">{{ title }}</h2>

@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-white text-2xl mb-4">{{ title }}</h1>
+  <h1 class="text-2xl mb-4">{{ title }}</h1>
 </template>
 
 <script>

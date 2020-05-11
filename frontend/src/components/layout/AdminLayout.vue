@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-primary min-h-screen">
+  <div class="min-h-screen">
     <AdminNav/>
     <slot name="sidebar"></slot>
     <main class="container mx-auto px-4 pb-4 mt-4 relative">

@@ -8,7 +8,7 @@
     >
       L'application a été mis à jour ! Cliquez pour raffraichir
     </div>
-    <notifications group="success" position="bottom left" classes="success" />
+    <notifications group="success" position="bottom left" classes="success"/>
     <notifications group="error" position="bottom left" classes="error" />
     <notifications group="info" position="bottom left" classes="info" />
     <notifications group="warning" position="bottom left" classes="warning" />
@@ -23,7 +23,7 @@ body {
 .font-manuscript {
   font-family: "Fredericka the Great", cursive;
 }
-.notifications {
+.vue-notification-group {
   width: 100% !important;
 
   @screen md {

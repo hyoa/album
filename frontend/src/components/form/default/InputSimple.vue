@@ -1,6 +1,6 @@
 <template>
   <div class="mb-3">
-    <label class="block uppercase tracking-wide text-white text-xs font-bold mb-2" :for="id">
+    <label class="block uppercase tracking-wide text-sm mb-2" :for="id">
       {{ label }}
     </label>
     <input
