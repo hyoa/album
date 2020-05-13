@@ -1,9 +1,6 @@
 <template>
-  <nav>
-      <div class="text-center mt-4">
-        <router-link class="no-underline hover:underline" :to="{ name: 'admin_home' }">{{ $t('admin.adminNav.title') }}</router-link>
-      </div>
-      <div class="px-4 mt-4 grid grid-cols-5 gap-2">
+  <nav class="border-b pt-8 pb-4 shadow-md">
+      <div class="px-4 grid grid-cols-5 gap-2">
         <NavButton iconClass="bg-blue-500 text-white" link="admin_home">
           <template v-slot:icon>
             <v-icon name="home" scale="2" />

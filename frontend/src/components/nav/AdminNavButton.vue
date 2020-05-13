@@ -10,7 +10,7 @@
       <div @click=onDisplaySubMenu :class="[iconClass, small ? 'w-8 h-8' : 'w-12 h-12']" class="rounded-full p-2 flex justify-center items-center">
         <slot name="icon"></slot>
       </div>
-      <div class="mt-2 flex" :class="[visible ? 'block' : 'hidden']">
+      <div class="submenu mt-2 flex relative -left-20% z-50" :class="[visible ? 'block-animate' : 'hidden']">
         <slot name="submenu"></slot>
       </div>
   </div>
@@ -42,3 +42,25 @@ export default {
   }
 }
 </script>
+
+<style lang="css" scoped>
+  @keyframes show {
+    from { display: 'none'; opacity: 0;}
+    to { display: 'block'; opacity: 100%; }
+  }
+
+  @keyframes hide {
+    from { display: 'block'; opacity: 100%; }
+    to { display: 'none'; opacity: 0;}
+  }
+
+  .block-animate {
+    animation-name: show;
+    animation-duration: 0.5s;
+  }
+
+  .hidden-animate {
+    animation-name: hide;
+    animation-duration: 0.5s;
+  }
+</style>
