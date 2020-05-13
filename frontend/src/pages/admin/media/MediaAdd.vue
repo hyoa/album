@@ -22,6 +22,7 @@
     </div>
     <form @submit.prevent="uploadMedias" v-show="upload.state !== 'running'">
       <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
+      <AutoComplete v-model="album" id="album" placeholder="Un album" :label="$t('admin.mediaAdd.form.album')" type="text" endpoint="albums/autocomplete" :allow-no-call="true"/>
       <div class="mb-3" v-if="folder.trim() !== ''">
         <label for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
         <div
@@ -81,6 +82,7 @@ export default {
   data () {
     return {
       folder: '',
+      album: '',
       medias: [],
       upload: uploadData(),
       noSleep: new NoSleep()
@@ -114,16 +116,22 @@ export default {
 
       for (let media of this.medias) {
         totalSize += media.size
-        const nameClean = media.name.replace(/[^a-zA-Z0-9.]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        const folderClean = this.folder.replace(/\s+/g, '-').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        const key = `${this.$store.state.token.name}_${folderClean}_${nameClean}`
+        const key = media.name.replace(/[^a-zA-Z0-9.]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        const metadata = {
+          author: this.$store.state.token.name,
+          folder: this.folder
+        }
 
-        this.upload.medias.push({ key: nameClean, progress: 0, uploadedSize: 0 })
+        if (this.album) {
+          metadata.album = this.album
+        }
+
+        this.upload.medias.push({ key, progress: 0, uploadedSize: 0 })
 
         const putConfig = {
           onUploadProgress: progressEvent => {
             for (let i in this.upload.medias) {
-              if (this.upload.medias[i].key === nameClean) {
+              if (this.upload.medias[i].key === key) {
                 this.upload.medias[i].progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
                 this.upload.medias[i].uploadedSize = progressEvent.loaded
                 break
@@ -139,10 +147,23 @@ export default {
         mediasConfigToUpload.push({
           key,
           media,
-          putConfig
+          putConfig,
+          metadata
         })
       }
-      const signedUrisResponse = await post('medias/signed-uri', mediasConfigToUpload.map(({ key, media: { type } }) => { return { type, file: key } }), {}, 'v2')
+
+      const payload = {
+        medias: mediasConfigToUpload.map(({ key, media: { type }, metadata }) => { return { type, file: key, metadata } })
+      }
+
+      if (this.album) {
+        payload.album = {
+          title: this.album,
+          author: this.$store.state.token.name
+        }
+      }
+
+      const signedUrisResponse = await post('medias/ingest', payload, {}, 'v2')
 
       for (let signedUri of signedUrisResponse.data) {
         for (let config of mediasConfigToUpload) {

@@ -6,24 +6,13 @@ namespace Album\Domain\Media;
 
 use Album\Application\Clock\ClockInterface;
 use Album\Application\VideoFormatter\VideoFormatterInterface;
+use Album\Domain\Album\AlbumManager;
+use Album\Domain\Album\AlbumMediaEntity;
 use Album\Domain\Media\Exception\InvalidVideoSizeException;
+use Ausi\SlugGenerator\SlugGenerator;
 
 class MediaIngestManager
 {
-    private const FORMAT_IMAGE_WHITELIST = [
-        'jpg',
-        'png',
-        'jpeg',
-        'JPG',
-        'PNG',
-        'JPEG',
-    ];
-
-    private const FORMAT_VIDEO_WHITELIST = [
-        'mp4',
-        'MP4',
-    ];
-
     protected MediaRepositoryInterface $mediaRepository;
 
     protected ClockInterface $clock;
@@ -36,11 +25,14 @@ class MediaIngestManager
 
     protected VideoFormatterInterface $videoFormatter;
 
+    protected AlbumManager $albumManager;
+
     public function __construct(
         MediaRepositoryInterface $mediaRepository,
         ClockInterface $clock,
         MediaStorageInterface $mediaStorage,
         VideoFormatterInterface $videoFormatter,
+        AlbumManager $albumManager,
         string $mediaStorageLocation,
         string $videoRawStorageLocation
     ) {
@@ -50,6 +42,7 @@ class MediaIngestManager
         $this->mediaStorageLocation = $mediaStorageLocation;
         $this->videoRawsStorageLocation = $videoRawStorageLocation;
         $this->videoFormatter = $videoFormatter;
+        $this->albumManager = $albumManager;
     }
 
     public function ingest(string $key): bool
@@ -58,14 +51,29 @@ class MediaIngestManager
             return false;
         }
 
-        $metaData = $this->getMetaData($key);
+        $metaData = $this->mediaStorage->getMediaMetadata($key, $this->mediaStorageLocation);
 
         $media = new MediaEntity();
         $media->key = $key;
-        $media->author = $metaData['author'];
-        $media->folder = $metaData['folder'];
+        $media->author = $metaData->author ?? 'none';
+        $media->folder = $metaData->folder ?? 'sans dossier';
         $media->uploadDate = $this->clock->now();
-        $media->type = $metaData['type'];
+        $media->type = $metaData->getMediaType();
+
+        if ($metaData->album !== null) {
+            $album = $this->albumManager->findBySlug((new SlugGenerator())->generate($metaData->album));
+
+            if ($album !== null) {
+                $albumMediaEntity = new AlbumMediaEntity();
+                $albumMediaEntity->key = $media->key;
+                $albumMediaEntity->author = $media->author;
+                $albumMediaEntity->folder = $media->folder;
+                $albumMediaEntity->uploadDate = $media->uploadDate;
+                $albumMediaEntity->type = $media->type;
+
+                $this->albumManager->addMedias($album, [$albumMediaEntity]);
+            }
+        }
 
         $this->mediaRepository->insert($media);
 
@@ -88,33 +96,10 @@ class MediaIngestManager
 
         $mediaUris = $this->mediaStorage->generateSignedUri($key, MediaStorageInterface::LOCATION_RAW_VIDEOS, 'GetObject');
         $pathVideoFormatted = $this->videoFormatter->run($mediaUris, $key);
-        $this->mediaStorage->putObject($key, $this->mediaStorageLocation, $pathVideoFormatted, 'video/mp4');
+        $metadata = $this->mediaStorage->getMediaMetadata($key, $this->videoRawsStorageLocation);
+
+        $this->mediaStorage->putObject($key, $this->mediaStorageLocation, $pathVideoFormatted, 'video/mp4', $metadata);
 
         return true;
-    }
-
-    protected function getMetaData(string $fileName): array
-    {
-        $regex = '/^([a-zA-Z\d]+)_([A-Za-zÀ-ÿ\d\-]+)_(\w+)\.([a-z0-9]+)$/';
-        preg_match_all($regex, $fileName, $matches, PREG_SET_ORDER, 0);
-
-        if (!isset($matches[0][1], $matches[0][2])) {
-            return [
-                'author' => 'none',
-                'folder' => 'sans fichier',
-                'type' => MediaEntity::TYPE_IMAGE,
-            ];
-        }
-
-        $type = MediaEntity::TYPE_IMAGE;
-        if (in_array($matches[0][4], self::FORMAT_VIDEO_WHITELIST, true)) {
-            $type = MediaEntity::TYPE_VIDEO;
-        }
-
-        return [
-            'author' => $matches[0][1],
-            'folder' => str_replace('-', ' ', $matches[0][2]),
-            'type' => $type,
-        ];
     }
 }

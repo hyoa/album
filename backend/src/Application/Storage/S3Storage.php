@@ -6,6 +6,7 @@ namespace Album\Application\Storage;
 
 use Album\Application\Clock\ClockInterface;
 use Album\Domain\Media\MediaEntity;
+use Album\Domain\Media\MediaMetadata;
 use Album\Domain\Media\MediaStorageInterface;
 use Aws\CloudFront\UrlSigner;
 use Aws\S3\S3Client;
@@ -44,12 +45,18 @@ class S3Storage implements MediaStorageInterface
         $this->videoRawStorageLocation = $videoRawStorageLocation;
     }
 
-    public function generateSignedUri(string $key, string $location, string $commandType): string
+    public function generateSignedUri(string $key, string $location, string $commandType, array $metadata = []): string
     {
-        $cmd = $this->s3Client->getCommand($commandType, [
+        $options = [
             'Bucket' => $this->getBucket($location),
             'Key' => $key,
-        ]);
+        ];
+
+        if (count($metadata) > 0) {
+            $options['Metadata'] = $metadata;
+        }
+
+        $cmd = $this->s3Client->getCommand($commandType, $options);
 
         $request = $this->s3Client->createPresignedRequest($cmd, '+10 minutes');
 
@@ -109,13 +116,18 @@ class S3Storage implements MediaStorageInterface
         return $signer->getSignedUrl($uri, $time);
     }
 
-    public function putObject(string $key, string $location, string $videoPath, string $contentType): void
+    public function putObject(string $key, string $location, string $videoPath, string $contentType, MediaMetadata $mediaMetadata): void
     {
         $this->s3Client->putObject([
             'Bucket' => $location,
             'Key' => $key,
             'Body' => file_get_contents($videoPath),
             'ContentType' => $contentType,
+            'Metadata' => [
+                'author' => $mediaMetadata->author,
+                'album' => $mediaMetadata->album,
+                'folder' => $mediaMetadata->folder,
+            ],
         ]);
     }
 
@@ -127,6 +139,22 @@ class S3Storage implements MediaStorageInterface
         ]);
 
         return (int) $result['ContentLength'];
+    }
+
+    public function getMediaMetadata(string $key, string $location): MediaMetadata
+    {
+        $result = $this->s3Client->headObject([
+            'Key' => $key,
+            'Bucket' => $location,
+        ])->toArray();
+
+        $metadata = new MediaMetadata();
+        $metadata->album = $result['Metadata']['album'] ?? null;
+        $metadata->author = $result['Metadata']['author'] ?? null;
+        $metadata->folder = $result['Metadata']['folder'] ?? null;
+        $metadata->contentType = $result['ContentType'];
+
+        return $metadata;
     }
 
     protected function writePkIntoFile(): void

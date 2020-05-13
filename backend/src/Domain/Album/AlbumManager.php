@@ -25,7 +25,7 @@ class AlbumManager
         $this->mediaStorage = $mediaStorage;
     }
 
-    public function save(string $title, string $description, bool $private, string $author): AlbumEntity
+    public function save(string $title, ?string $description, bool $private, string $author): AlbumEntity
     {
         $album = new AlbumEntity();
         $album->hydrate(
