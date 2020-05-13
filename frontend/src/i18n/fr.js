@@ -224,7 +224,8 @@ export default {
         form: {
           folder: 'Dossier',
           media: 'Médias',
-          dragAndDrop: 'Clique ou dépose tes fichiers ici'
+          dragAndDrop: 'Clique ou dépose tes fichiers ici',
+          album: 'Album'
         },
         notify: {
           tooManyMedia: 'Il n\'est pas possible d\'envoyer plus de 20 fichier à la fois',

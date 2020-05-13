@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Album\Tests\Application\Controller;
 
 use Album\Domain\Media\MediaEntity;
-use Album\Domain\Media\MediaRepositoryInterface;
-use Prophecy\Prophecy\ObjectProphecy;
+use Ausi\SlugGenerator\SlugGenerator;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -14,15 +13,6 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class MediaControllerTest extends AbstractControllerTest
 {
-    /** @var ObjectProphecy|MediaRepositoryInterface */
-    protected ObjectProphecy $mediaRepositoryMock;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->mediaRepositoryMock = $this->prophet->prophesize(MediaRepositoryInterface::class);
-    }
-
     public function testFindMediasByFolderShouldReturnAllMediasWithTheGivenFolder(): void
     {
         $response = $this->makeApiCall('GET', '/v1/medias/folder/jedi', [], self::JWT_ADMIN);
@@ -155,7 +145,7 @@ class MediaControllerTest extends AbstractControllerTest
         self::assertCount(2, $toAssert);
     }
 
-    public function testSignUriV2ShouldReturnAPreSignedUriForAllImagesInRequestPayload(): void
+    public function testSignUriV2ShouldReturnPreSignedUriForAllImagesInRequestPayload(): void
     {
         $data = [
             [
@@ -180,5 +170,87 @@ class MediaControllerTest extends AbstractControllerTest
             self::assertStringContainsString('medias', $itemToAssert['uri']);
             self::assertArrayHasKey('key', $itemToAssert);
         }
+    }
+
+    public function testIngestMediasShouldReturnPreSignedUriForAllImagesInRequestPayload(): void
+    {
+        $data = [
+            'medias' => [
+                [
+                    'file' => 'example1.jpg',
+                    'type' => 'image/jpeg',
+                    'metadata' => [
+                        'author' => 'yoda',
+                        'folder' => 'jedi',
+                    ],
+                ],
+                [
+                    'file' => 'example2.jpg',
+                    'type' => 'image/jpeg',
+                    'metadata' => [
+                        'author' => 'yoda',
+                        'folder' => 'jedi',
+                    ],
+                ],
+            ],
+        ];
+
+        $response = $this->makeApiCall('POST', '/v2/medias/ingest', $data, self::JWT_ADMIN);
+
+        $toAssert = json_decode((string) $response->getContent(), true);
+
+        self::assertEquals(200, $response->getStatusCode());
+        self::assertCount(2, $toAssert);
+
+        foreach ($toAssert as $itemToAssert) {
+            self::assertStringContainsString('aws', $itemToAssert['uri']);
+            self::assertStringContainsString('medias', $itemToAssert['uri']);
+            self::assertArrayHasKey('key', $itemToAssert);
+        }
+    }
+
+    public function testIngestMediasShouldReturnPreSignedUriForAllImagesAndCreateAnAlbumInRequestPayload(): void
+    {
+        $data = [
+            'album' => [
+                'author' => 'yoda',
+                'title' => 'new album',
+            ],
+            'medias' => [
+                [
+                    'file' => 'example1.jpg',
+                    'type' => 'image/jpeg',
+                    'metadata' => [
+                        'author' => 'yoda',
+                        'folder' => 'jedi',
+                    ],
+                ],
+                [
+                    'file' => 'example2.jpg',
+                    'type' => 'image/jpeg',
+                    'metadata' => [
+                        'author' => 'yoda',
+                        'folder' => 'jedi',
+                    ],
+                ],
+            ],
+        ];
+
+        $response = $this->makeApiCall('POST', '/v2/medias/ingest', $data, self::JWT_ADMIN);
+
+        $toAssert = json_decode((string) $response->getContent(), true);
+
+        self::assertEquals(200, $response->getStatusCode());
+        self::assertCount(2, $toAssert);
+
+        foreach ($toAssert as $itemToAssert) {
+            self::assertStringContainsString('aws', $itemToAssert['uri']);
+            self::assertStringContainsString('medias', $itemToAssert['uri']);
+            self::assertArrayHasKey('key', $itemToAssert);
+        }
+
+        $albumToAssert = $this->findOneInDatabase(self::TABLE_ALBUM, ['slug' => (new SlugGenerator())->generate($data['album']['title'])]);
+        self::assertEquals('yoda', $albumToAssert['author']['S']);
+        self::assertEquals('new album', $albumToAssert['title']['S']);
     }
 }

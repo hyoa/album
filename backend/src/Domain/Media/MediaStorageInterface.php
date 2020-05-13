@@ -13,9 +13,11 @@ interface MediaStorageInterface
 
     public function getUriToAccessImageProxy(string $key, ?int $width = null, ?int $height = null): string;
 
-    public function generateSignedUri(string $key, string $location, string $commandType): string;
+    public function generateSignedUri(string $key, string $location, string $commandType, array $metadata = []): string;
 
-    public function putObject(string $key, string $location, string $videoPath, string $contentType): void;
+    public function putObject(string $key, string $location, string $videoPath, string $contentType, MediaMetadata $mediaMetadata): void;
 
     public function getFileSize(string $key, string $location): int;
+
+    public function getMediaMetadata(string $key, string $location): MediaMetadata;
 }
