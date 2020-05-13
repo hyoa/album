@@ -94,7 +94,7 @@ export default {
         return null
       }
 
-      if (target.files.length > 20) {
+      if (target.files.length > 100) {
         this.$notify({ group: 'warning', text: this.$t('admin.mediaAdd.notify.tooManyMedia') })
         return null
       }
