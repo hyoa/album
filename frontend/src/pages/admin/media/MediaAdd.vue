@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <PageTitle :title="$t('admin.mediaAdd.title')" />
+    <template v-slot:title>
+      <PageTitle :title="$t('admin.mediaAdd.title')" icon="regular/plus-square" color="green"/>
+    </template>
     <div v-if="upload.state === 'running'">
       <div>
         <h3>{{ $t('admin.mediaAdd.uploadRunning.title') }}</h3>

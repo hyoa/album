@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <PageTitle :title="folderName" />
+    <template v-slot:title>
+      <PageTitle :title="folderName" icon="regular/plus-square" color="green"/>
+    </template>
     <form @submit.prevent="onSubmit" class="mt-3">
       <InputSimple
         v-model="folderName"

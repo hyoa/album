@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <PageTitle :title="$t('admin.albumList.title')" />
+    <template v-slot:title>
+      <PageTitle :title="$t('admin.albumList.title')" icon="list" color="teal"/>
+    </template>
     <InputForm :label="$t('admin.albumList.form.filter')" placeholder="vacances" v-model="filter" />
     <ul>
       <ListItem
