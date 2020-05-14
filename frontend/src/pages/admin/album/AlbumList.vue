@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <template v-slot:title>
-      <PageTitle :title="$t('admin.albumList.title')" icon="list" color="bg-teal-400"/>
+      <PageTitle :title="$t('admin.albumList.title')" icon="list" color="bg-teal-500"/>
     </template>
     <InputForm :label="$t('admin.albumList.form.filter')" placeholder="vacances" v-model="filter" />
     <ul>
