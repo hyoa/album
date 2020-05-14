@@ -46,6 +46,14 @@ body {
     @apply bg-red-400 text-white border-red-500;
   }
 }
+
+.fa-icon {
+  fill: currentColor
+}
+
+.fa-inverse {
+  color: #fff;
+}
 </style>
 
 <script>
