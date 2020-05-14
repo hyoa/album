@@ -56,7 +56,7 @@ export default {
 
   .block-animate {
     animation-name: show;
-    animation-duration: 0.5s;
+    animation-duration: 0.2s;
   }
 
   .hidden-animate {
