@@ -1,8 +1,15 @@
 module.exports = {
-  purge: [
-    './src/**/*.html',
-    './src/**/*.vue',
-  ],
+  purge: {
+    content: [
+      './src/**/*.html',
+      './src/**/*.vue'
+    ],
+    options: {
+      whitelist: ['fa-icon', 'fa-inverse'],
+      whitelistPatterns: [ /-(leave|enter|appear)(|-(to|from|active))$/, /^(?!(|.*?:)cursor-move).+-move$/, /^router-link(|-exact)-active$/, /blueimp/ ],
+      whitelistPatternsChildren: [/blueimp/]
+    }
+  },
   theme: {
     extend: {
       inset: {
