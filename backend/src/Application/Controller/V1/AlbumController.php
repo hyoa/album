@@ -71,6 +71,7 @@ class AlbumController extends AbstractController
                 'favorites' => $favorites,
                 'author' => $album->author,
                 'medias' => $album->medias,
+                'private' => $album->private
             ];
         }
 

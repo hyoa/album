@@ -1,5 +1,5 @@
 <template>
-  <div class="text-white px-2 py-2 shadow-md" :class="`bg-${color}-400`">
+  <div class="text-white px-2 py-2 shadow-md" :class="color">
     <h1 class="text-3xl">
       <v-icon class="icon" v-if="icon" :name="icon" scale="1.2"></v-icon>
       {{ title }}

@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <template v-slot:title>
-       <PageTitle :title="$t('admin.userList.title')" icon="list" color="pink"/>
+       <PageTitle :title="$t('admin.userList.title')" icon="list" color="bg-pink-400"/>
     </template>
     <Alert v-if="alert.type" :type="alert.type" :message="alert.message" :title="alert.title" />
     <section>

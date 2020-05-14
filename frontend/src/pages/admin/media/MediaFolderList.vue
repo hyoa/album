@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <template v-slot:title>
-      <PageTitle :title="$t('admin.mediaFolderList.title')" icon="regular/plus-square" color="green"/>
+      <PageTitle :title="$t('admin.mediaFolderList.title')" icon="regular/plus-square" color="bg-green-400"/>
     </template>
     <ul>
       <ListItem :key="folder" v-for="folder of folders" :to="{ name: 'admin_medias_folder', params: { folder } }" :title="folder" />

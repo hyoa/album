@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <template v-slot:title>
-      <PageTitle title="Créer un album" icon="regular/plus-square" color="teal"/>
+      <PageTitle title="Créer un album" icon="regular/plus-square" color="bg-teal-400"/>
     </template>
     <form @submit.prevent="onSubmit">
       <InputSimple v-model="title" id="title" placeholder="Mon super album" label="Titre" type="text" />

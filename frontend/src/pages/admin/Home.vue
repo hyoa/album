@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="px-3">
-      <AdminCard>
+      <AdminCard headColor="bg-teal-400" footerColor="bg-teal-200">
         <template v-slot:header>
           {{ $t('admin.home.albumCard.title') }}
         </template>
@@ -18,7 +18,7 @@
           </router-link>
         </template>
       </AdminCard>
-      <AdminCard class="mt-8">
+      <AdminCard class="mt-8" headColor="bg-green-400" footerColor="bg-green-200">
         <template v-slot:header>
           {{ $t('admin.home.mediaCard.title') }}
         </template>
@@ -35,7 +35,7 @@
           </router-link>
         </template>
       </AdminCard>
-      <AdminCard class="mt-8">
+      <AdminCard class="mt-8" headColor="bg-pink-400" footerColor="bg-pink-200">
         <template v-slot:header>
           {{ $t('admin.home.userCard.title') }}
         </template>

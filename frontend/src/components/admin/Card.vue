@@ -1,12 +1,12 @@
 <template>
-  <section>
-    <header class="bg-light-primary p-2">
+  <section class="rounded-md shadow-md">
+    <header class="p-2" :class="headColor">
       <slot name="header"></slot>
     </header>
     <main class="bg-white p-3">
       <slot></slot>
     </main>
-    <footer class="bg-lightest-primary p-2 flex justify-between">
+    <footer class="p-2 flex justify-between" :class="footerColor">
       <slot name="footer"></slot>
     </footer>
   </section>
@@ -14,7 +14,8 @@
 
 <script>
 export default {
-  name: 'AdminCard'
+  name: 'AdminCard',
+  props: ['headColor', 'footerColor']
 }
 </script>
 
