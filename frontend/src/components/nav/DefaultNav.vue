@@ -3,7 +3,7 @@
     <div>
       <router-link :to="{ name: 'home' }" class="text-3xl no-underline text-black font-manuscript text-primary">{{ title }}</router-link>
     </div>
-    <i @click="isMenuOpen = !isMenuOpen" class="material-icons text-3xl text-darker-primary">account_circle</i>
+    <i @click="isMenuOpen = !isMenuOpen" class="material-icons text-3xl text-gray-700">account_circle</i>
     <div v-if="isMenuOpen" class="menu">
       <ul>
         <li v-if="isAdmin">

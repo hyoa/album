@@ -225,7 +225,8 @@ export default {
           folder: 'Dossier',
           media: 'Médias',
           dragAndDrop: 'Clique ou dépose tes fichiers ici',
-          album: 'Album'
+          album: 'Album',
+          linkToAlbum: 'Lié à un album'
         },
         notify: {
           tooManyMedia: 'Il n\'est pas possible d\'envoyer plus de 20 fichier à la fois',

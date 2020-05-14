@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <PageTitle :title="$t('admin.albumList.title')" />
+    <template v-slot:title>
+      <PageTitle :title="$t('admin.albumList.title')" icon="list" color="bg-teal-500"/>
+    </template>
     <InputForm :label="$t('admin.albumList.form.filter')" placeholder="vacances" v-model="filter" />
     <ul>
       <ListItem
@@ -9,6 +11,7 @@
         :to="{ name: 'admin_album_edit', params: { slug: album.slug }}"
         :title="album.title"
         :subtitle="$t('admin.albumList.item.createBy', { author: album.author })"
+        :iconTitle="album.private ? 'lock' : null"
       >
         <div v-if="album.medias">{{ $t('admin.albumList.item.mediasCount', { number: album.medias.length }) }}</div>
         <div v-else>{{ $t('admin.albumList.item.noMedias') }}</div>

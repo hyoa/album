@@ -43,7 +43,9 @@
         </section>
       </Sidebar>
     </template>
-    <PageTitle :title="title" />
+    <template v-slot:title>
+      <PageTitle :title="title" icon="regular/edit" color="bg-teal-500" />
+    </template>
     <form @submit.prevent="onSubmit" class="mt-3">
       <InputSimple v-model="title" id="title" placeholder="Mon super album" :label="$t('admin.albumEdit.form.title')" type="text" />
       <TextareaSimple v-model="description" id="description" placeholder="Raconte moi une histoire..." :label="$t('admin.albumEdit.form.description')" />

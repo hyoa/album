@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <PageTitle :title="$t('admin.mediaAdd.title')" />
+    <template v-slot:title>
+      <PageTitle :title="$t('admin.mediaAdd.title')" icon="regular/plus-square" color="bg-green-500"/>
+    </template>
     <div v-if="upload.state === 'running'">
       <div>
         <h3>{{ $t('admin.mediaAdd.uploadRunning.title') }}</h3>
@@ -22,7 +24,8 @@
     </div>
     <form @submit.prevent="uploadMedias" v-show="upload.state !== 'running'">
       <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
-      <AutoComplete v-model="album" id="album" placeholder="Un album" :label="$t('admin.mediaAdd.form.album')" type="text" endpoint="albums/autocomplete" :allow-no-call="true"/>
+      <CheckboxSimple v-model="linkToAlbum" :label="$t('admin.mediaAdd.form.linkToAlbum')" />
+      <AutoComplete v-if="linkToAlbum" v-model="album" id="album" placeholder="Un album" :label="$t('admin.mediaAdd.form.album')" type="text" endpoint="albums/autocomplete" :allow-no-call="true"/>
       <div class="mb-3" v-if="folder.trim() !== ''">
         <label for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
         <div
@@ -35,7 +38,7 @@
             id="files"
             type="file"
             class="opacity-0 w-full h-full"
-            accept="image/png,image/jpg,video/mp4"
+            accept="image/png,image/jpg,video/mp4,image/jpeg"
             multiple
             @change="loadMedia"
           />
@@ -64,6 +67,7 @@ import NoSleep from 'nosleep.js'
 import { post } from '../../../utils/axiosHelper'
 import AdminLayout from '../../../components/layout/AdminLayout'
 import AutoComplete from '../../../components/form/default/AutoComplete'
+import CheckboxSimple from '../../../components/form/default/CheckboxSimple'
 import PageTitle from '../../../components/admin/PageTitle'
 
 const uploadData = () => ({
@@ -78,14 +82,15 @@ const uploadData = () => ({
 
 export default {
   name: 'MediaAdd',
-  components: { PageTitle, AutoComplete, AdminLayout },
+  components: { PageTitle, AutoComplete, AdminLayout, CheckboxSimple },
   data () {
     return {
       folder: '',
       album: '',
       medias: [],
       upload: uploadData(),
-      noSleep: new NoSleep()
+      noSleep: new NoSleep(),
+      linkToAlbum: false
     }
   },
   methods: {

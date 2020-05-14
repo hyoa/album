@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <PageTitle title="Créer un album" />
+    <template v-slot:title>
+      <PageTitle title="Créer un album" icon="regular/plus-square" color="bg-teal-500"/>
+    </template>
     <form @submit.prevent="onSubmit">
       <InputSimple v-model="title" id="title" placeholder="Mon super album" label="Titre" type="text" />
       <TextareaSimple v-model="description" id="description" placeholder="Raconte moi une histoire..." label="Description" />

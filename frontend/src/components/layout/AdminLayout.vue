@@ -2,6 +2,7 @@
   <div class="min-h-screen">
     <AdminNav/>
     <slot name="sidebar"></slot>
+    <slot name="title"></slot>
     <main class="container mx-auto px-4 pb-4 mt-4 relative">
       <slot></slot>
     </main>
