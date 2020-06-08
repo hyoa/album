@@ -31,5 +31,3 @@ cp $PWD/config.prod.json $PWD/lambda_build/config.prod.json
 
 echo "Pulling dependencies"
 COMPOSER=$PWD/lambda_build/composer.json composer install --no-dev -d $PWD/lambda_build
-
-sh ./clean_dependencies.sh $PWD/lambda_build
