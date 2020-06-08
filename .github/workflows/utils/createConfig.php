@@ -12,4 +12,4 @@ $configDist['APP_NAME'] = $_SERVER['APP_NAME'];
 
 $configJson = json_encode($configDist);
 
-file_put_contents(__DIR__.'/../../../backend/config.dev.json', $configJson);
+file_put_contents(__DIR__.'/../../../backend/config.prod.json', $configJson);
