@@ -6,6 +6,7 @@ namespace Album\Application\VideoFormatter;
 
 use FFMpeg\Coordinate\Dimension;
 use FFMpeg\FFMpeg;
+use FFMpeg\Filters\Video\VideoFilters;
 
 class FFMPEGFormatter implements VideoFormatterInterface
 {
@@ -16,10 +17,11 @@ class FFMPEGFormatter implements VideoFormatterInterface
 
         $format = new \FFMpeg\Format\Video\X264();
         $format->setAudioCodec('aac');
-        $video
-            ->filters()
-            ->resize(new Dimension($width, $height))
-            ->synchronize();
+
+        /** @var VideoFilters $filters */
+        $filters = $video->filters();
+        $filters->resize(new Dimension($width, $height));
+        $filters->synchronize();
 
         $pathToSave = '/tmp/'.$key;
         $video->save($format, $pathToSave);
