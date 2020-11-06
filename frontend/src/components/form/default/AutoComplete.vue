@@ -78,7 +78,6 @@ export default {
     onSelect (value) {
       this.folder = value
       this.searchResults = []
-      console.log(value)
       this.$emit('input', value)
     }
   }
