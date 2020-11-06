@@ -14,12 +14,15 @@
     >
     <ul v-if="searchResults.length" class="list-reset border border-gray bg-white border-t-0 rounded-b autocomplete">
       <li
-        class="my-1 text-grey-dark hover:bg-grey-lightest cursor-pointer p-2"
+        class="my-1 text-grey-dark hover:bg-grey-lightest cursor-pointer p-2 flex"
         :key="searchResult.value"
         v-for="searchResult of searchResults"
         @click="onSelect(searchResult.value)"
       >
         {{ searchResult.label }}
+        <div class="bg-blue-500 text-white rounded-md px-2 ml-3" v-if="searchResult.isNew">
+          {{ $t('components.autocomplete.isNew') }}
+        </div>
       </li>
     </ul>
   </div>
@@ -58,14 +61,14 @@ export default {
       if (this.allowNoCall) {
         if (res.data.length === 0) {
           this.$emit('input', term)
-          this.searchResults = []
+          this.searchResults = [{ label: term, value: term, isNew: true }]
         } else {
           this.searchResults = res.data
 
           if (!this.searchResults.some(({ label, value }) => {
             return label === term && value === term
           })) {
-            this.searchResults.push({ label: term, value: term })
+            this.searchResults.push({ label: term, value: term, isNew: true })
           }
         }
       } else {
@@ -75,6 +78,7 @@ export default {
     onSelect (value) {
       this.folder = value
       this.searchResults = []
+      console.log(value)
       this.$emit('input', value)
     }
   }
