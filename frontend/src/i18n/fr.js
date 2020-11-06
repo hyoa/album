@@ -252,6 +252,11 @@ export default {
           invitationSend: 'Invitations envoyées'
         }
       }
+    },
+    components: {
+      autocomplete: {
+        isNew: 'nouveau'
+      }
     }
   }
 }
