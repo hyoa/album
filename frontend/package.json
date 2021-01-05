@@ -10,7 +10,7 @@
     "test:e2e:ci": "node prebuild.js && vue-cli-service test:e2e --mode e2e --headless"
   },
   "dependencies": {
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "debounce": "^1.2.0",
     "firebase": "^6.6.0",
     "jwt-decode": "^2.2.0",
