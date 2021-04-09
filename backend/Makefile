@@ -9,7 +9,7 @@ ui-test: vendor ## Run unit tests
 
 .PHONY: phpstan
 phpstan: ## Check static analysis
-	vendor/bin/phpstan analyse src tests --level=max
+	php -d memory_limit=-1 vendor/bin/phpstan analyse src tests --level=max
 
 .PHONY: cs cs-fix cs-ci
 cs: ## Check code style

@@ -198,7 +198,7 @@ class UserManagerTest extends TestCase
         $jwtHelper = new JWTHelper($clock, 'POkwvHb8JYj6YVSxTiDQCDBxHnflysw2');
         $jwtHelper->generateToken(['username' => 'yoda@jedi.rep', 'roles' => ['ROLE_USER']]);
 
-        $this->jwtManagerMock->create(Argument::any())->willReturn((string) $jwtHelper->generateToken(['username' => 'yoda@jedi.rep', 'roles' => ['ROLE_USER']]));
+        $this->jwtManagerMock->create(Argument::any())->willReturn(($jwtHelper->generateToken(['username' => 'yoda@jedi.rep', 'roles' => ['ROLE_USER']]))->toString());
 
         $toAssert = $userManager->login('yoda@jedi.rep', 'password');
 
@@ -312,9 +312,12 @@ class UserManagerTest extends TestCase
 
         $user->hydrate($data);
 
-        $token = new Token();
+        $token = 'eee.qqqq.aaaa';
+        /** @var Token|ObjectProphecy $tokenMock */
+        $tokenMock = $this->prophet->prophesize(Token::class);
+        $tokenMock->toString()->willReturn($token);
         $this->userRepositoryMock->findOneByEmail($user->email)->willReturn($user);
-        $this->jwtHelperMock->generateToken(Argument::any())->willReturn($token);
+        $this->jwtHelperMock->generateToken(Argument::any())->willReturn($tokenMock->reveal());
 
         $clock = new TestClock(new \DateTimeImmutable('2019-01-01 12:34'));
 
