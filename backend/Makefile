@@ -23,7 +23,7 @@ cs-ci: ## Run Continuous Integration code style check
 
 .PHONY: deploy
 deploy-dev: ##Deploy
-	./build.sh && cd lambda_build && serverless deploy --stage dev && cd ..
+	./build.sh && cd lambda_build && ./clean_dependencies.sh && serverless deploy --stage dev && cd ..
 
 deploy-prod: ##Deploy
 	./build.sh && cd lambda_build && serverless deploy --stage prod && cd ..
