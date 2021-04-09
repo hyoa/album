@@ -48,6 +48,7 @@ jobs:
         FIREBASE_CHANNEL_SUFFIX: ${{secrets.firebase_channel_suffix}}
         CORS_ALLOW_ORIGIN: ${{secrets.cors_allow_origin}}
         APP_NAME: ${{secrets.app_name}}
+        JWT_SECRET: ${{secrets.jwt_secret}}
     
     - name: Run deployment
       run: npx serverless deploy --stage prod
