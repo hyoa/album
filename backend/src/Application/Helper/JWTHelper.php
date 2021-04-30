@@ -30,7 +30,7 @@ class JWTHelper
 
         $this->jwtConfiguration = Configuration::forSymmetricSigner(
             new Sha256(),
-            InMemory::base64Encoded('password' ,$secret)
+            InMemory::base64Encoded('password', $secret)
         );
 
         $this->jwtConfiguration->setValidationConstraints(
@@ -66,7 +66,7 @@ class JWTHelper
         }
     }
 
-    public function getData(string $token, string $claimName): string|int|array
+    public function getData(string $token, string $claimName): string | int | array
     {
         $parsedToken = $this->jwtConfiguration->parser()->parse($token);
 

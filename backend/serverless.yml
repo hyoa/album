@@ -32,6 +32,12 @@ provider:
         TABLE_PREFIX: ${self:custom.prefix}
         CORS_ALLOW_ORIGIN: ${file(../config.${self:provider.stage}.json):CORS_ALLOW_ORIGIN}
         APP_NAME: ${file(../config.${self:provider.stage}.json):APP_NAME}
+        ACCESS_KEY_ID_VIDEO_RAW_STORAGE: ${ssm:/album/${self:provider.stage}/access_key_id_video_raw_storage}
+        SECRET_ACCESS_KEY_VIDEO_RAW_STORAGE: ${ssm:/album/${self:provider.stage}/secret_access_key_video_raw_storage}
+        ACCESS_KEY_ID_MEDIA_STORAGE: ${ssm:/album/${self:provider.stage}/access_key_id_media_storage}
+        SECRET_ACCESS_KEY_MEDIA_STORAGE: ${ssm:/album/${self:provider.stage}/secret_access_key_media_storage}
+        CLOUD_CONVERT_API_KEY: ${ssm:/album/${self:provider.stage}/cloudconvert_apikey}
+        JWT_PASSPHRASE: 'test'
     iamRoleStatements:
         - Effect: Allow
           Action:

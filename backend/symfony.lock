@@ -2,6 +2,12 @@
     "alchemy/binary-driver": {
         "version": "v5.2.0"
     },
+    "cloudconvert/cloudconvert-php": {
+        "version": "3.2.1"
+    },
+    "clue/stream-filter": {
+        "version": "v1.5.0"
+    },
     "doctrine/cache": {
         "version": "1.10.2"
     },
@@ -17,6 +23,9 @@
     "lcobucci/clock": {
         "version": "2.0.0"
     },
+    "netresearch/jsonmapper": {
+        "version": "v4.0.0"
+    },
     "neutron/temporary-filesystem": {
         "version": "3.0"
     },
@@ -25,6 +34,27 @@
     },
     "php-ffmpeg/php-ffmpeg": {
         "version": "v0.18.0"
+    },
+    "php-http/client-common": {
+        "version": "2.3.0"
+    },
+    "php-http/discovery": {
+        "version": "1.13.0"
+    },
+    "php-http/guzzle7-adapter": {
+        "version": "1.0.0"
+    },
+    "php-http/httplug": {
+        "version": "2.2.0"
+    },
+    "php-http/message": {
+        "version": "1.11.0"
+    },
+    "php-http/multipart-stream-builder": {
+        "version": "1.1.2"
+    },
+    "php-http/promise": {
+        "version": "1.1.0"
     },
     "sanmai/later": {
         "version": "0.1.2"

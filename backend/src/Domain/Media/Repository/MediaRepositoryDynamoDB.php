@@ -18,6 +18,7 @@ class MediaRepositoryDynamoDB extends AbstractDynamoDBRepository implements Medi
             'author' => $mediaEntity->author,
             'folder' => $mediaEntity->folder,
             'uploadDate' => $mediaEntity->uploadDate->getTimestamp(),
+            'visible' => $mediaEntity->visible,
         ]);
     }
 
@@ -121,17 +122,29 @@ class MediaRepositoryDynamoDB extends AbstractDynamoDBRepository implements Medi
                 $i++;
             }
 
-            $itemsToRename = $this->scan(
+            $itemsToUpdate = $this->scan(
                 'mediaKey IN ('.implode(',', $keysExpressions).')',
                 $eav
             );
 
-            foreach ($itemsToRename as $item) {
-                $this->updateOneItem(
-                    'set folder = :folder',
-                    ['mediaKey' => $item['mediaKey']['S']],
-                    [':folder' => $change['folder']]
-                );
+            if (array_key_exists('folder', $change)) {
+                foreach ($itemsToUpdate as $item) {
+                    $this->updateOneItem(
+                        'set folder = :folder',
+                        ['mediaKey' => $item['mediaKey']['S']],
+                        [':folder' => $change['folder']]
+                    );
+                }
+            }
+
+            if (array_key_exists('visible', $change)) {
+                foreach ($itemsToUpdate as $item) {
+                    $this->updateOneItem(
+                        'set visible = :visible',
+                        ['mediaKey' => $item['mediaKey']['S']],
+                        [':visible' => $change['visible']]
+                    );
+                }
             }
         }
     }
@@ -159,6 +172,10 @@ class MediaRepositoryDynamoDB extends AbstractDynamoDBRepository implements Medi
         if (array_key_exists('uploadDate', $document)) {
             $date = (new \DateTimeImmutable())->setTimestamp((int) $document['uploadDate']['N']);
             $data['uploadDate'] = $date;
+        }
+
+        if (array_key_exists('visible', $document)) {
+            $data['visible'] = $document['visible']['BOOL'];
         }
 
         return $data;

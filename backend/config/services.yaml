@@ -19,6 +19,7 @@ services:
             $appEmail: '%env(APP_EMAIL)%'
             $appName: '%env(APP_NAME)%'
             $appUri: '%env(APP_URI)%'
+            $mediaStorageRegion: '%env(AWS_REGION)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -48,6 +49,10 @@ services:
             $proxyImage: '%env(PROXY_IMAGE)%'
             $keyPairId: '%env(KEY_PAIR_ID)%'
             $awsPk: '%env(AWS_PK)%'
+            $accessKeyIdVideoRawStorage: '%env(ACCESS_KEY_ID_VIDEO_RAW_STORAGE)%'
+            $secretAccessKeyVideoRawStorage: '%env(resolve:SECRET_ACCESS_KEY_VIDEO_RAW_STORAGE)%'
+            $accessKeyIdMediaStorageLocation: '%env(ACCESS_KEY_ID_MEDIA_STORAGE)%'
+            $secretAccessKeyMediaStorageLocation: '%env(SECRET_ACCESS_KEY_MEDIA_STORAGE)%'
 
     Album\Lambda\LambdaHandler:
         public: true
@@ -62,3 +67,12 @@ services:
     Album\Application\Ingest\VideoIngestHandler:
         tags:
             - { name: app.lambda, functionName: 'VideoIngest' }
+
+#    Album\Domain\Media\MediaIngestManager:
+#        arguments:
+#            $videoFormatter: Album\Application\VideoFormatter\CloudConverter\Formatter
+
+    Album\Application\VideoFormatter\CloudConverter\Formatter:
+        arguments:
+            $apiKey: '%env(CLOUD_CONVERT_API_KEY)%'
+            $sandbox: '%env(bool:CLOUD_CONVERT_SANDBOX)%'

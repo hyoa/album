@@ -27,9 +27,14 @@ class MediaController extends AbstractController
     {
         $mediasCollection = $mediaManager->findByFolder($folderName);
 
+        $mediasVisible = array_filter(
+            $mediasCollection,
+            fn (MediaEntity $mediaEntity) => $mediaEntity->visible
+        );
+
         $medias = array_map(function (MediaEntity $mediaEntity): array {
             return $mediaEntity->getAsArray();
-        }, $mediasCollection);
+        }, $mediasVisible);
 
         return new JsonResponse($medias);
     }

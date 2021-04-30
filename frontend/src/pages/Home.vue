@@ -29,7 +29,7 @@
         </button>
       </div>
     </section>
-    <section data-e2e="search-form-section" class="mb-6">
+    <section v-if="false" data-e2e="search-form-section" class="mb-6">
       <h2 class="mb-3 text-xl">{{ $t('home.searchFormSection.title') }}</h2>
       <form @submit.prevent="onSearch">
         <input
@@ -50,17 +50,10 @@
         </div>
     </section>
     <section data-e2e="last-albums-section" v-else>
-      <h2 class="text-xl">{{ $t('home.lastAlbumSection.title') }}</h2>
-      <div class="showroom">
-        <div class="grid1" v-if="albums[0]">
-          <AlbumCard :isFirst="true" :key="albums[0].slug" :album="albums[0]" />
-        </div>
-        <div class="grid2" v-if="albums[1]">
-          <AlbumCard :isFirst="false" :key="albums[1].slug" :album="albums[1]" />
-        </div>
-        <div class="grid3" v-if="albums[2]">
-          <AlbumCard :isFirst="false" :key="albums[2].slug" :album="albums[2]" />
-        </div>
+      <div>
+        <AlbumCard :key="albums[0].slug" :album="albums[0]" />
+        <AlbumCard :key="albums[1].slug" :album="albums[1]" />
+        <AlbumCard :key="albums[2].slug" :album="albums[2]" />
       </div>
       <div>
         <div>
@@ -213,7 +206,7 @@ export default {
 
 <style scoped lang="scss">
   .showroom {
-    min-height: 50vh;
+    min-height: 70vh;
     display: grid;
     grid-template-columns: 1fr 0.5fr;
     grid-template-rows: 1fr 1fr;

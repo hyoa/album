@@ -6,5 +6,5 @@ namespace Album\Application\VideoFormatter;
 
 interface VideoFormatterInterface
 {
-    public function run(string $url, string $key, int $width = 720, int $height = 480): string;
+    public function run(string $key, int $width = 720, int $height = 480): bool;
 }

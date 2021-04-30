@@ -21,10 +21,10 @@ class MediaManager
         $this->mediaStorage = $mediaStorage;
     }
 
-    public function save(string $key, string $author, int $type, string $folder): MediaEntity
+    public function save(string $key, string $author, int $type, string $folder, bool $visible = true): MediaEntity
     {
         $media = new MediaEntity();
-        $media->hydrate(['key' => $key, 'author' => $author, 'type' => $type, 'folder' => $folder]);
+        $media->hydrate(['key' => $key, 'author' => $author, 'type' => $type, 'folder' => $folder, 'visible' => $visible]);
         $media->uploadDate = $this->clock->now();
 
         $this->mediaRepository->insert($media);

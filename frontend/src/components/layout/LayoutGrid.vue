@@ -1,5 +1,5 @@
 <template>
-  <div class="parent">
+  <div class="parent min-h-screen">
     <DefaultNav :isAdmin="isAdmin"></DefaultNav>
     <main class="main px-4">
       <slot></slot>
