@@ -10,6 +10,7 @@ import Icon from 'vue-awesome/components/Icon'
 import Notifications from 'vue-notification'
 import VueI18n from 'vue-i18n'
 import messages from './i18n/fr'
+import './assets/styles/index.css'
 
 Vue.component('v-icon', Icon)
 

@@ -51,9 +51,7 @@
     </section>
     <section data-e2e="last-albums-section" v-else>
       <div>
-        <AlbumCard :key="albums[0].slug" :album="albums[0]" />
-        <AlbumCard :key="albums[1].slug" :album="albums[1]" />
-        <AlbumCard :key="albums[2].slug" :album="albums[2]" />
+        <AlbumCard v-for="album in albums" :key="album.slug" :album="album" />
       </div>
       <div>
         <div>
@@ -107,7 +105,7 @@ export default {
   },
   async created () {
     try {
-      const res = await get('albums')
+      const res = await get('albums?limit=10')
       this.albums = res.data
     } catch ({ response: { status } }) {
       if (status === 401) {
@@ -143,8 +141,8 @@ export default {
     async onLoadMore () {
       try {
         this.loadingMore = true
-        const limit = 6
-        const offset = this.currentPage * limit + 3
+        const limit = 10
+        const offset = this.currentPage * limit + 10
 
         const res = await get(`albums?offset=${offset}&limit=${limit}`)
 

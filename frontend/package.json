@@ -10,17 +10,18 @@
     "test:e2e:ci": "node prebuild.js && vue-cli-service test:e2e --mode e2e --headless"
   },
   "dependencies": {
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "debounce": "^1.2.0",
-    "firebase": "^6.6.0",
-    "jwt-decode": "^2.2.0",
+    "eslint": "^7.28.0",
+    "firebase": "^8.6.0",
+    "jwt-decode": "^3.1.2",
     "masonry-layout": "^4.2.2",
     "mobile-detect": "^1.4.3",
-    "nosleep.js": "^0.9.0",
+    "nosleep.js": "^0.12.0",
     "pretty-ms": "^5.0.0",
     "register-service-worker": "^1.6.2",
     "vue": "^2.6.6",
-    "vue-awesome": "^3.5.4",
+    "vue-awesome": "^4.3",
     "vue-gallery": "^2.0.0",
     "vue-i18n": "^8.17.4",
     "vue-lazyload": "1.2.6",
@@ -29,22 +30,23 @@
     "vuex": "^3.1.1"
   },
   "devDependencies": {
-    "@fullhuman/postcss-purgecss": "^1.2.0",
-    "@ky-is/vue-cli-plugin-tailwind": "^2.0.0",
-    "@vue/cli-plugin-babel": "^3.9.2",
-    "@vue/cli-plugin-e2e-cypress": "^3.9.0",
-    "@vue/cli-plugin-eslint": "^3.9.2",
-    "@vue/cli-plugin-pwa": "^3.9.0",
-    "@vue/cli-service": "^3.9.2",
+    "@babel/core": "^7.12.10",
+    "@babel/eslint-parser": "^7.12.1",
+    "@vue/cli-plugin-babel": "~5.0.0-alpha.7",
+    "@vue/cli-plugin-e2e-cypress": "~5.0.0-alpha.7",
+    "@vue/cli-plugin-eslint": "~5.0.0-alpha.7",
+    "@vue/cli-plugin-pwa": "~5.0.0-alpha.7",
+    "@vue/cli-service": "~5.0.0-alpha.7",
     "@vue/eslint-config-standard": "^4.0.0",
+    "autoprefixer": "^10.2.6",
     "babel-eslint": "^10.0.2",
-    "eslint": "^5.16.0",
-    "eslint-plugin-vue": "^5.2.3",
-    "lint-staged": "^8.2.1",
-    "node-sass": "^4.12.0",
-    "postcss-preset-env": "^6.7.0",
-    "sass-loader": "^7.1.0",
-    "tailwindcss": "^1.0.1",
+    "eslint-plugin-vue": "^7.8.0",
+    "lint-staged": "^11.0.0",
+    "node-sass": "^6.0",
+    "postcss": "^8.3.0",
+    "postcss-preset-env": "^5.3.0",
+    "sass-loader": "^12.0",
+    "tailwindcss": "^2.1.4",
     "vue-template-compiler": "^2.5.21"
   },
   "eslintConfig": {
@@ -58,7 +60,7 @@
     ],
     "rules": {},
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser"
     }
   },
   "browserslist": [
