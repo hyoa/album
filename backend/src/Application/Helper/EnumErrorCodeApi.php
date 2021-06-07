@@ -15,6 +15,7 @@ class EnumErrorCodeApi
     const ERROR_USER_NOT_EXIST = 13;
     const ERROR_TOKEN_INVALID = 14;
     const ERROR_INVALID_DATA = 15;
+    const ERROR_EMAIL_INVALID = 16;
 
     /**
      * ALBUM ERROR: 2x.

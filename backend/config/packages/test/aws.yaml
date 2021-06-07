@@ -7,7 +7,7 @@ aws:
     DynamoDb:
         region: 'local'
         version: "latest"
-        endpoint: 'http://localhost:8010'
+        endpoint: 'http://localhost:8000'
     S3:
         region: '%env(AWS_REGION)%'
         version: "latest"

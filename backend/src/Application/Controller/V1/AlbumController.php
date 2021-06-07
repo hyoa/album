@@ -147,10 +147,14 @@ class AlbumController extends AbstractController
         $token = str_replace('Bearer ', '', $bearerToken);
         $author = $JWTHelper->getData($token, 'name');
 
+        if (!is_string($author)) {
+            $author = '';
+        }
+
         $description = (string) filter_var($data['description'], FILTER_SANITIZE_STRING);
         $private = (bool) filter_var($data['private'], FILTER_SANITIZE_STRING);
 
-        $album = $albumManager->save($title, $description, $private, (string) $author);
+        $album = $albumManager->save($title, $description, $private, $author);
 
         return new JsonResponse([
             'title' => $album->title,
