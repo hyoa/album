@@ -37,7 +37,7 @@ provider:
         ACCESS_KEY_ID_MEDIA_STORAGE: ${ssm:/album/${self:provider.stage}/access_key_id_media_storage}
         SECRET_ACCESS_KEY_MEDIA_STORAGE: ${ssm:/album/${self:provider.stage}/secret_access_key_media_storage}
         CLOUD_CONVERT_API_KEY: ${ssm:/album/${self:provider.stage}/cloudconvert_apikey}
-        JWT_PASSPHRASE: 'test'
+        JWT_PASSPHRASE: ${ssm:/album/${self:provider.stage}/jwt_passphrase}
     iamRoleStatements:
         - Effect: Allow
           Action:
