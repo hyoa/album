@@ -62,12 +62,11 @@ import { get, post } from '../utils/axiosHelper'
 import AlbumCard from '../components/album/AlbumCard'
 import LayoutGrid from '../components/layout/LayoutGrid'
 import CubicLoader from '../components/loader/CubicLoader'
-import SimpleButton from '../components/form/button/SimpleAnimateButton'
 import HelpPwa from '../components/help/PwaInstallation'
 
 export default {
   name: 'Home',
-  components: { LayoutGrid, AlbumCard, CubicLoader, SimpleButton, HelpPwa },
+  components: { LayoutGrid, AlbumCard, CubicLoader, HelpPwa },
   data () {
     return {
       albums: [],
