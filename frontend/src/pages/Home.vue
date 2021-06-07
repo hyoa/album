@@ -1,34 +1,5 @@
 <template>
   <LayoutGrid>
-    <section data-e2e="notification-feature-section" v-if="hasAcceptedNotification === 'default'" class="border border-blue-500 p-2 rounded-sm">
-      <h3 class="border-b border-blue-800 text-xl">{{ $t('home.notificationSection.title') }}</h3>
-      <div class="my-2">
-        <p>
-          {{ $t('home.notificationSection.message') }}
-        </p>
-        <p class="mt-1" v-if="!isRunningAsPwa">
-          {{ $t('home.notificationSection.advice') }}
-          <a class="text-blue-700 " @click.stop="showPwaHelp = true">
-            {{ $t('home.notificationSection.help') }}
-            <i class="material-icons align-top">
-              help_outline
-            </i>
-          </a>
-        </p>
-      </div>
-      <div class="text-center mt-2 py-1">
-        <SimpleButton
-          :status="notificationValidationStatus"
-          @click="acceptNotification"
-          size="small"
-        >
-          {{ $t('home.notificationSection.form.accept') }}
-        </SimpleButton>
-        <button @click="declineNotification" class="text-red-500 mt-2">
-          {{ $t('home.notificationSection.form.refuse') }}
-        </button>
-      </div>
-    </section>
     <section v-if="false" data-e2e="search-form-section" class="mb-6">
       <h2 class="mb-3 text-xl">{{ $t('home.searchFormSection.title') }}</h2>
       <form @submit.prevent="onSearch">
