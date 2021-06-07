@@ -29,7 +29,7 @@ export default {
         case 'success':
           return 'bg-green-400 text-white border-green-500'
         case 'warning':
-          return 'bg-orange-400 text-white border-orange-500'
+          return 'bg-yellow-400 text-white border-yellow-500'
         case 'error':
           return 'bg-red-400 text-white border-red-500'
         default:

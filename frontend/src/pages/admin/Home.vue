@@ -1,7 +1,7 @@
 <template>
   <AdminLayout>
     <div class="px-3">
-      <AdminCard headColor="bg-teal-400" footerColor="bg-teal-200">
+      <AdminCard headColor="bg-indigo-400" footerColor="bg-indigo-200">
         <template v-slot:header>
           {{ $t('admin.home.albumCard.title') }}
         </template>

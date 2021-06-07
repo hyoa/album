@@ -50,15 +50,23 @@
         </div>
     </section>
     <section data-e2e="last-albums-section" v-else>
-      <div>
-        <AlbumCard v-for="album in albums" :key="album.slug" :album="album" />
-      </div>
-      <div>
-        <div>
-          <div class="md:flex" v-for="(albumsToLoad, index) in albumsMore" :key="index">
-            <AlbumCard class="lg:w-1/3 md:w-1/2" v-for="album in albumsToLoad" :key="album.slug" :album="album" />
+      <div
+        v-masonry="masonryId"
+        transition-duration="0.3s"
+        item-selector=".albumTile"
+      >
+        <div
+          v-masonry-tile="masonryId"
+          class="albumTile w-1/3"
+          v-for="(album, index) in albums"
+          :key="index"
+        >
+          <div>
+            <AlbumCard :album="album" />
           </div>
         </div>
+      </div>
+      <div>
         <div class="flex justify-center" v-if="canLoadMore">
           <button
             @click="onLoadMore"
@@ -94,13 +102,13 @@ export default {
       albums: [],
       searchTerm: '',
       searchedTerm: null,
-      albumsMore: [],
       loadingMore: false,
       canLoadMore: true,
       currentPage: 0,
       hasAcceptedNotification: 'unknown',
       notificationValidationStatus: 'ready',
-      showPwaHelp: false
+      showPwaHelp: false,
+      masonryId: 'albumsTiles'
     }
   },
   async created () {
@@ -150,9 +158,10 @@ export default {
           this.canLoadMore = false
         }
 
-        this.albumsMore.push(res.data)
+        this.albums = this.albums.concat(res.data)
         this.loadingMore = false
         this.currentPage++
+        this.$redrawVueMasonry(this.masonryId)
       } catch ({ response: { satus } }) {
         if (status === 401) {
           this.$store.commit('setFlashMessage', 'auth.alert.disconnect')

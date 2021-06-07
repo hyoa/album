@@ -1,21 +1,15 @@
 <template>
-  <div data-e2e="album-card" class="w-full h-full p-1 md:p-3 shadow-md mb-8 rounded-md" :key="album.slug">
+  <div data-e2e="album-card" class="w-full h-full p-1 md:p-3" :key="album.slug">
     <router-link
       :to="{ name: 'album_view', params: { slug: album.slug } }"
     >
-      <div class="overflow-hidden h-full rounded-sm">
+      <div class="overflow-hidden h-full rounded-sm hover:shadow-md">
         <div class="thumbnail relative h-full">
 
           <img
             :src="thumbnail"
             class="h-full rounded-sm"
           />
-          <hr class="my-2 border-gray-600 border-1">
-          <div
-            class="w-full card-title p-1 md:p-2 rounded-b-sm text-2xl text-gray-900"
-          >
-            {{ album.title }}
-          </div>
         </div>
       </div>
     </router-link>
