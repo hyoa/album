@@ -103,7 +103,6 @@ export default {
   },
   methods: {
     updateGrid () {
-      console.log('updategrid')
       this.$redrawVueMasonry(this.masonryId)
     },
     selectMedia (key, index) {
