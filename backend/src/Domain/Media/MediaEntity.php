@@ -32,6 +32,8 @@ class MediaEntity
 
     public array $mediasUri;
 
+    public bool $visible = true;
+
     public function hydrate(array $data): void
     {
         if (array_key_exists('key', $data)) {
@@ -52,6 +54,10 @@ class MediaEntity
 
         if (array_key_exists('uploadDate', $data)) {
             $this->uploadDate = $data['uploadDate'];
+        }
+
+        if (array_key_exists('visible', $data)) {
+            $this->visible = $data['visible'];
         }
     }
 

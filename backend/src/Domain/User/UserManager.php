@@ -164,7 +164,7 @@ class UserManager
         }
 
         $token = $this->jwtHelper->generateToken(['email' => $email, 'type' => JWTHelper::TYPE_RESET_PASSWORD]);
-        $uri = $callbackUri.'?token='.$token;
+        $uri = $callbackUri.'?token='.$token->toString();
 
         $email = (new Email())
             ->from($this->appEmail)
@@ -175,7 +175,7 @@ class UserManager
 
         $this->mailer->send($email);
 
-        return (string) $token;
+        return $token->toString();
     }
 
     public function updatePassword(string $email, string $password, string $passwordCheck): UserEntity
@@ -190,7 +190,7 @@ class UserManager
             throw new UserPasswordNotEqualsException();
         }
 
-        $user->password = (string) password_hash($password, PASSWORD_DEFAULT);
+        $user->password = password_hash($password, PASSWORD_DEFAULT);
 
         $this->userRepository->updateOne($user);
 

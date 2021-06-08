@@ -206,7 +206,7 @@ class UserControllerTest extends AbstractControllerTest
             [
                 'email' => 'yoda@jedi.rep',
                 'password' => 'pass2',
-                'token' => (string) $token,
+                'token' => $token->toString(),
                 'passwordCheck' => 'pass2',
             ]
         );

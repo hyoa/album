@@ -16,7 +16,6 @@
 </template>
 
 <style lang="scss">
-@import 'assets/styles/tailwind.postcss';
 body {
   font-family: 'Source Sans Pro', sans-serif;
 }
@@ -39,7 +38,7 @@ body {
   }
 
   .warning {
-    @apply bg-orange-400 text-white border-orange-500;
+    @apply bg-yellow-400 text-white border-yellow-500;
   }
 
   .error {

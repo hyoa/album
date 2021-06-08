@@ -29,5 +29,9 @@ cp $PWD/Makefile $PWD/lambda_build/Makefile
 cp $PWD/config.dev.json $PWD/lambda_build/config.dev.json
 cp $PWD/config.prod.json $PWD/lambda_build/config.prod.json
 
+rm $PWD/lambda_build/config/packages/twig.yaml
+
+cp $PWD/clean_dependencies.sh $PWD/lambda_build/clean_dependencies.sh
+
 echo "Pulling dependencies"
 COMPOSER=$PWD/lambda_build/composer.json composer install --no-dev -d $PWD/lambda_build

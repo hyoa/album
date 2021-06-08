@@ -44,7 +44,7 @@
       </Sidebar>
     </template>
     <template v-slot:title>
-      <PageTitle :title="title" icon="regular/edit" color="bg-teal-500" />
+      <PageTitle :title="title" icon="regular/edit" color="bg-indigo-500" />
     </template>
     <form @submit.prevent="onSubmit" class="mt-3">
       <InputSimple v-model="title" id="title" placeholder="Mon super album" :label="$t('admin.albumEdit.form.title')" type="text" />

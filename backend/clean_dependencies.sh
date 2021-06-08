@@ -2,7 +2,7 @@
 
 if [[ -z "$1" ]]
 then
-    path=PWD
+    path=$PWD
 else
     path=$1
 fi

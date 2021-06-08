@@ -32,6 +32,11 @@ provider:
         TABLE_PREFIX: ${self:custom.prefix}
         CORS_ALLOW_ORIGIN: ${file(../config.${self:provider.stage}.json):CORS_ALLOW_ORIGIN}
         APP_NAME: ${file(../config.${self:provider.stage}.json):APP_NAME}
+        ACCESS_KEY_ID_VIDEO_RAW_STORAGE: ${ssm:/album/${self:provider.stage}/access_key_id_video_raw_storage}
+        SECRET_ACCESS_KEY_VIDEO_RAW_STORAGE: ${ssm:/album/${self:provider.stage}/secret_access_key_video_raw_storage}
+        ACCESS_KEY_ID_MEDIA_STORAGE: ${ssm:/album/${self:provider.stage}/access_key_id_media_storage}
+        SECRET_ACCESS_KEY_MEDIA_STORAGE: ${ssm:/album/${self:provider.stage}/secret_access_key_media_storage}
+        CLOUD_CONVERT_API_KEY: ${ssm:/album/${self:provider.stage}/cloudconvert_apikey}
     iamRoleStatements:
         - Effect: Allow
           Action:
@@ -57,7 +62,7 @@ functions:
         description: ''
         timeout: 28
         layers:
-            - ${bref:layer.php-74-fpm}
+            - ${bref:layer.php-80-fpm}
         events:
             -   http: 'ANY /'
             -   http: 'ANY /{proxy+}'
@@ -68,7 +73,7 @@ functions:
         timeout: 10
         memorySize: 1024
         layers:
-            - ${bref:layer.php-74}
+            - ${bref:layer.php-80}
         events:
             - s3:
                   bucket: medias
@@ -80,8 +85,7 @@ functions:
         timeout: 900
         memorySize: 3008
         layers:
-            - ${bref:layer.php-74}
-            - 'arn:aws:lambda:eu-west-2:557739470487:layer:ffmpeg:1'
+            - ${bref:layer.php-80}
         events:
             - s3:
                   bucket: videos

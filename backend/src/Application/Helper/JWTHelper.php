@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Album\Application\Helper;
 
 use Album\Application\Clock\ClockInterface;
-use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\Parser;
+use Lcobucci\Clock\SystemClock;
+use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
+use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Token;
-use Lcobucci\JWT\ValidationData;
+use Lcobucci\JWT\UnencryptedToken;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\Constraint\StrictValidAt;
 
 class JWTHelper
 {
@@ -17,51 +20,60 @@ class JWTHelper
     protected const DEFAULT_TIME = 3600 * 24 * 4;
 
     protected ClockInterface $clock;
-    protected string $secret;
+    protected Configuration $jwtConfiguration;
 
-    public function __construct(ClockInterface $clock, string $secret)
-    {
+    public function __construct(
+        ClockInterface $clock,
+        string $secret,
+    ) {
         $this->clock = $clock;
-        $this->secret = $secret;
+
+        $this->jwtConfiguration = Configuration::forSymmetricSigner(
+            new Sha256(),
+            InMemory::base64Encoded('password', $secret)
+        );
+
+        $this->jwtConfiguration->setValidationConstraints(
+            new StrictValidAt(new SystemClock($clock->now()->getTimezone())),
+            new SignedWith($this->jwtConfiguration->signer(), $this->jwtConfiguration->signingKey())
+        );
     }
 
     public function generateToken(array $data): Token
     {
-        $signer = new Sha256();
-        $token = (new Builder())
-            ->setIssuedAt($this->clock->now()->getTimestamp())
-            ->setExpiration($this->clock->now()->getTimestamp() + self::DEFAULT_TIME);
+        $newTokenConfiguration = $this->jwtConfiguration->builder()
+                    ->issuedAt($this->clock->now())
+                    ->expiresAt($this->clock->now()->modify('+ 4 days'))
+                    ->canOnlyBeUsedAfter($this->clock->now())
+        ;
 
         foreach ($data as $key => $value) {
-            $token->set($key, $value);
+            $newTokenConfiguration->withClaim($key, $value);
         }
 
-        $token->sign($signer, $this->secret);
-
-        return $token->getToken();
+        return $newTokenConfiguration->getToken($this->jwtConfiguration->signer(), $this->jwtConfiguration->verificationKey());
     }
 
     public function isTokenValid(string $token): bool
     {
         try {
-            $token = (new Parser())->parse($token);
+            $parsedToken = $this->jwtConfiguration->parser()->parse($token);
+            $constraints = $this->jwtConfiguration->validationConstraints();
 
-            $signer = new Sha256();
-            $validationData = new ValidationData();
-
-            return $token->verify($signer, $this->secret) && $token->validate($validationData);
+            return $this->jwtConfiguration->validator()->validate($parsedToken, ...$constraints);
         } catch (\Exception $e) {
             return false;
         }
     }
 
-    /**
-     * @return string|int
-     */
-    public function getData(string $token, string $dataName)
+    public function getData(string $token, string $claimName): string | int | array
     {
-        $token = (new Parser())->parse($token);
+        $parsedToken = $this->jwtConfiguration->parser()->parse($token);
 
-        return $token->getClaim($dataName);
+        if (!$parsedToken instanceof UnencryptedToken) {
+            throw new \InvalidArgumentException();
+        }
+
+        return $parsedToken->claims()->get($claimName);
     }
 }

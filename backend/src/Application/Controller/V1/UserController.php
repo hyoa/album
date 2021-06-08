@@ -164,10 +164,14 @@ class UserController extends AbstractController
         $token = (string) filter_var($data['token'], FILTER_SANITIZE_STRING);
 
         $tokenType = $jwtHelper->getData($token, 'type');
-        $email = (string) $jwtHelper->getData($token, 'email');
+        $email = $jwtHelper->getData($token, 'email');
 
         if (!$jwtHelper->isTokenValid($token) || JWTHelper::TYPE_RESET_PASSWORD !== $tokenType) {
             return new JsonResponse(['code' => EnumErrorCodeApi::ERROR_TOKEN_INVALID], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        if (!is_string($email)) {
+            return new JsonResponse(['code' => EnumErrorCodeApi::ERROR_EMAIL_INVALID], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         try {

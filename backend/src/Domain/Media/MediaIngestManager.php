@@ -8,7 +8,6 @@ use Album\Application\Clock\ClockInterface;
 use Album\Application\VideoFormatter\VideoFormatterInterface;
 use Album\Domain\Album\AlbumManager;
 use Album\Domain\Album\AlbumMediaEntity;
-use Album\Domain\Media\Exception\InvalidVideoSizeException;
 use Ausi\SlugGenerator\SlugGenerator;
 
 class MediaIngestManager
@@ -47,11 +46,37 @@ class MediaIngestManager
 
     public function ingest(string $key): bool
     {
-        if (!is_null($this->mediaRepository->findOne(['key' => $key]))) {
+        if (!is_null($media = $this->mediaRepository->findOne(['key' => $key]))) {
+            if ($media?->type === MediaEntity::TYPE_VIDEO && $media->visible === false) {
+                $this->mediaRepository->update(['key' => ['$in' => [$key]]], ['visible' => true]);
+
+                return true;
+            }
+
             return false;
         }
 
-        $metaData = $this->mediaStorage->getMediaMetadata($key, $this->mediaStorageLocation);
+        $this->createMedia($key, $this->mediaStorageLocation);
+
+        return true;
+    }
+
+    public function ingestVideo(string $key): bool
+    {
+        $media = $this->mediaRepository->findOne(['key' => $key]);
+
+        if ($media?->visible) {
+            return false;
+        }
+
+        $this->createMedia($key, $this->videoRawsStorageLocation, false);
+
+        return $this->videoFormatter->run($key);
+    }
+
+    protected function createMedia(string $key, string $location, bool $visible = true): void
+    {
+        $metaData = $this->mediaStorage->getMediaMetadata($key, $location);
 
         $media = new MediaEntity();
         $media->key = $key;
@@ -59,6 +84,7 @@ class MediaIngestManager
         $media->folder = $metaData->folder ?? 'sans dossier';
         $media->uploadDate = $this->clock->now();
         $media->type = $metaData->getMediaType();
+        $media->visible = $visible;
 
         if ($metaData->album !== null) {
             $album = $this->albumManager->findBySlug((new SlugGenerator())->generate($metaData->album));
@@ -76,30 +102,5 @@ class MediaIngestManager
         }
 
         $this->mediaRepository->insert($media);
-
-        return true;
-    }
-
-    public function ingestVideo(string $key): bool
-    {
-        $media = $this->mediaRepository->findOne(['key' => $key]);
-
-        if (!is_null($media)) {
-            return false;
-        }
-
-        $fileSize = $this->mediaStorage->getFileSize($key, $this->videoRawsStorageLocation);
-
-        if ($fileSize > 200000000) {
-            throw new InvalidVideoSizeException('Video size cannot exceed 200Mo');
-        }
-
-        $mediaUris = $this->mediaStorage->generateSignedUri($key, MediaStorageInterface::LOCATION_RAW_VIDEOS, 'GetObject');
-        $pathVideoFormatted = $this->videoFormatter->run($mediaUris, $key);
-        $metadata = $this->mediaStorage->getMediaMetadata($key, $this->videoRawsStorageLocation);
-
-        $this->mediaStorage->putObject($key, $this->mediaStorageLocation, $pathVideoFormatted, 'video/mp4', $metadata);
-
-        return true;
     }
 }

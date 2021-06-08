@@ -1,35 +1,6 @@
 <template>
   <LayoutGrid>
-    <section data-e2e="notification-feature-section" v-if="hasAcceptedNotification === 'default'" class="border border-blue-500 p-2 rounded-sm">
-      <h3 class="border-b border-blue-800 text-xl">{{ $t('home.notificationSection.title') }}</h3>
-      <div class="my-2">
-        <p>
-          {{ $t('home.notificationSection.message') }}
-        </p>
-        <p class="mt-1" v-if="!isRunningAsPwa">
-          {{ $t('home.notificationSection.advice') }}
-          <a class="text-blue-700 " @click.stop="showPwaHelp = true">
-            {{ $t('home.notificationSection.help') }}
-            <i class="material-icons align-top">
-              help_outline
-            </i>
-          </a>
-        </p>
-      </div>
-      <div class="text-center mt-2 py-1">
-        <SimpleButton
-          :status="notificationValidationStatus"
-          @click="acceptNotification"
-          size="small"
-        >
-          {{ $t('home.notificationSection.form.accept') }}
-        </SimpleButton>
-        <button @click="declineNotification" class="text-red-500 mt-2">
-          {{ $t('home.notificationSection.form.refuse') }}
-        </button>
-      </div>
-    </section>
-    <section data-e2e="search-form-section" class="mb-6">
+    <section v-if="false" data-e2e="search-form-section" class="mb-6">
       <h2 class="mb-3 text-xl">{{ $t('home.searchFormSection.title') }}</h2>
       <form @submit.prevent="onSearch">
         <input
@@ -50,24 +21,23 @@
         </div>
     </section>
     <section data-e2e="last-albums-section" v-else>
-      <h2 class="text-xl">{{ $t('home.lastAlbumSection.title') }}</h2>
-      <div class="showroom">
-        <div class="grid1" v-if="albums[0]">
-          <AlbumCard :isFirst="true" :key="albums[0].slug" :album="albums[0]" />
-        </div>
-        <div class="grid2" v-if="albums[1]">
-          <AlbumCard :isFirst="false" :key="albums[1].slug" :album="albums[1]" />
-        </div>
-        <div class="grid3" v-if="albums[2]">
-          <AlbumCard :isFirst="false" :key="albums[2].slug" :album="albums[2]" />
+      <div
+        v-masonry="masonryId"
+        transition-duration="0.3s"
+        item-selector=".albumTile"
+      >
+        <div
+          v-masonry-tile="masonryId"
+          class="albumTile w-1/3"
+          v-for="(album, index) in albums"
+          :key="index"
+        >
+          <div>
+            <AlbumCard :album="album" />
+          </div>
         </div>
       </div>
       <div>
-        <div>
-          <div class="md:flex" v-for="(albumsToLoad, index) in albumsMore" :key="index">
-            <AlbumCard class="lg:w-1/3 md:w-1/2" v-for="album in albumsToLoad" :key="album.slug" :album="album" />
-          </div>
-        </div>
         <div class="flex justify-center" v-if="canLoadMore">
           <button
             @click="onLoadMore"
@@ -92,29 +62,28 @@ import { get, post } from '../utils/axiosHelper'
 import AlbumCard from '../components/album/AlbumCard'
 import LayoutGrid from '../components/layout/LayoutGrid'
 import CubicLoader from '../components/loader/CubicLoader'
-import SimpleButton from '../components/form/button/SimpleAnimateButton'
 import HelpPwa from '../components/help/PwaInstallation'
 
 export default {
   name: 'Home',
-  components: { LayoutGrid, AlbumCard, CubicLoader, SimpleButton, HelpPwa },
+  components: { LayoutGrid, AlbumCard, CubicLoader, HelpPwa },
   data () {
     return {
       albums: [],
       searchTerm: '',
       searchedTerm: null,
-      albumsMore: [],
       loadingMore: false,
       canLoadMore: true,
       currentPage: 0,
       hasAcceptedNotification: 'unknown',
       notificationValidationStatus: 'ready',
-      showPwaHelp: false
+      showPwaHelp: false,
+      masonryId: 'albumsTiles'
     }
   },
   async created () {
     try {
-      const res = await get('albums')
+      const res = await get('albums?limit=10')
       this.albums = res.data
     } catch ({ response: { status } }) {
       if (status === 401) {
@@ -150,8 +119,8 @@ export default {
     async onLoadMore () {
       try {
         this.loadingMore = true
-        const limit = 6
-        const offset = this.currentPage * limit + 3
+        const limit = 10
+        const offset = this.currentPage * limit + 10
 
         const res = await get(`albums?offset=${offset}&limit=${limit}`)
 
@@ -159,9 +128,10 @@ export default {
           this.canLoadMore = false
         }
 
-        this.albumsMore.push(res.data)
+        this.albums = this.albums.concat(res.data)
         this.loadingMore = false
         this.currentPage++
+        this.$redrawVueMasonry(this.masonryId)
       } catch ({ response: { satus } }) {
         if (status === 401) {
           this.$store.commit('setFlashMessage', 'auth.alert.disconnect')
@@ -213,7 +183,7 @@ export default {
 
 <style scoped lang="scss">
   .showroom {
-    min-height: 50vh;
+    min-height: 70vh;
     display: grid;
     grid-template-columns: 1fr 0.5fr;
     grid-template-rows: 1fr 1fr;

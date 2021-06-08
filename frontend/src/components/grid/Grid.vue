@@ -1,20 +1,22 @@
 <template>
   <div data-e2e="medias-grid" class="relative">
     <div
-      id="grid"
-      class="grid z-10"
+      v-masonry="masonryId"
+      transition-duration="0.3s"
+      item-selector=".mediaTile"
       :class="{ 'opacity-100': isVisible, 'opacity-0': !isVisible }"
     >
       <lazy-component
-        class="grid-item p-3"
+        v-masonry-tile="masonryId"
+        class="mediaTile w-1/2"
         v-for="(media, index) in medias"
         :key="index"
         @show="onShow"
       >
-        <div class="relative">
+        <div class="relative p-1">
           <div
             v-if="editable"
-            class="star absolute left-0 top-0 w-10 h-10 z-10 text-white flex justify-center items-center"
+            class="star absolute left-0 top-0 w-5 h-5 z-10 text-white flex justify-center items-center"
             @click="() => selectMedia(media.key, index)"
           >
             <i v-if="isSelected(media.key)" class="material-icons">check_box</i>
@@ -22,7 +24,7 @@
           </div>
           <div
             v-if="canStar"
-            class="star absolute right-0 top-0 w-10 h-10 z-10 text-white flex justify-center items-center"
+            class="star absolute right-0 top-0 w-5 h-5 z-10 text-white flex justify-center items-center"
             @click="$emit('toggleFavorite', media)"
           >
             <i v-if="media.favorite" class="material-icons">star</i>
@@ -79,7 +81,6 @@
 </style>
 
 <script>
-import Masonry from 'masonry-layout'
 import VueGallery from 'vue-gallery'
 import MobileDetect from 'mobile-detect'
 
@@ -89,29 +90,20 @@ export default {
     return {
       isVisible: this.isMobile(),
       indexGallery: null,
-      masonry: null
+      masonry: null,
+      masonryId: 'mediasTiles'
     }
   },
   components: { VueGallery },
   props: ['medias', 'editable', 'canDeleteMedia', 'canStar'],
   mounted () {
-    if (!this.isMobile()) {
-      setTimeout(() => {
-        this.updateGrid()
-      }, 1000)
-    }
+    setTimeout(() => {
+      this.updateGrid()
+    }, 4000)
   },
   methods: {
     updateGrid () {
-      const elem = document.getElementById('grid')
-
-      /* eslint-disable no-new */
-      this.masonry = new Masonry(elem, {
-        itemSelector: '.grid-item',
-        columnWidth: '.grid-item',
-        percentPosition: true
-      })
-      this.isVisible = true
+      this.$redrawVueMasonry(this.masonryId)
     },
     selectMedia (key, index) {
       if (this.editable) {
@@ -124,9 +116,7 @@ export default {
       return this.$store.state.mediaSelected.includes(key)
     },
     onShow () {
-      if (!this.isMobile() && this.isVisible) {
-        this.updateGrid()
-      }
+      this.updateGrid()
     },
     isMobile () {
       const md = new MobileDetect(window.navigator.userAgent)

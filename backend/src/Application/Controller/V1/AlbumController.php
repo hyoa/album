@@ -35,11 +35,11 @@ class AlbumController extends AbstractController
     {
         $searchTerm = $request->query->get('search', null);
 
-        $includePrivateAlbum = (bool) $request->query->get('private', false);
-        $includeNoMedias = (bool) $request->query->get('noMedias', false);
+        $includePrivateAlbum = (bool) $request->query->get('private') ?? false;
+        $includeNoMedias = (bool) $request->query->get('noMedias') ?? false;
 
-        $limit = (int) $request->query->get('limit', 3);
-        $offset = (int) $request->query->get('offset', 0);
+        $limit = (int) $request->query->get('limit', '3');
+        $offset = (int) $request->query->get('offset', '0');
 
         $albums = $albumManager->findMany($includePrivateAlbum, $includeNoMedias, $limit, $offset, $searchTerm, 'desc');
 
@@ -85,7 +85,7 @@ class AlbumController extends AbstractController
     public function getAlbumsAutocomplete(Request $request, AlbumManager $albumManager): Response
     {
         $searchTerm = $request->query->get('search', null);
-        $limit = (int) $request->query->get('limit', 1000);
+        $limit = (int) $request->query->get('limit', '1000');
 
         /** @var AlbumEntity[] $albums */
         $albums = $albumManager->findMany(true, true, $limit, 0, $searchTerm, 'desc');
@@ -147,10 +147,14 @@ class AlbumController extends AbstractController
         $token = str_replace('Bearer ', '', $bearerToken);
         $author = $JWTHelper->getData($token, 'name');
 
+        if (!is_string($author)) {
+            $author = '';
+        }
+
         $description = (string) filter_var($data['description'], FILTER_SANITIZE_STRING);
         $private = (bool) filter_var($data['private'], FILTER_SANITIZE_STRING);
 
-        $album = $albumManager->save($title, $description, $private, (string) $author);
+        $album = $albumManager->save($title, $description, $private, $author);
 
         return new JsonResponse([
             'title' => $album->title,

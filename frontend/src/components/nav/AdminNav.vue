@@ -1,22 +1,22 @@
 <template>
   <nav class="border-b pt-8 pb-4 shadow-md">
       <div class="px-4 grid grid-cols-5 gap-2">
-        <NavButton iconClass="bg-blue-500" link="admin_home">
+        <NavButton iconClass="bg-gray-500" link="admin_home">
           <template v-slot:icon>
             <v-icon name="home" scale="2" :inverse="true"/>
           </template>
         </NavButton>
-        <NavButton iconClass="bg-teal-500" menuName="album">
+        <NavButton iconClass="bg-indigo-500" menuName="album">
           <template v-slot:icon>
             <v-icon name="book-open" scale="2" :inverse="true"/>
           </template>
           <template v-slot:submenu>
-            <NavButton iconClass="bg-teal-500" :small="true" link="admin_album_add">
+            <NavButton iconClass="bg-indigo-500" :small="true" link="admin_album_add">
               <template v-slot:icon>
                 <v-icon name="plus" :inverse="true"></v-icon>
               </template>
             </NavButton>
-            <NavButton iconClass="bg-teal-500 ml-2" :small="true" link="admin_album_list">
+            <NavButton iconClass="bg-indigo-500 ml-2" :small="true" link="admin_album_list">
               <template v-slot:icon>
                 <v-icon name="eye" :inverse="true"></v-icon>
               </template>

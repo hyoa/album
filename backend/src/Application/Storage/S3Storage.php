@@ -26,6 +26,11 @@ class S3Storage implements MediaStorageInterface
     protected string $mediaStorageLocation;
 
     protected string $videoRawStorageLocation;
+    protected string $accessKeyIdVideoRawStorage;
+    protected string $secretAccessKeyVideoRawStorage;
+    protected string $accessKeyIdMediaStorageLocation;
+    protected string $secretAccessKeyMediaStorageLocation;
+    protected string $mediaStorageRegion;
 
     public function __construct(
         ClockInterface $clock,
@@ -34,7 +39,12 @@ class S3Storage implements MediaStorageInterface
         string $keyPairId,
         string $awsPk,
         string $mediaStorageLocation,
-        string $videoRawStorageLocation
+        string $videoRawStorageLocation,
+        string $accessKeyIdVideoRawStorage,
+        string $secretAccessKeyVideoRawStorage,
+        string $accessKeyIdMediaStorageLocation,
+        string $secretAccessKeyMediaStorageLocation,
+        string $mediaStorageRegion
     ) {
         $this->clock = $clock;
         $this->s3Client = $s3Client;
@@ -43,6 +53,11 @@ class S3Storage implements MediaStorageInterface
         $this->awsPk = $awsPk;
         $this->mediaStorageLocation = $mediaStorageLocation;
         $this->videoRawStorageLocation = $videoRawStorageLocation;
+        $this->accessKeyIdVideoRawStorage = $accessKeyIdVideoRawStorage;
+        $this->secretAccessKeyVideoRawStorage = $secretAccessKeyVideoRawStorage;
+        $this->accessKeyIdMediaStorageLocation = $accessKeyIdMediaStorageLocation;
+        $this->secretAccessKeyMediaStorageLocation = $secretAccessKeyMediaStorageLocation;
+        $this->mediaStorageRegion = $mediaStorageRegion;
     }
 
     public function generateSignedUri(string $key, string $location, string $commandType, array $metadata = []): string
@@ -157,6 +172,21 @@ class S3Storage implements MediaStorageInterface
         return $metadata;
     }
 
+    public function getCredentials(string $location): array
+    {
+        return match ($location) {
+          self::LOCATION_MEDIAS => [
+              'accessKeyId' => $this->accessKeyIdMediaStorageLocation,
+              'secretAccessKey' => $this->secretAccessKeyMediaStorageLocation,
+          ],
+          self::LOCATION_RAW_VIDEOS => [
+              'accessKeyId' => $this->accessKeyIdVideoRawStorage,
+              'secretAccessKey' => $this->secretAccessKeyVideoRawStorage,
+          ],
+          default => []
+        };
+    }
+
     protected function writePkIntoFile(): void
     {
         $env = $this->awsPk;
@@ -171,7 +201,7 @@ EOT;
         }
     }
 
-    protected function getBucket(string $location): string
+    public function getBucket(string $location): string
     {
         switch ($location) {
             case self::LOCATION_MEDIAS:
@@ -181,5 +211,10 @@ EOT;
             default:
                 throw new \Exception('Invalid storage location');
         }
+    }
+
+    public function getMediaStorageRegion(): string
+    {
+        return $this->mediaStorageRegion;
     }
 }

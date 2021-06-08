@@ -9,6 +9,7 @@ $configDist['APP_URI'] = $_SERVER['APP_URI'];
 $configDist['FIREBASE_CHANNEL_SUFFIX'] = $_SERVER['FIREBASE_CHANNEL_SUFFIX'];
 $configDist['CORS_ALLOW_ORIGIN'] = $_SERVER['CORS_ALLOW_ORIGIN'];
 $configDist['APP_NAME'] = $_SERVER['APP_NAME'];
+$configDist['JWT_SECRET'] = $_SERVER['JWT_SECRET'];
 
 $configJson = json_encode($configDist);
 
