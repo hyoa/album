@@ -34,4 +34,4 @@ rm $PWD/lambda_build/config/packages/twig.yaml
 cp $PWD/clean_dependencies.sh $PWD/lambda_build/clean_dependencies.sh
 
 echo "Pulling dependencies"
-COMPOSER=$PWD/lambda_build/composer.json composer2.phar install --no-dev -d $PWD/lambda_build
+COMPOSER=$PWD/lambda_build/composer.json composer install --no-dev -d $PWD/lambda_build

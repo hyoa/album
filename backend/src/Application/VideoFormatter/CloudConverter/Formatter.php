@@ -22,7 +22,6 @@ class Formatter implements VideoFormatterInterface
         string $apiKey,
         bool $sandbox
     ) {
-        dump($sandbox);
         $this->transcoder = new CloudConvert([
             'api_key' => $apiKey,
             'sandbox' => $sandbox,

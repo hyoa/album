@@ -11,6 +11,7 @@ provider:
     runtime: provided
     stage: ${opt:stage, 'dev'}
     environment:
+        APP_ENV: prod
         ALBUM_STORAGE_REGION: ${file(../config.${self:provider.stage}.json):ALBUM_STORAGE_REGION}
         AWS_KEY: ${ssm:/album/${self:provider.stage}/api-key}
         AWS_SECRET: ${ssm:/album/${self:provider.stage}/api-secret}
@@ -26,6 +27,7 @@ provider:
         FIREBASE_KEY: ${ssm:/album/${self:provider.stage}/firebase-key}
         FIREBASE_CHANNEL_SUFFIX: ${file(../config.${self:provider.stage}.json):FIREBASE_CHANNEL_SUFFIX}
         BUCKET_VIDEO_INPUT: ${self:custom.bucket_raw_videos}
+        PROJECT_NAME: ${self:service}
         PROJECT_STAGE: ${self:provider.stage}
         TABLE_PREFIX: ${self:custom.prefix}
         CORS_ALLOW_ORIGIN: ${file(../config.${self:provider.stage}.json):CORS_ALLOW_ORIGIN}
