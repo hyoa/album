@@ -8,19 +8,38 @@
         <h3>{{ $t('admin.mediaAdd.uploadRunning.title') }}</h3>
         <div v-if="upload.timeRemaining">{{ $t('admin.mediaAdd.uploadRunning.timeRemaining', { time: upload.timeRemaining }) }}</div>
         <div>{{ $t('admin.mediaAdd.uploadRunning.totalUploaded', { count: upload.total }) }}</div>
-        <div>{{ $t('admin.mediaAdd.uploadRunning.successUploaded', { time: upload.uploaded }) }}</div>
-        <div>{{ $t('admin.mediaAdd.uploadRunning.failUploaded', { time: upload.failed }) }}</div>
+        <div>{{ $t('admin.mediaAdd.uploadRunning.successUploaded', { count: upload.uploaded }) }}</div>
+        <div>{{ $t('admin.mediaAdd.uploadRunning.failUploaded', { count: upload.failed }) }}</div>
       </div>
       <ul>
         <li v-for="media of upload.medias" :key="media.key">
-          <div>{{ media.key }}</div>
-          <div class="shadow w-full bg-white mt-2 rounded">
-            <div class="bg-blue-500 text-xs leading-none py-1 text-center text-white rounded" :style="`width: ${media.progress}%`">
-              {{ media.progress }}%
+          <div v-if="media.status  === 'uploading'">
+            <div>{{ media.key }}</div>
+            <div class="shadow w-full bg-white mt-2 rounded">
+              <div class="bg-blue-500 text-xs leading-none py-1 text-center text-white rounded" :style="`width: ${media.progress}%`">
+                {{ media.progress }}%
+              </div>
             </div>
+          </div>
+          <div class="flex items-center" v-if="media.status === 'success'">
+            <div class="text-green-500"><v-icon class="mr-2" name="check"></v-icon>{{ media.key }}</div>
+          </div>
+          <div class="flex items-center" v-if="media.status === 'failed'">
+            <div class="text-red-500"><v-icon class="mr-2" name="times"></v-icon>{{ media.key }}</div>
           </div>
         </li>
       </ul>
+    </div>
+    <div v-if="upload.state === 'error'">
+      <div class="bg-red-500 text-white">{{ $t('admin.mediaAdd.filesNotUploaded') }}</div>
+      <ul>
+        <li v-for="media of upload.failedMedias" :key="media.key">
+          <div class="flex items-center">
+            <div>{{ media.key }}</div>
+          </div>
+        </li>
+      </ul>
+      <hr class="border-4 mb-8">
     </div>
     <form @submit.prevent="uploadMedias" v-show="upload.state !== 'running'">
       <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
@@ -77,7 +96,8 @@ const uploadData = () => ({
   medias: [],
   total: 0,
   uploaded: 0,
-  timeRemaining: null
+  timeRemaining: null,
+  failedMedias: []
 })
 
 export default {
@@ -109,6 +129,7 @@ export default {
       await this.uploadMedias()
     },
     async uploadMedias () {
+      this.upload = uploadData()
       this.noSleep.enable()
       this.upload.state = null
       this.upload.progress = 0
@@ -124,14 +145,14 @@ export default {
         const key = media.name.replace(/[^a-zA-Z0-9.]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         const metadata = {
           author: this.$store.state.token.name,
-          folder: this.folder
+          folder: this.folder.replace(/[^a-zA-Z0-9. ]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         }
 
         if (this.album) {
-          metadata.album = this.album
+          metadata.album = this.album.replace(/[^a-zA-Z0-9. ]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         }
 
-        this.upload.medias.push({ key, progress: 0, uploadedSize: 0 })
+        this.upload.medias.push({ key, progress: 0, uploadedSize: 0, status: 'uploading' })
 
         const putConfig = {
           onUploadProgress: progressEvent => {
@@ -175,8 +196,23 @@ export default {
           if (config.key === signedUri.key) {
             const req = axios
               .put(signedUri.uri, config.media, config.putConfig)
-              .then(() => this.upload.uploaded++)
-              .catch(() => this.upload.failed++)
+              .then(() => {
+                this.upload.uploaded++
+                const index = this.upload.medias.findIndex(m => {
+                  return m.key === config.key
+                })
+
+                this.upload.medias[index].status = 'success'
+              })
+              .catch(() => {
+                const index = this.upload.medias.findIndex(m => {
+                  return m.key === config.key
+                })
+
+                this.upload.medias[index].status = 'failed'
+                this.upload.failed++
+                this.upload.failedMedias.push(this.upload.medias[index])
+              })
 
             promises.push(req)
 
@@ -216,13 +252,23 @@ export default {
 
       Promise.all(promises).then(() => {
         this.medias = []
-        this.upload.state = 'end'
 
-        this.$notify({ group: 'success', text: this.$t('admin.mediaAdd.notify.uploadSuccess') })
+        if (this.upload.failed === 0 && this.upload.uploaded > 0) {
+          this.$notify({ group: 'success', text: this.$t('admin.mediaAdd.notify.uploadSuccess') })
+
+          this.upload.state = 'end'
+          this.upload = uploadData()
+        } else if (this.upload.failed > 0 && this.upload.uploaded > 0) {
+          this.upload.state = 'error'
+          this.$notify({ group: 'warning', text: this.$t('admin.mediaAdd.notify.uploadPartial') })
+        } else {
+          this.upload.state = 'error'
+          this.$notify({ group: 'error', text: this.$t('admin.mediaAdd.notify.uploadFailed') })
+        }
+
         clearInterval(intervalTimeEstimation)
         clearInterval(intervalDisplayTime)
         this.noSleep.disable()
-        this.upload = uploadData()
       })
     }
   }
