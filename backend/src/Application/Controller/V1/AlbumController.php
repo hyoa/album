@@ -33,7 +33,7 @@ class AlbumController extends AbstractController
      */
     public function getAlbums(Request $request, AlbumManager $albumManager, MediaStorageInterface $mediaStorage): Response
     {
-        $searchTerm = $request->query->get('search', null);
+        $searchTerm = (string) $request->query->get('search', null);
 
         $includePrivateAlbum = (bool) $request->query->get('private') ?? false;
         $includeNoMedias = (bool) $request->query->get('noMedias') ?? false;
@@ -84,7 +84,7 @@ class AlbumController extends AbstractController
      */
     public function getAlbumsAutocomplete(Request $request, AlbumManager $albumManager): Response
     {
-        $searchTerm = $request->query->get('search', null);
+        $searchTerm = (string) $request->query->get('search', null);
         $limit = (int) $request->query->get('limit', '1000');
 
         /** @var AlbumEntity[] $albums */

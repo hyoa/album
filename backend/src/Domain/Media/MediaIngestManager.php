@@ -47,7 +47,7 @@ class MediaIngestManager
     public function ingest(string $key): bool
     {
         if (!is_null($media = $this->mediaRepository->findOne(['key' => $key]))) {
-            if ($media?->type === MediaEntity::TYPE_VIDEO && $media->visible === false) {
+            if ($media->type === MediaEntity::TYPE_VIDEO && $media->visible === false) {
                 $this->mediaRepository->update(['key' => ['$in' => [$key]]], ['visible' => true]);
 
                 return true;

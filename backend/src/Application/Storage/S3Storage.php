@@ -175,7 +175,7 @@ class S3Storage implements MediaStorageInterface
     public function getCredentials(string $location): array
     {
         return match ($location) {
-          self::LOCATION_MEDIAS => [
+            self::LOCATION_MEDIAS => [
               'accessKeyId' => $this->accessKeyIdMediaStorageLocation,
               'secretAccessKey' => $this->secretAccessKeyMediaStorageLocation,
           ],

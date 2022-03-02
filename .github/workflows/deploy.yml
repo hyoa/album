@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -38,7 +39,7 @@ jobs:
       working-directory: ./backend
     
     - name: Install serverless
-      run: npm install serverless
+      run: npm install serverless@2.72.3
       working-directory: ./backend/lambda_build
 
     - name: Create config file

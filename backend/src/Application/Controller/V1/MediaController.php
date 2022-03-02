@@ -59,7 +59,7 @@ class MediaController extends AbstractController
                 'label' => $folder,
                 'value' => $folder,
             ];
-        }, $mediaManager->findFolders($request->query->get('search', null)));
+        }, $mediaManager->findFolders((string) $request->query->get('search', null)));
 
         return new JsonResponse($folders);
     }
