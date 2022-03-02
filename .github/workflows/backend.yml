@@ -11,6 +11,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+  
+    - name: Setup PHP 8.0
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
     
     - name: Setup DynamoDB Local
       uses: rrainn/dynamodb-action@v2.0.0

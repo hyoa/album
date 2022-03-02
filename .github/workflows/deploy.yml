@@ -11,6 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+  
+    - name: Setup PHP 8.0
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.0'
 
     - name: Writing PRIVATE_PEM
       run: 'echo "$PRIVATE_PEM" > ./backend/config/jwt/private.pem'
