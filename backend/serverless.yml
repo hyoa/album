@@ -8,7 +8,7 @@ custom:
 provider:
     name: aws
     region: eu-west-2
-    runtime: provided
+    runtime: provided.al2
     stage: ${opt:stage, 'dev'}
     environment:
         APP_ENV: prod
