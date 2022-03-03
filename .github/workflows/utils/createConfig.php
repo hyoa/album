@@ -13,4 +13,4 @@ $configDist['JWT_SECRET'] = $_SERVER['JWT_SECRET'];
 
 $configJson = json_encode($configDist);
 
-file_put_contents(__DIR__.'/../../../backend/config.prod.json', $configJson);
+file_put_contents(__DIR__.'/../../../backend/config.json', $configJson);
