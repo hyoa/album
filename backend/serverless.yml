@@ -62,7 +62,7 @@ functions:
         description: ''
         timeout: 28
         layers:
-            - 'arn:aws:lambda:eu-west-2:209497400698:layer:php-80-fpm:32'
+            - ${bref:layer.php-74-fpm}
         events:
             -   http: 'ANY /'
             -   http: 'ANY /{proxy+}'
@@ -74,7 +74,7 @@ functions:
         timeout: 10
         memorySize: 1024
         layers:
-            - 'arn:aws:lambda:eu-west-2:209497400698:layer:php-80:32'
+            - ${bref:layer.php-74}
         events:
             - s3:
                   bucket: medias
@@ -86,7 +86,7 @@ functions:
         timeout: 900
         memorySize: 3008
         layers:
-            - 'arn:aws:lambda:eu-west-2:209497400698:layer:php-80:32'
+            - ${bref:layer.php-74}
         events:
             - s3:
                   bucket: videos
