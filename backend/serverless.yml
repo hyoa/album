@@ -66,6 +66,7 @@ functions:
         events:
             -   http: 'ANY /'
             -   http: 'ANY /{proxy+}'
+            -   httpApi: '*'
 
     MediaIngest:
         handler: src/Lambda/LambdaApplication.php

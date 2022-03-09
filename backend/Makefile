@@ -16,10 +16,10 @@ cs: ## Check code style
 	vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --diff
 
 cs-fix: ## Fix code style
-	vendor/bin/php-cs-fixer fix
+	vendor/bin/php-cs-fixer fix --allow-risky=yes
 
 cs-ci: ## Run Continuous Integration code style check
-	vendor/bin/php-cs-fixer fix --dry-run --using-cache=no --verbose
+	vendor/bin/php-cs-fixer fix --dry-run --using-cache=no --verbose --allow-risky=yes
 
 .PHONY: deploy
 deploy-dev: ##Deploy
