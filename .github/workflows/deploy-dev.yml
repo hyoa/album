@@ -1,9 +1,6 @@
-name: Deploy on prod environment
+name: Deploy on dev environment
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 jobs:
@@ -49,15 +46,15 @@ jobs:
         ALBUM_STORAGE_REGION: ${{secrets.album_storage_region}}
         ADMIN_EMAIL: ${{secrets.admin_email}}
         APP_EMAIL: ${{secrets.app_email}}
-        IMG_PROXY: ${{secrets.img_proxy}}
+        IMG_PROXY: ${{secrets.img_proxy_dev}}
         APP_URI: ${{secrets.app_uri}}
-        FIREBASE_CHANNEL_SUFFIX: ${{secrets.firebase_channel_suffix}}
-        CORS_ALLOW_ORIGIN: ${{secrets.cors_allow_origin}}
+        FIREBASE_CHANNEL_SUFFIX: ${{secrets.firebase_channel_suffix_dev}}
+        CORS_ALLOW_ORIGIN: ${{secrets.cors_allow_origin_dev}}
         APP_NAME: ${{secrets.app_name}}
         JWT_SECRET: ${{secrets.jwt_secret}}
     
     - name: Run deployment
-      run: npx serverless deploy --stage prod
+      run: npx serverless deploy --stage dev
       working-directory: ./backend/lambda_build
       env:
         AWS_ACCESS_KEY_ID: ${{secrets.aws_access_key_id}}

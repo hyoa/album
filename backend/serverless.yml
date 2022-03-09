@@ -12,26 +12,26 @@ provider:
     stage: ${opt:stage, 'dev'}
     environment:
         APP_ENV: prod
-        ALBUM_STORAGE_REGION: ${file(../config.${self:provider.stage}.json):ALBUM_STORAGE_REGION}
+        ALBUM_STORAGE_REGION: ${file(../config.json):ALBUM_STORAGE_REGION}
         AWS_KEY: ${ssm:/album/${self:provider.stage}/api-key}
         AWS_SECRET: ${ssm:/album/${self:provider.stage}/api-secret}
         MEDIAS_BUCKET: ${self:custom.bucket_medias}
         MAILER_DSN: sendgrid://${ssm:/album/${self:provider.stage}/sendgrid-key}@default
-        ADMIN_EMAIL: ${file(../config.${self:provider.stage}.json):ADMIN_EMAIL}
-        APP_EMAIL: ${file(../config.${self:provider.stage}.json):APP_EMAIL}
+        ADMIN_EMAIL: ${file(../config.json):ADMIN_EMAIL}
+        APP_EMAIL: ${file(../config.json):APP_EMAIL}
         ALBUM_AUTH_SECRET: ${ssm:/album/${self:provider.stage}/auth-secret}
-        PROXY_IMAGE: ${file(../config.${self:provider.stage}.json):IMG_PROXY}
+        PROXY_IMAGE: ${file(../config.json):IMG_PROXY}
         KEY_PAIR_ID: ${ssm:/album/${self:provider.stage}/key-pair-id}
         AWS_PK: ${ssm:/album/${self:provider.stage}/aws-pk}
-        APP_URI: ${file(../config.${self:provider.stage}.json):APP_URI}
+        APP_URI: ${file(../config.json):APP_URI}
         FIREBASE_KEY: ${ssm:/album/${self:provider.stage}/firebase-key}
-        FIREBASE_CHANNEL_SUFFIX: ${file(../config.${self:provider.stage}.json):FIREBASE_CHANNEL_SUFFIX}
+        FIREBASE_CHANNEL_SUFFIX: ${file(../config.json):FIREBASE_CHANNEL_SUFFIX}
         BUCKET_VIDEO_INPUT: ${self:custom.bucket_raw_videos}
         PROJECT_NAME: ${self:service}
         PROJECT_STAGE: ${self:provider.stage}
         TABLE_PREFIX: ${self:custom.prefix}
-        CORS_ALLOW_ORIGIN: ${file(../config.${self:provider.stage}.json):CORS_ALLOW_ORIGIN}
-        APP_NAME: ${file(../config.${self:provider.stage}.json):APP_NAME}
+        CORS_ALLOW_ORIGIN: ${file(../config.json):CORS_ALLOW_ORIGIN}
+        APP_NAME: ${file(../config.json):APP_NAME}
         ACCESS_KEY_ID_VIDEO_RAW_STORAGE: ${ssm:/album/${self:provider.stage}/access_key_id_video_raw_storage}
         SECRET_ACCESS_KEY_VIDEO_RAW_STORAGE: ${ssm:/album/${self:provider.stage}/secret_access_key_video_raw_storage}
         ACCESS_KEY_ID_MEDIA_STORAGE: ${ssm:/album/${self:provider.stage}/access_key_id_media_storage}
