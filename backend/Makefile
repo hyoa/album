@@ -13,7 +13,7 @@ phpstan: ## Check static analysis
 
 .PHONY: cs cs-fix cs-ci
 cs: ## Check code style
-	vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --diff
+	vendor/bin/php-cs-fixer fix --dry-run --stop-on-violation --diff --allow-risk
 
 cs-fix: ## Fix code style
 	vendor/bin/php-cs-fixer fix --allow-risky=yes
