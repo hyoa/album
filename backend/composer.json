@@ -10,7 +10,7 @@
         "ext-json": "*",
         "ausi/slug-generator": "^1.1",
         "aws/aws-sdk-php-symfony": "^2.1",
-        "bref/bref": "^0.5.16",
+        "bref/bref": "^1.5",
         "cloudconvert/cloudconvert-php": "^3.2",
         "jangregor/phpstan-prophecy": "^0.8.1",
         "lcobucci/jwt": "^4.0",
