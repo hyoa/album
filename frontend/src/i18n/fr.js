@@ -212,6 +212,7 @@ export default {
       },
       mediaAdd: {
         title: 'Ajouter des médias',
+        filesNotUploaded: 'Les fichiers suivants n\'ont pas été envoyés sur le serveur :',
         uploadRunning: {
           title: 'Téléchargement en cours...',
           timeRemaining: 'Temps restant: {time}',
@@ -230,7 +231,9 @@ export default {
         },
         notify: {
           tooManyMedia: 'Il n\'est pas possible d\'envoyer plus de 20 fichier à la fois',
-          uploadSuccess: 'Les fichiers ont été transférés sur le serveur'
+          uploadSuccess: 'Les fichiers ont été transférés sur le serveur',
+          uploadPartial: 'Un ou plusieurs fichiers n\'ont pas été transférer sur le serveur',
+          uploadFailed: 'L\'envoie des fichiers sur le serveur a échoué'
         }
       },
       userList: {
