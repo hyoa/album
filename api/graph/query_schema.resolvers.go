@@ -8,6 +8,7 @@ import (
 
 	"github.com/hyoa/album/api/graph/generated"
 	"github.com/hyoa/album/api/graph/model"
+	"github.com/hyoa/album/api/internal/cdn"
 	"github.com/hyoa/album/api/internal/media"
 )
 
@@ -155,11 +156,17 @@ func (r *queryResolver) Folder(ctx context.Context, input model.GetFolderInput) 
 
 	var mediasModel []*model.Media
 	for _, m := range medias {
+
 		mediasModel = append(mediasModel, &model.Media{
 			Key:    m.Key,
 			Author: m.Author,
 			Kind:   model.MediaTypeReverse[string(m.Kind)],
 			Folder: m.Folder,
+			Urls: &model.Urls{
+				Small:  cdn.SignGetUri(m.Key, cdn.SizeSmall, cdn.MediaKind(string(m.Kind))),
+				Medium: cdn.SignGetUri(m.Key, cdn.SizeMedium, cdn.MediaKind(string(m.Kind))),
+				Large:  cdn.SignGetUri(m.Key, cdn.SizeLarge, cdn.MediaKind(string(m.Kind))),
+			},
 		})
 	}
 

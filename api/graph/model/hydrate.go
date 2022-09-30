@@ -1,6 +1,9 @@
 package model
 
-import "github.com/hyoa/album/api/internal/album"
+import (
+	"github.com/hyoa/album/api/internal/album"
+	"github.com/hyoa/album/api/internal/cdn"
+)
 
 func HydrateAlbum(album album.Album) *Album {
 	var medias []*MediaAlbum
@@ -12,9 +15,9 @@ func HydrateAlbum(album album.Album) *Album {
 			Favorite: &album.Medias[j].Favorite,
 			Kind:     MediaTypeReverse[string(album.Medias[j].Kind)],
 			Urls: &Urls{
-				Small:  "small",
-				Medium: "medium",
-				Large:  "large",
+				Small:  cdn.SignGetUri(album.Medias[j].Key, cdn.SizeSmall, cdn.MediaKind(string(album.Medias[j].Kind))),
+				Medium: cdn.SignGetUri(album.Medias[j].Key, cdn.SizeMedium, cdn.MediaKind(string(album.Medias[j].Kind))),
+				Large:  cdn.SignGetUri(album.Medias[j].Key, cdn.SizeLarge, cdn.MediaKind(string(album.Medias[j].Kind))),
 			},
 		})
 	}
