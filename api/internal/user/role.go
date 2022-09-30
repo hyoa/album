@@ -1,9 +1,9 @@
 package user
 
-type role int
+type Role int
 
 const (
-	RoleUnidentified role = iota
+	RoleUnidentified Role = iota
 	RoleNormal            = 1
 	RoleAdmin             = 9
 )

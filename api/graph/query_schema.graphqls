@@ -1,0 +1,11 @@
+
+type Query {
+  user(input: GetUserInput!): User!
+  users: [User!]!
+  auth(input: AuthInput): Auth!
+  albums(input: GetAlbumsInput!): [Album!]!
+  album(input: GetAlbumInput!): Album!
+  folders(input: GetFoldersInput!): [Folder]!
+  folder(input: GetFolderInput!): Folder
+  ingest(input: GetIngestInput!): [GetIngestMediaOutput!]!
+}

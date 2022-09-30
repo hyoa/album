@@ -12,14 +12,14 @@ type User struct {
 	Email      string `json:"email"`
 	CreateDate int64  `json:"createDate"`
 	Password   string `json:"password"`
-	Role       role   `json:"role"`
+	Role       Role   `json:"role"`
 }
 
 type UserNoConfidentialData struct {
 	Name       string `json:"name"`
 	Email      string `json:"email"`
 	CreateDate int64  `json:"createDate"`
-	Role       role   `json:"role"`
+	Role       Role   `json:"role"`
 }
 
 type UserManager struct {
@@ -122,48 +122,48 @@ func (um *UserManager) Auth(jwt string) (User, error) {
 	return User{Name: token.Name, Email: token.Email}, nil
 }
 
-func (um *UserManager) ChangeRole(email string, r role) error {
+func (um *UserManager) ChangeRole(email string, r Role) (User, error) {
 	if r != RoleUnidentified && r != RoleAdmin && r != RoleNormal {
-		return &InvalidRoleError{}
+		return User{}, &InvalidRoleError{}
 	}
 
 	user, errFind := um.userRepo.FindByEmail(email)
 
 	if errFind != nil {
-		return fmt.Errorf("Unable to find user %w", errFind)
+		return User{}, fmt.Errorf("Unable to find user %w", errFind)
 	}
 
 	user.Role = r
 	_, errUpdate := um.userRepo.Update(user)
 
 	if errUpdate != nil {
-		return fmt.Errorf("Unable to update user %w", errUpdate)
+		return User{}, fmt.Errorf("Unable to update user %w", errUpdate)
 	}
 
-	return nil
+	return user, nil
 }
 
-func (um *UserManager) AskResetPassword(email, appUri string) error {
+func (um *UserManager) AskResetPassword(email, appUri string) (User, error) {
 	resetToken, errCreate := um.resetTokenizer.create(resetTokenInput{email: email})
 
 	if errCreate != nil {
-		return fmt.Errorf("Unable to create reset token: %w", errCreate)
+		return User{}, fmt.Errorf("Unable to create reset token: %w", errCreate)
 	}
 
 	jwtReset, errStringify := um.resetTokenizer.stringify(resetToken)
 
 	if errStringify != nil {
-		return fmt.Errorf("Unable to stringify reset token: %w", errStringify)
+		return User{}, fmt.Errorf("Unable to stringify reset token: %w", errStringify)
 	}
 
 	u, errFind := um.userRepo.FindByEmail(email)
 
 	if errFind != nil {
-		return fmt.Errorf("Unable to find user: %w", errFind)
+		return User{}, fmt.Errorf("Unable to find user: %w", errFind)
 	}
 
 	if u == (User{}) {
-		return &UserNotFoundError{}
+		return User{}, &UserNotFoundError{}
 	}
 
 	um.mailer.SendMail(
@@ -172,11 +172,15 @@ func (um *UserManager) AskResetPassword(email, appUri string) error {
 		fmt.Sprintf("Cliquer sur le lien suivant pour changer de mot de passe: %s?token=%s", appUri, jwtReset),
 	)
 
-	return nil
+	return u, nil
 }
 
 func (um *UserManager) GetUsers() ([]User, error) {
 	return um.userRepo.FindAll()
+}
+
+func (um *UserManager) GetUser(email string) (User, error) {
+	return um.userRepo.FindByEmail(email)
 }
 
 func (um *UserManager) Invite(u User, toInviteEmail, appUri string) error {
@@ -189,31 +193,31 @@ func (um *UserManager) Invite(u User, toInviteEmail, appUri string) error {
 	return nil
 }
 
-func (um *UserManager) ResetPassword(newPassword, newPasswordCheck, token string) error {
+func (um *UserManager) ResetPassword(newPassword, newPasswordCheck, token string) (User, error) {
 	resetToken, errDecode := um.resetTokenizer.Decode(token)
 
 	if errDecode != nil {
-		return fmt.Errorf("Unable to decode token: %w", errDecode)
+		return User{}, fmt.Errorf("Unable to decode token: %w", errDecode)
 	}
 
 	if newPassword != newPasswordCheck {
-		return &InvalidPasswordError{message: "Password and passwordCheck does not match"}
+		return User{}, &InvalidPasswordError{message: "Password and passwordCheck does not match"}
 	}
 
 	user, errorGetUser := um.userRepo.FindByEmail(resetToken.Email)
 
 	if errorGetUser != nil {
-		return fmt.Errorf("Unable to fetch user: %w", errorGetUser)
+		return User{}, fmt.Errorf("Unable to fetch user: %w", errorGetUser)
 	}
 
 	hashPassword, errHash := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if errHash != nil {
-		return fmt.Errorf("Error while creating hash for password %w", errHash)
+		return User{}, fmt.Errorf("Error while creating hash for password %w", errHash)
 	}
 
 	user.Password = string(hashPassword)
 
 	_, errorUpdate := um.userRepo.Update(user)
 
-	return errorUpdate
+	return user, errorUpdate
 }

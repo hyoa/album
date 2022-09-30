@@ -10,7 +10,7 @@ import (
 type authToken struct {
 	Name  string
 	Email string
-	Role  role
+	Role  Role
 }
 
 type resetToken struct {

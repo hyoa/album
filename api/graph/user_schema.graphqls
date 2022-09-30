@@ -1,0 +1,57 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+enum Role {
+  UNIDENTIFIED, NORMAL, ADMIN
+}
+
+type User {
+  name: String!
+  email: String!
+  createDate: Int!
+  role: Role!
+}
+
+type Auth {
+  token: String!
+}
+
+type Invitation {
+  email: String!
+}
+
+input GetUserInput {
+  email: String!
+}
+
+input AuthInput {
+  email: String!
+  password: String!
+}
+
+input CreateInput {
+  email: String!
+  password: String!
+  passwordCheck: String!
+  name: String!
+}
+
+input UpdateInput {
+  email: String!
+  role: Role
+}
+
+input AskResetPasswordInput {
+  email: String!
+}
+
+input InviteInput {
+  email: String!
+}
+
+input ResetPasswordInput {
+  password: String!
+  passwordCheck: String!
+  tokenValidation: String!
+}

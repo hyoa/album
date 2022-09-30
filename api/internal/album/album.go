@@ -9,27 +9,20 @@ import (
 	"github.com/gosimple/slug"
 )
 
-type mediaKind string
+type MediaKind string
 type UpdateMediaKind string
 
 const (
-	KindPhoto         mediaKind       = "photo"
-	KindVideo         mediaKind       = "video"
+	KindPhoto         MediaKind       = "photo"
+	KindVideo         MediaKind       = "video"
 	UpdateMediaAdd    UpdateMediaKind = "add"
 	UpdateMediaRemove UpdateMediaKind = "remove"
 )
 
-type uriMedias struct {
-	Small  string `json:"small"`
-	Medium string `json:"medium"`
-	Large  string `json:"large"`
-}
-
 type Media struct {
 	Key      string    `json:"key"`
 	Author   string    `json:"author"`
-	Kind     mediaKind `json:"kind"`
-	Uri      uriMedias `json:"uri"`
+	Kind     MediaKind `json:"kind"`
 	Favorite bool      `json:"favorite"`
 }
 
@@ -177,7 +170,7 @@ func (am *AlbumManager) GetBySlug(slug string) (Album, error) {
 }
 
 func (am *AlbumManager) GetAll() ([]Album, error) {
-	return am.repository.FindAll()
+	return am.repository.Search(true, true, 1000000, 0, "", "desc")
 }
 
 func (am *AlbumManager) ToggleFavorite(slug, mediaKey string) (Album, error) {
@@ -197,6 +190,8 @@ func (am *AlbumManager) ToggleFavorite(slug, mediaKey string) (Album, error) {
 			break
 		}
 	}
+
+	fmt.Println(album.Medias)
 
 	errSave := am.repository.Save(album)
 

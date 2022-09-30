@@ -1,0 +1,13 @@
+type Mutation {
+  create(input: CreateInput!): User!
+  update(input: UpdateInput!): User!
+  resetPassword(input: ResetPasswordInput): User!
+  askResetPassword(input: AskResetPasswordInput!): User!
+  invite(input: InviteInput): Invitation
+  createAlbum(input: CreateAlbumInput!): Album!
+  updateAlbum(input: UpdateAlbumInput!): Album!
+  deleteAlbum(input: DeleteAlbumInput!): ActionResult!
+  updateAlbumMedias(input: UpdateAlbumMediasInput!): Album!
+  updateAlbumFavorite(input: UpdateAlbumFavoriteInput!): Album!
+  ingest(input: PutIngestInput!): [PutIngestMediaOutput!]!
+}
