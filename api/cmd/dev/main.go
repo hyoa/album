@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/hyoa/album/api/gherkin/mock"
 	"github.com/hyoa/album/api/graph"
@@ -92,7 +93,13 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.POST("/query", graphqlHandler())
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"*"}
+	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
+
+	r.Use(cors.New(config))
+	r.POST("/v3/graphql", graphqlHandler())
 	r.GET("/", playgroundHandler())
 
 	r.Run(":3118")

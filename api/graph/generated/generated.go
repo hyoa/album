@@ -98,16 +98,16 @@ type ComplexityRoot struct {
 		AskResetPassword    func(childComplexity int, input model.AskResetPasswordInput) int
 		ChangeFolderName    func(childComplexity int, input *model.ChangeFolderNameInput) int
 		ChangeMediasFolder  func(childComplexity int, input *model.ChangeMediasFolderInput) int
-		Create              func(childComplexity int, input model.CreateInput) int
 		CreateAlbum         func(childComplexity int, input model.CreateAlbumInput) int
+		CreateUser          func(childComplexity int, input model.CreateInput) int
 		DeleteAlbum         func(childComplexity int, input model.DeleteAlbumInput) int
 		Ingest              func(childComplexity int, input model.PutIngestInput) int
 		Invite              func(childComplexity int, input *model.InviteInput) int
 		ResetPassword       func(childComplexity int, input *model.ResetPasswordInput) int
-		Update              func(childComplexity int, input model.UpdateInput) int
 		UpdateAlbum         func(childComplexity int, input model.UpdateAlbumInput) int
 		UpdateAlbumFavorite func(childComplexity int, input model.UpdateAlbumFavoriteInput) int
 		UpdateAlbumMedias   func(childComplexity int, input model.UpdateAlbumMediasInput) int
+		UpdateUser          func(childComplexity int, input model.UpdateInput) int
 	}
 
 	PutIngestMediaOutput struct {
@@ -141,8 +141,8 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	Create(ctx context.Context, input model.CreateInput) (*model.User, error)
-	Update(ctx context.Context, input model.UpdateInput) (*model.User, error)
+	CreateUser(ctx context.Context, input model.CreateInput) (*model.User, error)
+	UpdateUser(ctx context.Context, input model.UpdateInput) (*model.User, error)
 	ResetPassword(ctx context.Context, input *model.ResetPasswordInput) (*model.User, error)
 	AskResetPassword(ctx context.Context, input model.AskResetPasswordInput) (*model.User, error)
 	Invite(ctx context.Context, input *model.InviteInput) (*model.Invitation, error)
@@ -392,18 +392,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ChangeMediasFolder(childComplexity, args["input"].(*model.ChangeMediasFolderInput)), true
 
-	case "Mutation.create":
-		if e.complexity.Mutation.Create == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_create_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.Create(childComplexity, args["input"].(model.CreateInput)), true
-
 	case "Mutation.createAlbum":
 		if e.complexity.Mutation.CreateAlbum == nil {
 			break
@@ -415,6 +403,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateAlbum(childComplexity, args["input"].(model.CreateAlbumInput)), true
+
+	case "Mutation.createUser":
+		if e.complexity.Mutation.CreateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.CreateInput)), true
 
 	case "Mutation.deleteAlbum":
 		if e.complexity.Mutation.DeleteAlbum == nil {
@@ -464,18 +464,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ResetPassword(childComplexity, args["input"].(*model.ResetPasswordInput)), true
 
-	case "Mutation.update":
-		if e.complexity.Mutation.Update == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_update_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.Update(childComplexity, args["input"].(model.UpdateInput)), true
-
 	case "Mutation.updateAlbum":
 		if e.complexity.Mutation.UpdateAlbum == nil {
 			break
@@ -511,6 +499,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAlbumMedias(childComplexity, args["input"].(model.UpdateAlbumMediasInput)), true
+
+	case "Mutation.updateUser":
+		if e.complexity.Mutation.UpdateUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateInput)), true
 
 	case "PutIngestMediaOutput.key":
 		if e.complexity.PutIngestMediaOutput.Key == nil {
@@ -923,36 +923,36 @@ input ChangeFolderNameInput {
 }`, BuiltIn: false},
 	{Name: "../mutation_schema.graphqls", Input: `type Mutation {
   # USER
-  create(input: CreateInput!): User!
-  update(input: UpdateInput!): User!
-  resetPassword(input: ResetPasswordInput): User!
+  createUser(input: CreateInput!): User!
+  updateUser(input: UpdateInput!): User! @hasRole(role: ADMIN)
+  resetPassword(input: ResetPasswordInput): User! @hasRole(role: NORMAL)
   askResetPassword(input: AskResetPasswordInput!): User!
-  invite(input: InviteInput): Invitation
+  invite(input: InviteInput): Invitation @hasRole(role: NORMAL)
   # ALBUM
-  createAlbum(input: CreateAlbumInput!): Album!
-  updateAlbum(input: UpdateAlbumInput!): Album!
-  deleteAlbum(input: DeleteAlbumInput!): ActionResult!
-  updateAlbumMedias(input: UpdateAlbumMediasInput!): Album!
-  updateAlbumFavorite(input: UpdateAlbumFavoriteInput!): Album!
+  createAlbum(input: CreateAlbumInput!): Album! @hasRole(role: ADMIN)
+  updateAlbum(input: UpdateAlbumInput!): Album! @hasRole(role: ADMIN)
+  deleteAlbum(input: DeleteAlbumInput!): ActionResult! @hasRole(role: ADMIN)
+  updateAlbumMedias(input: UpdateAlbumMediasInput!): Album! @hasRole(role: ADMIN)
+  updateAlbumFavorite(input: UpdateAlbumFavoriteInput!): Album! @hasRole(role: ADMIN)
   # MEDIA
-  ingest(input: PutIngestInput!): [PutIngestMediaOutput!]!
-  changeMediasFolder(input: ChangeMediasFolderInput): Folder!
-  changeFolderName(input: ChangeFolderNameInput): Folder!
+  ingest(input: PutIngestInput!): [PutIngestMediaOutput!]! @hasRole(role: ADMIN)
+  changeMediasFolder(input: ChangeMediasFolderInput): Folder! @hasRole(role: ADMIN)
+  changeFolderName(input: ChangeFolderNameInput): Folder! @hasRole(role: ADMIN)
 }
 `, BuiltIn: false},
 	{Name: "../query_schema.graphqls", Input: `
 type Query {
   # USER
-  user(input: GetUserInput!): User!
-  users: [User!]!
+  user(input: GetUserInput!): User! @hasRole(role: NORMAL)
+  users: [User!]! @hasRole(role: ADMIN)
   auth(input: AuthInput): Auth!
   # ALBUM
   albums(input: GetAlbumsInput!): [Album!]! @hasRole(role: NORMAL)
-  album(input: GetAlbumInput!): Album!
+  album(input: GetAlbumInput!): Album!  @hasRole(role: NORMAL)
   # MEDIA
-  folders(input: GetFoldersInput!): [Folder]!
-  folder(input: GetFolderInput!): Folder
-  ingest(input: GetIngestInput!): [GetIngestMediaOutput!]!
+  folders(input: GetFoldersInput!): [Folder]! @hasRole(role: ADMIN)
+  folder(input: GetFolderInput!): Folder @hasRole(role: ADMIN)
+  ingest(input: GetIngestInput!): [GetIngestMediaOutput!]! @hasRole(role: ADMIN)
 }`, BuiltIn: false},
 	{Name: "../role_schema.graphqls", Input: `directive @hasRole(role: Role!) on FIELD_DEFINITION
 
@@ -1095,7 +1095,7 @@ func (ec *executionContext) field_Mutation_createAlbum_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_create_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.CreateInput
@@ -1215,7 +1215,7 @@ func (ec *executionContext) field_Mutation_updateAlbum_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_update_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.UpdateInput
@@ -2513,8 +2513,8 @@ func (ec *executionContext) fieldContext_MediaAlbum_favorite(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_create(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_create(ctx, field)
+func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2527,7 +2527,7 @@ func (ec *executionContext) _Mutation_create(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Create(rctx, fc.Args["input"].(model.CreateInput))
+		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["input"].(model.CreateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2544,7 +2544,7 @@ func (ec *executionContext) _Mutation_create(ctx context.Context, field graphql.
 	return ec.marshalNUser2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_create(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -2571,15 +2571,15 @@ func (ec *executionContext) fieldContext_Mutation_create(ctx context.Context, fi
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_create_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_createUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_update(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_update(ctx, field)
+func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUser(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2591,8 +2591,32 @@ func (ec *executionContext) _Mutation_update(ctx context.Context, field graphql.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Update(rctx, fc.Args["input"].(model.UpdateInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["input"].(model.UpdateInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2609,7 +2633,7 @@ func (ec *executionContext) _Mutation_update(ctx context.Context, field graphql.
 	return ec.marshalNUser2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_update(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_updateUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -2636,7 +2660,7 @@ func (ec *executionContext) fieldContext_Mutation_update(ctx context.Context, fi
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_update_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_updateUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2656,8 +2680,32 @@ func (ec *executionContext) _Mutation_resetPassword(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ResetPassword(rctx, fc.Args["input"].(*model.ResetPasswordInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ResetPassword(rctx, fc.Args["input"].(*model.ResetPasswordInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "NORMAL")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2786,8 +2834,32 @@ func (ec *executionContext) _Mutation_invite(ctx context.Context, field graphql.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Invite(rctx, fc.Args["input"].(*model.InviteInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().Invite(rctx, fc.Args["input"].(*model.InviteInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "NORMAL")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Invitation); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Invitation`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2842,8 +2914,32 @@ func (ec *executionContext) _Mutation_createAlbum(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAlbum(rctx, fc.Args["input"].(model.CreateAlbumInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateAlbum(rctx, fc.Args["input"].(model.CreateAlbumInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Album); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Album`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2915,8 +3011,32 @@ func (ec *executionContext) _Mutation_updateAlbum(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAlbum(rctx, fc.Args["input"].(model.UpdateAlbumInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateAlbum(rctx, fc.Args["input"].(model.UpdateAlbumInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Album); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Album`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2988,8 +3108,32 @@ func (ec *executionContext) _Mutation_deleteAlbum(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteAlbum(rctx, fc.Args["input"].(model.DeleteAlbumInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteAlbum(rctx, fc.Args["input"].(model.DeleteAlbumInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.ActionResult); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.ActionResult`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3047,8 +3191,32 @@ func (ec *executionContext) _Mutation_updateAlbumMedias(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAlbumMedias(rctx, fc.Args["input"].(model.UpdateAlbumMediasInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateAlbumMedias(rctx, fc.Args["input"].(model.UpdateAlbumMediasInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Album); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Album`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3120,8 +3288,32 @@ func (ec *executionContext) _Mutation_updateAlbumFavorite(ctx context.Context, f
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAlbumFavorite(rctx, fc.Args["input"].(model.UpdateAlbumFavoriteInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateAlbumFavorite(rctx, fc.Args["input"].(model.UpdateAlbumFavoriteInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Album); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Album`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3193,8 +3385,32 @@ func (ec *executionContext) _Mutation_ingest(ctx context.Context, field graphql.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Ingest(rctx, fc.Args["input"].(model.PutIngestInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().Ingest(rctx, fc.Args["input"].(model.PutIngestInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.PutIngestMediaOutput); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/hyoa/album/api/graph/model.PutIngestMediaOutput`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3254,8 +3470,32 @@ func (ec *executionContext) _Mutation_changeMediasFolder(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangeMediasFolder(rctx, fc.Args["input"].(*model.ChangeMediasFolderInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ChangeMediasFolder(rctx, fc.Args["input"].(*model.ChangeMediasFolderInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Folder); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Folder`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3315,8 +3555,32 @@ func (ec *executionContext) _Mutation_changeFolderName(ctx context.Context, fiel
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangeFolderName(rctx, fc.Args["input"].(*model.ChangeFolderNameInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ChangeFolderName(rctx, fc.Args["input"].(*model.ChangeFolderNameInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Folder); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Folder`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3464,8 +3728,32 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx, fc.Args["input"].(model.GetUserInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().User(rctx, fc.Args["input"].(model.GetUserInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "NORMAL")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3529,8 +3817,32 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Users(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/hyoa/album/api/graph/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3739,8 +4051,32 @@ func (ec *executionContext) _Query_album(ctx context.Context, field graphql.Coll
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Album(rctx, fc.Args["input"].(model.GetAlbumInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Album(rctx, fc.Args["input"].(model.GetAlbumInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "NORMAL")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Album); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Album`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3812,8 +4148,32 @@ func (ec *executionContext) _Query_folders(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Folders(rctx, fc.Args["input"].(model.GetFoldersInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Folders(rctx, fc.Args["input"].(model.GetFoldersInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.Folder); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/hyoa/album/api/graph/model.Folder`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3873,8 +4233,32 @@ func (ec *executionContext) _Query_folder(ctx context.Context, field graphql.Col
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Folder(rctx, fc.Args["input"].(model.GetFolderInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Folder(rctx, fc.Args["input"].(model.GetFolderInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.Folder); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.Folder`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3931,8 +4315,32 @@ func (ec *executionContext) _Query_ingest(ctx context.Context, field graphql.Col
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Ingest(rctx, fc.Args["input"].(model.GetIngestInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Ingest(rctx, fc.Args["input"].(model.GetIngestInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.GetIngestMediaOutput); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/hyoa/album/api/graph/model.GetIngestMediaOutput`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7428,19 +7836,19 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "create":
+		case "createUser":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_create(ctx, field)
+				return ec._Mutation_createUser(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "update":
+		case "updateUser":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_update(ctx, field)
+				return ec._Mutation_updateUser(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

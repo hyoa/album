@@ -122,7 +122,7 @@ func (r *queryResolver) Album(ctx context.Context, input model.GetAlbumInput) (*
 	album, err := r.AlbumManager.GetBySlug(input.Slug)
 
 	if err != nil {
-		return &model.Album{}, nil
+		return &model.Album{}, err
 	}
 
 	return model.HydrateAlbum(album), nil

@@ -14,8 +14,7 @@ import (
 	"github.com/hyoa/album/api/internal/user"
 )
 
-// Create is the resolver for the create field.
-func (r *mutationResolver) Create(ctx context.Context, input model.CreateInput) (*model.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateInput) (*model.User, error) {
 	user, errSign := r.UserManager.Create(input.Name, input.Email, input.Password, input.PasswordCheck)
 
 	if errSign != nil {
@@ -30,8 +29,7 @@ func (r *mutationResolver) Create(ctx context.Context, input model.CreateInput) 
 	}, nil
 }
 
-// Update is the resolver for the update field.
-func (r *mutationResolver) Update(ctx context.Context, input model.UpdateInput) (*model.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateInput) (*model.User, error) {
 	if input.Role != nil {
 		user, errUpdateRole := r.UserManager.ChangeRole(input.Email, user.Role(input.Role.Int()))
 

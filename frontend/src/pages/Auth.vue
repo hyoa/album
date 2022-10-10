@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { post } from '../utils/axiosHelper'
+import { graphql, post } from '../utils/axiosHelper'
 import errorHelper from '../utils/errorHelper'
 
 import Login from '../components/auth/Login'
@@ -101,7 +101,19 @@ export default {
     onRegister (data) {
       this.alert.type = null
       this.formStatus.register = 'pending'
-      post('user/register', data)
+
+      console.log(data)
+      let query = `
+      mutation createUser {
+        createUser(input: {  email: "${data.email}", name: "${data.name}", password: "${data.password}", passwordCheck: "${data.checkPassword}"}) {
+          name
+        }
+      }
+      `
+
+      console.log(query)
+
+      graphql(query, 'v3')
         .then(res => {
           this.alert = {
             type: 'success',

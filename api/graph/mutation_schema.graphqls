@@ -1,7 +1,7 @@
 type Mutation {
   # USER
-  create(input: CreateInput!): User!
-  update(input: UpdateInput!): User! @hasRole(role: ADMIN)
+  createUser(input: CreateInput!): User!
+  updateUser(input: UpdateInput!): User! @hasRole(role: ADMIN)
   resetPassword(input: ResetPasswordInput): User! @hasRole(role: NORMAL)
   askResetPassword(input: AskResetPasswordInput!): User!
   invite(input: InviteInput): Invitation @hasRole(role: NORMAL)
