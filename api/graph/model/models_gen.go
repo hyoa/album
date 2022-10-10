@@ -36,6 +36,16 @@ type AuthInput struct {
 	Password string `json:"password"`
 }
 
+type ChangeFolderNameInput struct {
+	OldName string `json:"oldName"`
+	NewName string `json:"newName"`
+}
+
+type ChangeMediasFolderInput struct {
+	Keys       []string `json:"keys"`
+	FolderName string   `json:"folderName"`
+}
+
 type CreateAlbumInput struct {
 	Title       string  `json:"title"`
 	Author      string  `json:"author"`

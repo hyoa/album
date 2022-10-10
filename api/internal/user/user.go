@@ -130,17 +130,17 @@ func (um *UserManager) ChangeRole(email string, r Role) (User, error) {
 	user, errFind := um.userRepo.FindByEmail(email)
 
 	if errFind != nil {
-		return User{}, fmt.Errorf("Unable to find user %w", errFind)
+		return User{}, fmt.Errorf("unable to find user %w", errFind)
 	}
 
 	user.Role = r
-	_, errUpdate := um.userRepo.Update(user)
+	uUpdated, errUpdate := um.userRepo.Update(user)
 
 	if errUpdate != nil {
-		return User{}, fmt.Errorf("Unable to update user %w", errUpdate)
+		return User{}, fmt.Errorf("unable to update user %w", errUpdate)
 	}
 
-	return user, nil
+	return uUpdated, nil
 }
 
 func (um *UserManager) AskResetPassword(email, appUri string) (User, error) {
@@ -166,13 +166,13 @@ func (um *UserManager) AskResetPassword(email, appUri string) (User, error) {
 		return User{}, &UserNotFoundError{}
 	}
 
-	um.mailer.SendMail(
+	errSend := um.mailer.SendMail(
 		u.Email,
 		"Changement du mot de passe",
 		fmt.Sprintf("Cliquer sur le lien suivant pour changer de mot de passe: %s?token=%s", appUri, jwtReset),
 	)
 
-	return u, nil
+	return u, errSend
 }
 
 func (um *UserManager) GetUsers() ([]User, error) {

@@ -1,19 +1,25 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hyoa/album/api/gherkin/mock"
 	"github.com/hyoa/album/api/graph"
 	"github.com/hyoa/album/api/graph/generated"
+	"github.com/hyoa/album/api/graph/model"
 	"github.com/hyoa/album/api/internal/album"
 	"github.com/hyoa/album/api/internal/mailer"
 	"github.com/hyoa/album/api/internal/media"
-	"github.com/hyoa/album/api/internal/s3interactor"
 	"github.com/hyoa/album/api/internal/user"
 
 	"github.com/joho/godotenv"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 )
@@ -22,16 +28,50 @@ import (
 func graphqlHandler() gin.HandlerFunc {
 	r := &graph.Resolver{}
 	mailer := mailer.SendgridMailer{ApiKey: os.Getenv("MAILER_KEY")}
-	s3, _ := s3interactor.NewInteractor(os.Getenv("S3_ENDPOINT"), os.Getenv("AKID"), os.Getenv("ASK"))
+	// s3, _ := s3interactor.NewInteractor(os.Getenv("S3_ENDPOINT"), os.Getenv("AKID"), os.Getenv("ASK"))
 
 	r.UserManager = user.CreateUserManager(user.NewUserRepositoryDynamoDB(), &mailer)
 	r.AlbumManager = album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
-	r.MediaManager = media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), media.NewS3Storage(s3))
+	r.MediaManager = media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), &mock.Storage{})
 
-	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: r}))
+	c := generated.Config{Resolvers: r}
+	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error) {
+		authTokenContext := ctx.Value("AuthToken")
+
+		userRole := user.RoleUnidentified
+
+		token, ok := authTokenContext.(string)
+		if ok {
+			tokenizer := user.CreateAuthTokenizer()
+			authToken, errDecode := tokenizer.Decode(strings.Replace(token, "Bearer ", "", -1))
+
+			if errDecode != nil {
+				fmt.Println(errDecode)
+			}
+
+			userRole = authToken.Role
+		}
+
+		if (role == model.RoleAdmin && userRole != user.RoleAdmin) || (role == model.RoleNormal && userRole != user.RoleNormal && userRole != user.RoleAdmin) {
+			return nil, errors.New("access denied")
+		}
+
+		return next(ctx)
+	}
+
+	h := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
 	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
+		v, ok := c.Request.Header["Authorization"]
+
+		var ctx context.Context
+		if ok && len(v) > 0 {
+			ctx = context.WithValue(c.Request.Context(), "AuthToken", v[0])
+		} else {
+			ctx = c
+		}
+
+		h.ServeHTTP(c.Writer, c.Request.WithContext(ctx))
 	}
 }
 
@@ -45,37 +85,11 @@ func playgroundHandler() gin.HandlerFunc {
 }
 
 func main() {
-	godotenv.Load()
-	// s3, _ := s3interactor.NewInteractor(os.Getenv("FILE_REPO_ADDR"), os.Getenv("FILE_REPO_KEY"), os.Getenv("FILE_REPO_SECRET"))
+	err := godotenv.Load(".env.test")
 
-	// userRepo := user.NewUserRepositoryFile(s3)
-
-	// mailer := mailer.SendgridMailer{ApiKey: os.Getenv("MAILER_KEY")}
-	// uc := controller.NewUserController(userRepo, &mailer)
-
-	// albumRepo := album.NewAlbumRepositoryDynamoDB()
-	// ac := controller.NewAlbumController(albumRepo)
-
-	// r := gin.Default()
-
-	// user := r.Group("/user")
-	// {
-	// 	user.POST("/signin", uc.SignIn)
-	// 	user.POST("/signup", uc.SignUp)
-	// 	user.POST("/reset-password", uc.AskResetPassword)
-	// 	user.POST("/activate", middleware.Auth(userRepo, middleware.AdminAuth), uc.Activate)
-	// 	user.POST("/invite", middleware.Auth(userRepo, middleware.AdminAuth), uc.Invite)
-	// }
-
-	// users := r.Group("/users")
-	// {
-	// 	users.GET("", middleware.Auth(userRepo, middleware.AdminAuth), uc.GetAll)
-	// }
-
-	// album := r.Group("/albums")
-	// {
-	// 	album.GET("/", ac.GetAlbums)
-	// }
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 	r.POST("/query", graphqlHandler())

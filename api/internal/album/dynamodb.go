@@ -2,17 +2,15 @@ package album
 
 import (
 	"context"
-	"log"
 	"os"
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	dynamodbinteractor "github.com/hyoa/album/api/internal/dynamodbInteractor"
 )
 
 type AlbumRepositoryDynamoDB struct {
@@ -38,16 +36,11 @@ type mediaModel struct {
 }
 
 func NewAlbumRepositoryDynamoDB() AlbumRepository {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(os.Getenv("AKID"), os.Getenv("ASK"), "")), config.WithRegion("eu-west-2"))
+	db, _ := dynamodbinteractor.NewInteractor()
 
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
-
-	svc := dynamodb.NewFromConfig(cfg)
 	return &AlbumRepositoryDynamoDB{
-		client: svc,
-		table:  aws.String("album-backend-eu-west-2-dev-album"),
+		client: db.Client,
+		table:  aws.String(os.Getenv("ALBUM_TABLE_NAME")),
 	}
 }
 
@@ -134,7 +127,6 @@ func (ard *AlbumRepositoryDynamoDB) FindBySlug(slug string) (Album, error) {
 				Favorite: m.Favorite,
 			})
 		}
-
 		return Album{
 			Title:        items[0].Title,
 			Description:  items[0].Description,
@@ -242,7 +234,14 @@ func (ard *AlbumRepositoryDynamoDB) Update(a Album) error {
 }
 
 func (ard *AlbumRepositoryDynamoDB) DeleteBySlug(slug string) error {
-	return nil
+	_, err := ard.client.DeleteItem(context.Background(), &dynamodb.DeleteItemInput{
+		TableName: ard.table,
+		Key: map[string]types.AttributeValue{
+			"slug": &types.AttributeValueMemberS{Value: slug},
+		},
+	})
+
+	return err
 }
 
 func (ard *AlbumRepositoryDynamoDB) FindAll() ([]Album, error) {

@@ -1,11 +1,6 @@
 # GraphQL schema example
 #
 # https://gqlgen.com/getting-started/
-
-enum Role {
-  UNIDENTIFIED, NORMAL, ADMIN
-}
-
 type User {
   name: String!
   email: String!

@@ -1,11 +1,14 @@
 
 type Query {
-  user(input: GetUserInput!): User!
-  users: [User!]!
+  # USER
+  user(input: GetUserInput!): User! @hasRole(role: NORMAL)
+  users: [User!]! @hasRole(role: ADMIN)
   auth(input: AuthInput): Auth!
-  albums(input: GetAlbumsInput!): [Album!]!
-  album(input: GetAlbumInput!): Album!
-  folders(input: GetFoldersInput!): [Folder]!
-  folder(input: GetFolderInput!): Folder
-  ingest(input: GetIngestInput!): [GetIngestMediaOutput!]!
+  # ALBUM
+  albums(input: GetAlbumsInput!): [Album!]! @hasRole(role: NORMAL)
+  album(input: GetAlbumInput!): Album!  @hasRole(role: NORMAL)
+  # MEDIA
+  folders(input: GetFoldersInput!): [Folder]! @hasRole(role: ADMIN)
+  folder(input: GetFolderInput!): Folder @hasRole(role: ADMIN)
+  ingest(input: GetIngestInput!): [GetIngestMediaOutput!]! @hasRole(role: ADMIN)
 }

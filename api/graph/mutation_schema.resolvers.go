@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/hyoa/album/api/graph/generated"
 	"github.com/hyoa/album/api/graph/model"
@@ -48,7 +47,7 @@ func (r *mutationResolver) Update(ctx context.Context, input model.UpdateInput) 
 		}, nil
 	}
 
-	return &model.User{}, errors.New("No modification provided")
+	return &model.User{}, errors.New("no modification provided")
 }
 
 // ResetPassword is the resolver for the resetPassword field.
@@ -85,7 +84,9 @@ func (r *mutationResolver) AskResetPassword(ctx context.Context, input model.Ask
 
 // Invite is the resolver for the invite field.
 func (r *mutationResolver) Invite(ctx context.Context, input *model.InviteInput) (*model.Invitation, error) {
-	panic(fmt.Errorf("not implemented: Invite - invite"))
+	err := r.UserManager.Invite(user.User{}, input.Email, "localhost:3118")
+
+	return &model.Invitation{Email: input.Email}, err
 }
 
 // CreateAlbum is the resolver for the createAlbum field.
@@ -184,6 +185,46 @@ func (r *mutationResolver) Ingest(ctx context.Context, input model.PutIngestInpu
 	}
 
 	return mediasIngest, nil
+}
+
+// ChangeMediasFolder is the resolver for the changeMediasFolder field.
+func (r *mutationResolver) ChangeMediasFolder(ctx context.Context, input *model.ChangeMediasFolderInput) (*model.Folder, error) {
+	medias, err := r.MediaManager.ChangeMediasFolder(input.Keys, input.FolderName)
+
+	if err != nil {
+		return &model.Folder{}, err
+	}
+
+	var mediasToReturn []*model.Media
+
+	for _, m := range medias {
+		mediasToReturn = append(mediasToReturn, model.HydrateMedia(m))
+	}
+
+	return &model.Folder{
+		Name:   input.FolderName,
+		Medias: mediasToReturn,
+	}, nil
+}
+
+// ChangeFolderName is the resolver for the changeFolderName field.
+func (r *mutationResolver) ChangeFolderName(ctx context.Context, input *model.ChangeFolderNameInput) (*model.Folder, error) {
+	medias, err := r.MediaManager.ChangeFolderName(input.OldName, input.NewName)
+
+	if err != nil {
+		return &model.Folder{}, err
+	}
+
+	var mediasToReturn []*model.Media
+
+	for _, m := range medias {
+		mediasToReturn = append(mediasToReturn, model.HydrateMedia(m))
+	}
+
+	return &model.Folder{
+		Name:   input.NewName,
+		Medias: mediasToReturn,
+	}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

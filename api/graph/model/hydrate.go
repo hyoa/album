@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/hyoa/album/api/internal/album"
 	"github.com/hyoa/album/api/internal/cdn"
+	"github.com/hyoa/album/api/internal/media"
 )
 
 func HydrateAlbum(album album.Album) *Album {
@@ -31,5 +32,18 @@ func HydrateAlbum(album album.Album) *Album {
 		ID:           album.Id,
 		Slug:         album.Slug,
 		Medias:       medias,
+	}
+}
+
+func HydrateMedia(media media.Media) *Media {
+	return &Media{
+		Key:    media.Key,
+		Author: media.Author,
+		Kind:   MediaTypeReverse[string(media.Kind)],
+		Urls: &Urls{
+			Small:  cdn.SignGetUri(media.Key, cdn.SizeSmall, cdn.MediaKind(string(media.Kind))),
+			Medium: cdn.SignGetUri(media.Key, cdn.SizeMedium, cdn.MediaKind(string(media.Kind))),
+			Large:  cdn.SignGetUri(media.Key, cdn.SizeLarge, cdn.MediaKind(string(media.Kind))),
+		},
 	}
 }

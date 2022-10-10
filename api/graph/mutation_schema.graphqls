@@ -1,13 +1,18 @@
 type Mutation {
+  # USER
   create(input: CreateInput!): User!
-  update(input: UpdateInput!): User!
-  resetPassword(input: ResetPasswordInput): User!
+  update(input: UpdateInput!): User! @hasRole(role: ADMIN)
+  resetPassword(input: ResetPasswordInput): User! @hasRole(role: NORMAL)
   askResetPassword(input: AskResetPasswordInput!): User!
-  invite(input: InviteInput): Invitation
-  createAlbum(input: CreateAlbumInput!): Album!
-  updateAlbum(input: UpdateAlbumInput!): Album!
-  deleteAlbum(input: DeleteAlbumInput!): ActionResult!
-  updateAlbumMedias(input: UpdateAlbumMediasInput!): Album!
-  updateAlbumFavorite(input: UpdateAlbumFavoriteInput!): Album!
-  ingest(input: PutIngestInput!): [PutIngestMediaOutput!]!
+  invite(input: InviteInput): Invitation @hasRole(role: NORMAL)
+  # ALBUM
+  createAlbum(input: CreateAlbumInput!): Album! @hasRole(role: ADMIN)
+  updateAlbum(input: UpdateAlbumInput!): Album! @hasRole(role: ADMIN)
+  deleteAlbum(input: DeleteAlbumInput!): ActionResult! @hasRole(role: ADMIN)
+  updateAlbumMedias(input: UpdateAlbumMediasInput!): Album! @hasRole(role: ADMIN)
+  updateAlbumFavorite(input: UpdateAlbumFavoriteInput!): Album! @hasRole(role: ADMIN)
+  # MEDIA
+  ingest(input: PutIngestInput!): [PutIngestMediaOutput!]! @hasRole(role: ADMIN)
+  changeMediasFolder(input: ChangeMediasFolderInput): Folder! @hasRole(role: ADMIN)
+  changeFolderName(input: ChangeFolderNameInput): Folder! @hasRole(role: ADMIN)
 }

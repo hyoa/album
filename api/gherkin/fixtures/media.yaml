@@ -1,0 +1,27 @@
+- mediaKey: key1
+  author: me
+  folder: folder1
+  mediaType: 1
+  uploadDate: 1645621684
+  visible: true
+
+- mediaKey: key2
+  author: me
+  folder: folder1
+  mediaType: 2
+  uploadDate: 1645621684
+  visible: true
+
+- mediaKey: key3
+  author: me
+  folder: folder2
+  mediaType: 1
+  uploadDate: 1645621684
+  visible: true
+
+- mediaKey: key4
+  author: me
+  folder: folder2
+  mediaType: 2
+  uploadDate: 1645621684
+  visible: false

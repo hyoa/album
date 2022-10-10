@@ -2,16 +2,14 @@ package media
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	dynamodbinteractor "github.com/hyoa/album/api/internal/dynamodbInteractor"
 )
 
 type MediaRepositoryDynamoDB struct {
@@ -29,16 +27,11 @@ type mediaModel struct {
 }
 
 func NewMediaRepositoryDynamoDB() MediaRepository {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(os.Getenv("AKID"), os.Getenv("ASK"), "")), config.WithRegion("eu-west-2"))
+	db, _ := dynamodbinteractor.NewInteractor()
 
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
-
-	svc := dynamodb.NewFromConfig(cfg)
 	return &MediaRepositoryDynamoDB{
-		client: svc,
-		table:  aws.String("album-backend-eu-west-2-dev-media"),
+		client: db.Client,
+		table:  aws.String(os.Getenv("MEDIA_TABLE_NAME")),
 	}
 }
 
@@ -173,55 +166,14 @@ func (mrd *MediaRepositoryDynamoDB) FindAll() ([]Media, error) {
 }
 
 func (mrd *MediaRepositoryDynamoDB) FindManyByKeys(keys []string) ([]Media, error) {
-	var globalExpr expression.ConditionBuilder
-	for i, k := range keys {
-		if i == 0 {
-			globalExpr = expression.Name("mediaKey").Equal(expression.Value(k))
-		} else {
-			globalExpr = globalExpr.Or(expression.Name("mediaKey").Equal(expression.Value(k)))
-		}
-	}
-
-	expr, errBuild := expression.NewBuilder().WithFilter(globalExpr).Build()
-
-	if errBuild != nil {
-		return make([]Media, 0), errBuild
-	}
-
-	output, errQuery := mrd.client.Query(context.Background(), &dynamodb.QueryInput{
-		TableName:                 mrd.table,
-		FilterExpression:          expr.Filter(),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-	})
-
-	if errQuery != nil {
-		return make([]Media, 0), errQuery
-	}
-	var items []mediaModel
-	errUnmarshal := attributevalue.UnmarshalListOfMaps(output.Items, &items)
-
-	if errUnmarshal != nil {
-		return make([]Media, 0), errUnmarshal
-	}
-
 	var medias []Media
-	for _, m := range items {
-		var kind MediaKind
-		if m.Kind == 1 {
-			kind = KindPhoto
-		} else {
-			kind = KindVideo
-		}
 
-		medias = append(medias, Media{
-			Key:        m.Key,
-			Author:     m.Author,
-			Kind:       kind,
-			Folder:     m.Folder,
-			UploadDate: m.UploadDate,
-			Visible:    m.Visible,
-		})
+	for _, k := range keys {
+		media, errGet := mrd.FindByKey(k)
+
+		if errGet == nil {
+			medias = append(medias, media)
+		}
 	}
 
 	return medias, nil

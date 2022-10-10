@@ -2,15 +2,13 @@ package user
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	dynamodbinteractor "github.com/hyoa/album/api/internal/dynamodbInteractor"
 )
 
 type UserRepositoryDynamoDB struct {
@@ -27,16 +25,11 @@ type userModel struct {
 }
 
 func NewUserRepositoryDynamoDB() UserRepo {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(os.Getenv("AKID"), os.Getenv("ASK"), "")), config.WithRegion("eu-west-2"))
+	db, _ := dynamodbinteractor.NewInteractor()
 
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
-
-	svc := dynamodb.NewFromConfig(cfg)
 	return &UserRepositoryDynamoDB{
-		client: svc,
-		table:  aws.String("album-backend-eu-west-2-dev-user"),
+		client: db.Client,
+		table:  aws.String(os.Getenv("USER_TABLE_NAME")),
 	}
 }
 
@@ -99,7 +92,7 @@ func (urd *UserRepositoryDynamoDB) FindByEmail(e string) (User, error) {
 }
 
 func (urd *UserRepositoryDynamoDB) Update(u User) (User, error) {
-	return User{}, nil
+	return u, urd.Save(u)
 }
 
 func (urd *UserRepositoryDynamoDB) FindAll() ([]User, error) {

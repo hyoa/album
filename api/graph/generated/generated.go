@@ -41,6 +41,7 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	HasRole func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -95,6 +96,8 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AskResetPassword    func(childComplexity int, input model.AskResetPasswordInput) int
+		ChangeFolderName    func(childComplexity int, input *model.ChangeFolderNameInput) int
+		ChangeMediasFolder  func(childComplexity int, input *model.ChangeMediasFolderInput) int
 		Create              func(childComplexity int, input model.CreateInput) int
 		CreateAlbum         func(childComplexity int, input model.CreateAlbumInput) int
 		DeleteAlbum         func(childComplexity int, input model.DeleteAlbumInput) int
@@ -149,6 +152,8 @@ type MutationResolver interface {
 	UpdateAlbumMedias(ctx context.Context, input model.UpdateAlbumMediasInput) (*model.Album, error)
 	UpdateAlbumFavorite(ctx context.Context, input model.UpdateAlbumFavoriteInput) (*model.Album, error)
 	Ingest(ctx context.Context, input model.PutIngestInput) ([]*model.PutIngestMediaOutput, error)
+	ChangeMediasFolder(ctx context.Context, input *model.ChangeMediasFolderInput) (*model.Folder, error)
+	ChangeFolderName(ctx context.Context, input *model.ChangeFolderNameInput) (*model.Folder, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, input model.GetUserInput) (*model.User, error)
@@ -362,6 +367,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AskResetPassword(childComplexity, args["input"].(model.AskResetPasswordInput)), true
+
+	case "Mutation.changeFolderName":
+		if e.complexity.Mutation.ChangeFolderName == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_changeFolderName_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ChangeFolderName(childComplexity, args["input"].(*model.ChangeFolderNameInput)), true
+
+	case "Mutation.changeMediasFolder":
+		if e.complexity.Mutation.ChangeMediasFolder == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_changeMediasFolder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ChangeMediasFolder(childComplexity, args["input"].(*model.ChangeMediasFolderInput)), true
 
 	case "Mutation.create":
 		if e.complexity.Mutation.Create == nil {
@@ -647,6 +676,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputAskResetPasswordInput,
 		ec.unmarshalInputAuthInput,
+		ec.unmarshalInputChangeFolderNameInput,
+		ec.unmarshalInputChangeMediasFolderInput,
 		ec.unmarshalInputCreateAlbumInput,
 		ec.unmarshalInputCreateInput,
 		ec.unmarshalInputDeleteAlbumInput,
@@ -880,40 +911,58 @@ type GetIngestMediaOutput {
   key: String!
   signedUri: String!
 }
-`, BuiltIn: false},
+
+input ChangeMediasFolderInput {
+  keys: [String!]!
+  folderName: String!
+}
+
+input ChangeFolderNameInput {
+  oldName: String!
+  newName: String!
+}`, BuiltIn: false},
 	{Name: "../mutation_schema.graphqls", Input: `type Mutation {
+  # USER
   create(input: CreateInput!): User!
   update(input: UpdateInput!): User!
   resetPassword(input: ResetPasswordInput): User!
   askResetPassword(input: AskResetPasswordInput!): User!
   invite(input: InviteInput): Invitation
+  # ALBUM
   createAlbum(input: CreateAlbumInput!): Album!
   updateAlbum(input: UpdateAlbumInput!): Album!
   deleteAlbum(input: DeleteAlbumInput!): ActionResult!
   updateAlbumMedias(input: UpdateAlbumMediasInput!): Album!
   updateAlbumFavorite(input: UpdateAlbumFavoriteInput!): Album!
+  # MEDIA
   ingest(input: PutIngestInput!): [PutIngestMediaOutput!]!
+  changeMediasFolder(input: ChangeMediasFolderInput): Folder!
+  changeFolderName(input: ChangeFolderNameInput): Folder!
 }
 `, BuiltIn: false},
 	{Name: "../query_schema.graphqls", Input: `
 type Query {
+  # USER
   user(input: GetUserInput!): User!
   users: [User!]!
   auth(input: AuthInput): Auth!
-  albums(input: GetAlbumsInput!): [Album!]!
+  # ALBUM
+  albums(input: GetAlbumsInput!): [Album!]! @hasRole(role: NORMAL)
   album(input: GetAlbumInput!): Album!
+  # MEDIA
   folders(input: GetFoldersInput!): [Folder]!
   folder(input: GetFolderInput!): Folder
   ingest(input: GetIngestInput!): [GetIngestMediaOutput!]!
 }`, BuiltIn: false},
-	{Name: "../user_schema.graphqls", Input: `# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
+	{Name: "../role_schema.graphqls", Input: `directive @hasRole(role: Role!) on FIELD_DEFINITION
 
 enum Role {
   UNIDENTIFIED, NORMAL, ADMIN
 }
-
+`, BuiltIn: false},
+	{Name: "../user_schema.graphqls", Input: `# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
 type User {
   name: String!
   email: String!
@@ -971,6 +1020,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.Role
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+		arg0, err = ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_askResetPassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -978,6 +1042,36 @@ func (ec *executionContext) field_Mutation_askResetPassword_args(ctx context.Con
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNAskResetPasswordInput2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐAskResetPasswordInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_changeFolderName_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.ChangeFolderNameInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOChangeFolderNameInput2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐChangeFolderNameInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_changeMediasFolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.ChangeMediasFolderInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOChangeMediasFolderInput2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐChangeMediasFolderInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3147,6 +3241,128 @@ func (ec *executionContext) fieldContext_Mutation_ingest(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_changeMediasFolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_changeMediasFolder(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ChangeMediasFolder(rctx, fc.Args["input"].(*model.ChangeMediasFolderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Folder)
+	fc.Result = res
+	return ec.marshalNFolder2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐFolder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_changeMediasFolder(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Folder_name(ctx, field)
+			case "medias":
+				return ec.fieldContext_Folder_medias(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Folder", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_changeMediasFolder_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_changeFolderName(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_changeFolderName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ChangeFolderName(rctx, fc.Args["input"].(*model.ChangeFolderNameInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Folder)
+	fc.Result = res
+	return ec.marshalNFolder2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐFolder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_changeFolderName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Folder_name(ctx, field)
+			case "medias":
+				return ec.fieldContext_Folder_medias(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Folder", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_changeFolderName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PutIngestMediaOutput_key(ctx context.Context, field graphql.CollectedField, obj *model.PutIngestMediaOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PutIngestMediaOutput_key(ctx, field)
 	if err != nil {
@@ -3426,8 +3642,32 @@ func (ec *executionContext) _Query_albums(ctx context.Context, field graphql.Col
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Albums(rctx, fc.Args["input"].(model.GetAlbumsInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Albums(rctx, fc.Args["input"].(model.GetAlbumsInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "NORMAL")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.Album); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/hyoa/album/api/graph/model.Album`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6013,6 +6253,78 @@ func (ec *executionContext) unmarshalInputAuthInput(ctx context.Context, obj int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputChangeFolderNameInput(ctx context.Context, obj interface{}) (model.ChangeFolderNameInput, error) {
+	var it model.ChangeFolderNameInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"oldName", "newName"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "oldName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("oldName"))
+			it.OldName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "newName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newName"))
+			it.NewName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputChangeMediasFolderInput(ctx context.Context, obj interface{}) (model.ChangeMediasFolderInput, error) {
+	var it model.ChangeMediasFolderInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"keys", "folderName"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "keys":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keys"))
+			it.Keys, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "folderName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("folderName"))
+			it.FolderName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateAlbumInput(ctx context.Context, obj interface{}) (model.CreateAlbumInput, error) {
 	var it model.CreateAlbumInput
 	asMap := map[string]interface{}{}
@@ -7212,6 +7524,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "changeMediasFolder":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_changeMediasFolder(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "changeFolderName":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_changeFolderName(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8011,6 +8341,10 @@ func (ec *executionContext) unmarshalNDeleteAlbumInput2githubᚗcomᚋhyoaᚋalb
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNFolder2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐFolder(ctx context.Context, sel ast.SelectionSet, v model.Folder) graphql.Marshaler {
+	return ec._Folder(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNFolder2ᚕᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐFolder(ctx context.Context, sel ast.SelectionSet, v []*model.Folder) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -8047,6 +8381,16 @@ func (ec *executionContext) marshalNFolder2ᚕᚖgithubᚗcomᚋhyoaᚋalbumᚋa
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNFolder2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐFolder(ctx context.Context, sel ast.SelectionSet, v *model.Folder) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Folder(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNGetAlbumInput2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐGetAlbumInput(ctx context.Context, v interface{}) (model.GetAlbumInput, error) {
@@ -8380,6 +8724,38 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNUpdateAlbumFavoriteInput2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐUpdateAlbumFavoriteInput(ctx context.Context, v interface{}) (model.UpdateAlbumFavoriteInput, error) {
@@ -8771,6 +9147,22 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOChangeFolderNameInput2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐChangeFolderNameInput(ctx context.Context, v interface{}) (*model.ChangeFolderNameInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputChangeFolderNameInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOChangeMediasFolderInput2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐChangeMediasFolderInput(ctx context.Context, v interface{}) (*model.ChangeMediasFolderInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputChangeMediasFolderInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOFolder2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐFolder(ctx context.Context, sel ast.SelectionSet, v *model.Folder) graphql.Marshaler {

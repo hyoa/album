@@ -1,0 +1,11 @@
+- name: john
+  email: john@email.com
+  registrationDate: 1664800219
+  password: $2a$10$w2yRhZ.csovcr1X/W82drOTzLfoe4f2toIdiiYDL5vfOO5rWaJhAS #123check
+  userRole: 1
+
+- name: admin
+  email: admin@email.com
+  registrationDate: 1664800419
+  password: $2a$10$w2yRhZ.csovcr1X/W82drOTzLfoe4f2toIdiiYDL5vfOO5rWaJhAS #123check
+  userRole: 9
