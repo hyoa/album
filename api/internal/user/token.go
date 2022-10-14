@@ -8,13 +8,13 @@ import (
 )
 
 type authToken struct {
-	Name  string
-	Email string
-	Role  Role
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Role  Role   `json:"role"`
 }
 
 type resetToken struct {
-	Email string
+	Email string `json:"email"`
 }
 
 type token interface {
@@ -122,7 +122,7 @@ func (r resetTokenizer) Decode(token string) (resetToken, error) {
 		return resetToken{Email: claims.Email}, nil
 	}
 
-	return resetToken{}, errors.New("Reset token is invalid")
+	return resetToken{}, errors.New("reset token is invalid")
 }
 
 func (r resetTokenizer) stringify(token resetToken) (string, error) {

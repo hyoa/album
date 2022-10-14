@@ -55,9 +55,7 @@
 </template>
 
 <script>
-import firebase from 'firebase/app'
-import 'firebase/messaging'
-import { get, post } from '../utils/axiosHelper'
+import { graphql } from '../utils/axiosHelper'
 
 import AlbumCard from '../components/album/AlbumCard'
 import LayoutGrid from '../components/layout/LayoutGrid'
@@ -83,8 +81,28 @@ export default {
   },
   async created () {
     try {
-      const res = await get('albums?limit=10')
-      this.albums = res.data
+      const query = `
+      query {
+        albums: albums(input: {limit: 10}) {
+          title
+          slug
+          medias {
+            favorite
+            kind
+            urls {
+              small
+            }
+          }
+        }
+      }
+      `
+
+      const res = await graphql(query, 'v3')
+      this.albums = res.albums
+
+      if (res.albums.length < 10) {
+        this.canLoadMore = false
+      }
     } catch ({ response: { status } }) {
       if (status === 401) {
         this.$store.commit('setFlashMessage', 'Par mesure de sécurité, vous avez été déconnecté. Vous pouvez vous reconnecter avec le formulaire ci-dessous.')
@@ -92,21 +110,29 @@ export default {
         this.$router.push({ name: 'auth' })
       }
     }
-
-    if (localStorage.getItem('declineNotification') !== null) {
-      this.hasAcceptedNotification = 'denied'
-    } else if (Notification.permission === 'granted') {
-      this.hasAcceptedNotification = 'granted'
-    } else {
-      this.hasAcceptedNotification = 'default'
-    }
   },
   methods: {
     async onSearch () {
       try {
-        const res = await get(`albums?search=${this.searchTerm}&limit=100`)
+        const query = `
+          query {
+            albums: albums(input: {term: "${this.searchTerm}"}) {
+              title
+              slug
+              medias {
+                favorite
+                kind
+                urls {
+                  small
+                }
+              }
+            }
+          }
+        `
 
-        this.albums = res.data
+        const res = await graphql(query, 'v3')
+
+        this.albums = res.albums
         this.searchedTerm = this.searchTerm
       } catch ({ response: { satus } }) {
         if (status === 401) {
@@ -121,14 +147,28 @@ export default {
         this.loadingMore = true
         const limit = 10
         const offset = this.currentPage * limit + 10
+        const query = `
+        query {
+          albums: albums(input: {limit: ${limit}, offset: ${offset}}) {
+            title
+            slug
+            medias {
+              favorite
+              kind
+              urls {
+                small
+              }
+            }
+          }
+        }
+        `
 
-        const res = await get(`albums?offset=${offset}&limit=${limit}`)
-
-        if (res.data.length < limit) {
+        const res = await graphql(query, 'v3')
+        if (res.albums.length < limit) {
           this.canLoadMore = false
         }
 
-        this.albums = this.albums.concat(res.data)
+        this.albums = this.albums.concat(res.albums)
         this.loadingMore = false
         this.currentPage++
         this.$redrawVueMasonry(this.masonryId)
@@ -139,38 +179,6 @@ export default {
           this.$router.push({ name: 'auth' })
         }
       }
-    },
-    async acceptNotification () {
-      try {
-        this.notificationValidationStatus = 'pending'
-        const messaging = firebase.messaging()
-
-        try {
-          await Notification.requestPermission()
-          await messaging.requestPermission()
-        } catch (e) {
-          this.hasAcceptedNotification = 'denied'
-          return
-        }
-
-        const token = await messaging.getToken()
-        localStorage.setItem('albumNotificationToken', token)
-
-        await post('notification/subscribe', { token, channel: 'album' })
-
-        if (this.$store.state.token.role === 9) {
-          await post('notification/subscribe', { token, channel: 'admin' })
-        }
-
-        this.hasAcceptedNotification = 'granted'
-      } catch (e) {
-        this.hasAcceptedNotification = 'unknown'
-        this.notificationValidationStatus = 'ready'
-      }
-    },
-    async declineNotification () {
-      localStorage.setItem('declineNotification', 1)
-      this.hasAcceptedNotification = 'denied'
     }
   },
   computed: {

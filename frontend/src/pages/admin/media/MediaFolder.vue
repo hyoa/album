@@ -34,8 +34,7 @@
 </template>
 
 <script>
-import { get, post } from '../../../utils/axiosHelper'
-import errorHelper from '../../../utils/errorHelper'
+import { graphql } from '../../../utils/axiosHelper'
 
 import AdminLayout from '../../../components/layout/AdminLayout'
 import Grid from '../../../components/grid/Grid'
@@ -55,26 +54,40 @@ export default {
     }
   },
   async created () {
-    const folderName = this.$route.params.folder
-    const res = await get(`medias/folder/${folderName}`)
+    const query = `
+    query {
+      folder: folder(input: {name: "${this.folderName}"}){
+        medias {
+          key
+          author
+          kind
+          urls {
+            small
+          }
+        }
+      }
+    }
+    `
+    const { folder } = await graphql(query, 'v3')
 
-    this.medias = res.data
+    this.medias = folder.medias
   },
   methods: {
     onSubmit () {
-      post('medias/folder/name', { folderToUpdate: this.$route.params.folder, newFolderName: this.folderName })
+      const query = `
+        mutation {
+          changeFolderName(input: {oldName: "${this.$route.params.folder}", newName: "${this.folderName}"}) {
+            name
+          }
+        }
+      `
+
+      graphql(query, 'v3')
         .then(() => {
           this.$notify({ group: 'success', text: this.$t('admin.mediaFolder.notify.submitSuccess') })
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
-          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
         })
     },
     async onChangeFolder () {
@@ -82,25 +95,51 @@ export default {
         return
       }
 
-      await post(`medias/many/folder/name`, { folderName: this.newFolderName, medias: this.$store.state.mediaSelected })
+      const query = `
+        mutation ($keys: [String!]!) {
+          folder: changeMediasFolder(input: {folderName: "${this.newFolderName}" , keys: $keys}) {
+            medias {
+              key
+              author
+              kind
+              urls {
+                small
+              }
+            }
+          }
+        }
+      `
 
-      this.$store.commit('resetMediaSelection')
+      const variables = {
+        keys: this.$store.state.mediaSelected
+      }
 
-      get(`medias/folder/${this.folderName}`)
-        .then(({ data }) => {
-          this.medias = data
-          this.$notify({ group: 'success', text: this.$t('admin.mediaFolder.notify.moveSuccess') })
-        })
-        .catch(({ response }) => {
-          let code = null
+      graphql(query, 'v3', variables)
+        .then(({ folder: { medias } }) => {
+          const mediasToKeep = []
 
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
+          for (let mediaInFolder of this.medias) {
+            let found = false
+            for (let mediaRemove of medias) {
+              if (mediaInFolder.key === mediaRemove.key) {
+                found = true
+                break
+              }
+            }
+
+            if (!found) {
+              mediasToKeep.push(mediaInFolder)
+            }
           }
 
-          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
+          this.medias = mediasToKeep
+          this.$notify({ group: 'success', text: this.$t('admin.mediaFolder.notify.moveSuccess') })
+        })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
+        })
+        .finally(() => {
+          this.$store.commit('resetMediaSelection')
         })
     }
   },

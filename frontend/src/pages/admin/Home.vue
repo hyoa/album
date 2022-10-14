@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import { get } from '../../utils/axiosHelper'
+import { graphql } from '../../utils/axiosHelper'
 import AdminLayout from '../../components/layout/AdminLayout'
 import AdminCard from '../../components/admin/Card'
 import IconLabel from '../../components/icon/IconLabel'
@@ -79,13 +79,58 @@ export default {
     }
   },
   async created () {
-    const albumsData = await get('albums/resume')
-    const mediasData = await get('medias/resume')
-    const usersData = await get('users/resume')
+    const queryAlbum = `
+      query {
+        albums: albums(input: {limit: 1000, includePrivate: true, includeNoMedias: true}) {
+          private
+        }
+      }
+    `
 
-    this.albumsData = albumsData.data
-    this.mediasData = mediasData.data
-    this.usersData = usersData.data
+    const resAlbum = await graphql(queryAlbum, 'v3')
+    for (let album of resAlbum.albums) {
+      if (album.private) {
+        this.albumsData.privateCount++
+      } else {
+        this.albumsData.publicCount++
+      }
+    }
+
+    const queryFolder = `
+      query {
+        folders: folders(input: {}){
+          medias {
+            kind
+          }
+        }
+      }
+    `
+    const resFolder = await graphql(queryFolder, 'v3')
+    for (let folder of resFolder.folders) {
+      for (let media of folder.medias) {
+        if (media.kind === 'PHOTO') {
+          this.mediasData.imagesCount++
+        } else {
+          this.mediasData.videosCount++
+        }
+      }
+    }
+
+    const queryUser = `
+      query {
+          users: users{
+            role
+          }
+      }
+    `
+    const resUser = await graphql(queryUser, 'v3')
+    for (let user of resUser.users) {
+      if (user.role === 'UNIDENTIFIED') {
+        this.usersData.unverifiedCount++
+      }
+
+      this.usersData.total++
+    }
   }
 }
 </script>

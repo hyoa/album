@@ -95,8 +95,8 @@ type GetIngestInput struct {
 }
 
 type GetIngestMediaInput struct {
-	Type string `json:"type"`
-	Key  string `json:"key"`
+	Kind MediaType `json:"kind"`
+	Key  string    `json:"key"`
 }
 
 type GetIngestMediaOutput struct {

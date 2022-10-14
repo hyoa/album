@@ -1,6 +1,8 @@
 package media
 
-import "github.com/hyoa/album/api/internal/s3interactor"
+import (
+	"github.com/hyoa/album/api/internal/s3interactor"
+)
 
 type S3Storage struct {
 	interactor s3interactor.S3Interactor
@@ -18,4 +20,8 @@ func (s *S3Storage) MediaExist(key, bucket string) (bool, error) {
 
 func (s *S3Storage) SignUploadUri(key, bucket string) (string, error) {
 	return s.interactor.SignPutUri(key, bucket)
+}
+
+func (s *S3Storage) SignDownloadUri(key, bucket string) (string, error) {
+	return s.interactor.SignGetUri(key, bucket)
 }

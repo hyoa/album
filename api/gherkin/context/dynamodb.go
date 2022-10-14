@@ -65,8 +65,6 @@ func IShouldHaveAnEntryInTheDynamoDBQueryResultWithAttributes(ctx context.Contex
 		})
 	}
 
-	fmt.Println(entries)
-
 	res, _ := ctx.Value(testDynamoDBKey{}).(*dynamodb.QueryOutput)
 
 	foundCount := 0

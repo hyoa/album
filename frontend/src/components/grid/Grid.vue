@@ -31,19 +31,19 @@
             <i v-else class="material-icons">star_border</i>
           </div>
           <img
-            v-if="media.type === 'image'"
-            :src="media.uris.small"
+            v-if="media.kind === 'PHOTO'"
+            :src="media.urls.small"
             :alt="media.key"
             :class="{ 'opacity-25': isSelected(media.key) }"
             @click="onImageClick(index)"
           />
           <video
-            v-else-if="media.type === 'video'"
+            v-else-if="media.kind === 'VIDEO'"
             controls
             :class="{ 'opacity-25': isSelected(media.key) }"
             preload="metadata"
           >
-            <source :src="media.uris.original" type="video/mp4">
+            <source :src="media.urls.small" type="video/mp4">
             Your browser does not support the video tag.
           </video>
         </div>
@@ -133,10 +133,10 @@ export default {
       if (this.medias !== undefined) {
         return this.medias.map(media => {
           return {
-            href: media.uris.original,
-            urlset: `${media.uris.medium} 600w, ${media.uris.original} 1000w`,
+            href: media.kind === 'VIDEO' ? media.urls.small : media.urls.large,
+            urlset: `${media.urls.medium} 600w, ${media.urls.large} 1000w`,
             description: this.$t('grid.media.description', { author: media.author }),
-            type: media.type === 'video' ? 'video/mp4' : 'image/jpg'
+            type: media.kind === 'VIDEO' ? 'video/mp4' : 'image/jpg'
           }
         })
       }

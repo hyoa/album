@@ -871,7 +871,7 @@ type Folder {
 }
 
 input GetIngestMediaInput {
-  type: String!
+  kind: MediaType!
   key: String!
 }
 
@@ -925,7 +925,7 @@ input ChangeFolderNameInput {
   # USER
   createUser(input: CreateInput!): User!
   updateUser(input: UpdateInput!): User! @hasRole(role: ADMIN)
-  resetPassword(input: ResetPasswordInput): User! @hasRole(role: NORMAL)
+  resetPassword(input: ResetPasswordInput): User!
   askResetPassword(input: AskResetPasswordInput!): User!
   invite(input: InviteInput): Invitation @hasRole(role: NORMAL)
   # ALBUM
@@ -2680,32 +2680,8 @@ func (ec *executionContext) _Mutation_resetPassword(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().ResetPassword(rctx, fc.Args["input"].(*model.ResetPasswordInput))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐRole(ctx, "NORMAL")
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.HasRole == nil {
-				return nil, errors.New("directive hasRole is not implemented")
-			}
-			return ec.directives.HasRole(ctx, nil, directive0, role)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/hyoa/album/api/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ResetPassword(rctx, fc.Args["input"].(*model.ResetPasswordInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7052,18 +7028,18 @@ func (ec *executionContext) unmarshalInputGetIngestMediaInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"type", "key"}
+	fieldsInOrder := [...]string{"kind", "key"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "type":
+		case "kind":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kind"))
+			it.Kind, err = ec.unmarshalNMediaType2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐMediaType(ctx, v)
 			if err != nil {
 				return it, err
 			}

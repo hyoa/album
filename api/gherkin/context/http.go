@@ -52,7 +52,6 @@ func ISendAGraphqlRequestWithPayload(ctx context.Context, arg1 *godog.DocString)
 	key, _ := ctx.Value(testHttpKey{}).(string)
 
 	storageMock := &mock.Storage{Keys: append(make([]string, 0), key)}
-	fmt.Println("storage after ", storageMock)
 
 	if arg1.Content == "" {
 		return ctx, errors.New("no payload")

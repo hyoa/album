@@ -25,16 +25,18 @@ type Media struct {
 type MediaManager struct {
 	mediaRepo                                         MediaRepository
 	storage                                           Storage
+	videoConverter                                    VideoConverter
 	bucketVideoRaw, bucketVideoFormatted, bucketImage string
 }
 
-func CreateMediaManager(mediaRepo MediaRepository, storage Storage) MediaManager {
+func CreateMediaManager(mediaRepo MediaRepository, storage Storage, videoConverter VideoConverter) MediaManager {
 	return MediaManager{
 		mediaRepo:            mediaRepo,
 		storage:              storage,
 		bucketVideoRaw:       os.Getenv("BUCKET_VIDEO_RAW"),
 		bucketVideoFormatted: os.Getenv("BUCKET_VIDEO_FORMATTED"),
 		bucketImage:          os.Getenv("BUCKET_IMAGE"),
+		videoConverter:       videoConverter,
 	}
 }
 
@@ -127,6 +129,14 @@ func (mm *MediaManager) Ingest(key, author, folder string, kind MediaKind) (Medi
 
 	if errSave != nil {
 		return Media{}, fmt.Errorf("unable to save media %s: %w", key, errFind)
+	}
+
+	if kind == KindVideo {
+		errConvert := mm.videoConverter.Convert(key)
+
+		if errConvert != nil {
+			return Media{}, errConvert
+		}
 	}
 
 	return media, nil

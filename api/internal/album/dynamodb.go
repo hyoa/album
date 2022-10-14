@@ -150,14 +150,10 @@ func (ard *AlbumRepositoryDynamoDB) Search(includePrivate, includeNoMedias bool,
 		globalExpr = expression.Name("isPrivate").Equal(expression.Value(false)).Or(expression.Name("isPrivate").Equal(expression.Value(true)))
 	}
 
-	var exprIncludeNoMedias expression.ConditionBuilder
 	if !includeNoMedias {
-		exprIncludeNoMedias = expression.Name("medias").Size().GreaterThan(expression.Value(0))
-	} else {
-		exprIncludeNoMedias = expression.Name("medias").Size().GreaterThanEqual(expression.Value(0))
+		exprIncludeNoMedias := expression.Name("medias").Size().GreaterThan(expression.Value(0))
+		globalExpr = globalExpr.And(exprIncludeNoMedias)
 	}
-
-	globalExpr = globalExpr.And(exprIncludeNoMedias)
 
 	if term != "" {
 		globalExpr = globalExpr.And(expression.Name("title").Contains(term).Or(expression.Name("description").Contains(term)))
@@ -180,8 +176,17 @@ func (ard *AlbumRepositoryDynamoDB) Search(includePrivate, includeNoMedias bool,
 		return make([]Album, 0), errScan
 	}
 
+	if len(output.Items) == 0 {
+		return make([]Album, 0), nil
+	}
+
+	if len(output.Items) < limit {
+		limit = len(output.Items) - 1
+	}
+
+	itemsWithLimitOffset := output.Items[offset:limit]
 	var items []albumModel
-	errUnmarshal := attributevalue.UnmarshalListOfMaps(output.Items, &items)
+	errUnmarshal := attributevalue.UnmarshalListOfMaps(itemsWithLimitOffset, &items)
 
 	if errUnmarshal != nil {
 		return make([]Album, 0), errUnmarshal

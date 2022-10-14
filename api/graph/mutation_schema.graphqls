@@ -2,7 +2,7 @@ type Mutation {
   # USER
   createUser(input: CreateInput!): User!
   updateUser(input: UpdateInput!): User! @hasRole(role: ADMIN)
-  resetPassword(input: ResetPasswordInput): User! @hasRole(role: NORMAL)
+  resetPassword(input: ResetPasswordInput): User!
   askResetPassword(input: AskResetPasswordInput!): User!
   invite(input: InviteInput): Invitation @hasRole(role: NORMAL)
   # ALBUM

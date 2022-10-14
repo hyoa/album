@@ -35,8 +35,7 @@
 </template>
 
 <script>
-import { graphql, post } from '../utils/axiosHelper'
-import errorHelper from '../utils/errorHelper'
+import { graphql } from '../utils/axiosHelper'
 
 import Login from '../components/auth/Login'
 import Register from '../components/auth/Register'
@@ -74,24 +73,26 @@ export default {
     async onLogin (data) {
       this.formStatus.login = 'pending'
       this.alert.type = null
-      post('user/login', data)
-        .then(res => {
-          localStorage.setItem('album-token', res.data.token)
-          this.$router.push({ name: 'home' })
-          this.$store.commit('setToken', res.data.token)
-        })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
 
+      let query = `
+      query {
+        auth: auth(input: {email: "${data.email}", password: "${data.password}"}) {
+          token
+        }
+      }
+      `
+
+      graphql(query, 'v3')
+        .then(res => {
+          localStorage.setItem('album-token', res.auth.token)
+          this.$router.push({ name: 'home' })
+          this.$store.commit('setToken', res.auth.token)
+        })
+        .catch(message => {
           this.alert = {
             type: 'error',
             title: 'auth.alert.info.title',
-            message: errorHelper(code)
+            message
           }
         })
         .finally(() => {
@@ -102,7 +103,6 @@ export default {
       this.alert.type = null
       this.formStatus.register = 'pending'
 
-      console.log(data)
       let query = `
       mutation createUser {
         createUser(input: {  email: "${data.email}", name: "${data.name}", password: "${data.password}", passwordCheck: "${data.checkPassword}"}) {
@@ -110,9 +110,6 @@ export default {
         }
       }
       `
-
-      console.log(query)
-
       graphql(query, 'v3')
         .then(res => {
           this.alert = {
@@ -121,18 +118,11 @@ export default {
             message: 'auth.registerPage.alert.success.message'
           }
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
+        .catch((error) => {
           this.alert = {
             type: 'error',
-            title: 'alert.error.title',
-            message: errorHelper(code)
+            title: 'auth.alert.error.title',
+            message: error
           }
         })
         .finally(() => {
@@ -142,26 +132,28 @@ export default {
     onAskResetPassword (data) {
       this.alert.type = null
       this.formStatus.reset = 'pending'
-      post('user/reset-password/ask', data)
-        .then(res => {
+
+      let query = `
+        mutation {
+          askResetPassword(input: {email: "${data.email}"}) {
+            email
+          }
+        }
+      `
+
+      graphql(query, 'v3')
+        .then(() => {
           this.alert = {
             type: 'success',
             title: 'auth.askResetPasswordPage.alert.success ',
             message: 'auth.askResetPasswordPage.alert.message'
           }
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
+        .catch((error) => {
           this.alert = {
             type: 'error',
             title: 'auth.alert.error',
-            message: errorHelper(code)
+            message: error
           }
         })
         .finally(() => {

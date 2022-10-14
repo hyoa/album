@@ -21,7 +21,7 @@ type Folder {
 }
 
 input GetIngestMediaInput {
-  type: String!
+  kind: MediaType!
   key: String!
 }
 

@@ -130,7 +130,13 @@ func (r *queryResolver) Album(ctx context.Context, input model.GetAlbumInput) (*
 
 // Folders is the resolver for the folders field.
 func (r *queryResolver) Folders(ctx context.Context, input model.GetFoldersInput) ([]*model.Folder, error) {
-	foldersName, err := r.MediaManager.GetFolders(*input.Name)
+	var name string
+
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	foldersName, err := r.MediaManager.GetFolders(name)
 
 	if err != nil {
 		return make([]*model.Folder, 0), err
@@ -138,8 +144,16 @@ func (r *queryResolver) Folders(ctx context.Context, input model.GetFoldersInput
 
 	var folders []*model.Folder
 	for _, f := range foldersName {
+		medias, _ := r.MediaManager.GetMediasByFolder(f)
+
+		var mediasModel []*model.Media
+		for _, m := range medias {
+			mediasModel = append(mediasModel, model.HydrateMedia(m))
+		}
+
 		folders = append(folders, &model.Folder{
-			Name: f,
+			Name:   f,
+			Medias: mediasModel,
 		})
 	}
 
@@ -178,7 +192,7 @@ func (r *queryResolver) Ingest(ctx context.Context, input model.GetIngestInput) 
 	var medias []*model.GetIngestMediaOutput
 
 	for _, m := range input.Medias {
-		uri, err := r.MediaManager.GetUploadSignedUri(m.Key, media.MediaKind(m.Type))
+		uri, err := r.MediaManager.GetUploadSignedUri(m.Key, media.MediaKind(model.MediaTypeToString[m.Kind]))
 
 		if err != nil {
 			continue

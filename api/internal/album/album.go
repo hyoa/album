@@ -191,8 +191,6 @@ func (am *AlbumManager) ToggleFavorite(slug, mediaKey string) (Album, error) {
 		}
 	}
 
-	fmt.Println(album.Medias)
-
 	errSave := am.repository.Save(album)
 
 	if errSave != nil {

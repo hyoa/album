@@ -55,32 +55,35 @@ export default {
     }
   },
   mounted () {
-    if (this.album.favorites.length > 1) {
+    const favorites = this.album.medias.filter(media => media.favorite)
+
+    if (favorites > 1) {
       setInterval(() => {
-        if (this.album.favorites.length - 1 > this.thumbnailIndex) {
+        if (favorites.length - 1 > this.thumbnailIndex) {
           this.thumbnailIndex++
         } else {
           this.thumbnailIndex = 0
         }
 
-        this.thumbnail = this.album.favorites[this.thumbnailIndex]
+        this.thumbnail = favorites[this.thumbnailIndex]
       }, 15000)
     }
   },
   methods: {
     getThumbnailAtLoad () {
-      if (this.album.favorites.length > 0) {
-        return this.album.favorites[0]
-      }
-    }
-  },
-  computed: {
-    description () {
-      if (this.album.description.length > 80) {
-        return this.album.description.substring(0, 80) + '...'
-      }
+      if (this.album.medias.length > 0) {
+        const favorites = this.album.medias.filter(media => media.favorite)
 
-      return this.album.description
+        if (favorites.length > 0) {
+          return favorites[0].urls.small
+        }
+
+        const photos = this.album.medias.filter(media => media.kind === 'PHOTO')
+
+        if (photos.length > 0) {
+          return photos[0].urls.small
+        }
+      }
     }
   }
 }

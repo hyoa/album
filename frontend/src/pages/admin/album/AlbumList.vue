@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { get, deleteMethod } from '../../../utils/axiosHelper'
+import { graphql } from '../../../utils/axiosHelper'
 import AdminLayout from '../../../components/layout/AdminLayout'
 import ListItem from '../../../components/admin/ListItem'
 import PageTitle from '../../../components/admin/PageTitle'
@@ -37,18 +37,21 @@ export default {
     }
   },
   async created () {
-    const response = await get('albums?limit=100&private=1&noMedias=1')
-    this.albums = response.data
-  },
-  methods: {
-    onDelete (slug) {
-      deleteMethod(`album/${slug}`)
-        .then(() => {
-          this.albums = this.albums.filter(album => {
-            return album.slug !== slug
-          })
-        })
-    }
+    const query = `
+      query {
+        albums: albums(input: {includePrivate: true, includeNoMedias: true, limit: 1000}) {
+          title
+          slug
+          author
+          medias {
+            kind
+          }
+        }
+      }
+    `
+
+    const response = await graphql(query, 'v3')
+    this.albums = response.albums
   },
   computed: {
     filteredAlbum () {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -14,6 +15,7 @@ type S3Interactor interface {
 	GetJsonFile(fileName string) ([]byte, error)
 	WriteJsonFile(fileName string, jsonByte []byte) error
 	SignPutUri(key, bucket string) (string, error)
+	SignGetUri(key, bucket string) (string, error)
 	MediaExist(key, bucket string) (bool, error)
 }
 
@@ -60,7 +62,12 @@ func (i *interactor) WriteJsonFile(fileName string, jsonByte []byte) error {
 }
 
 func (i *interactor) SignPutUri(key, bucket string) (string, error) {
-	u, err := i.client.PresignedPutObject(context.Background(), bucket, key, 5*time.Minute)
+	u, err := i.client.PresignedPutObject(context.Background(), bucket, key, 15*time.Minute)
+	return u.String(), err
+}
+
+func (i *interactor) SignGetUri(key, bucket string) (string, error) {
+	u, err := i.client.PresignedGetObject(context.Background(), bucket, key, 5*time.Minute, url.Values{})
 	return u.String(), err
 }
 

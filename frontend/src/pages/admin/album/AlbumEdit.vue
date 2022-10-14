@@ -9,7 +9,7 @@
           </div>
           <InputSimple v-model="folderFilter" :placeholder="$t('admin.albumEdit.sidebar.searchPlaceholder')"/>
           <ul class="foldersList">
-            <li class="p-1" :class="{ 'bg-light-primary text-white' : isFolderSelected(folder) }" @click="selectFolder(folder)" v-for="folder of foldersFiltered" :key="folder">{{ folder }}</li>
+            <li class="p-1" :class="{ 'bg-light-primary text-white' : isFolderSelected(folder.name) }" @click="selectFolder(folder.name)" v-for="folder of foldersFiltered" :key="folder.name">{{ folder.name }}</li>
           </ul>
         </section>
         <section class="px-5 py-3" v-if="folderSelected">
@@ -28,12 +28,12 @@
               @click="selectMedia(media.key)"
               class="w-1/2 p-1"
               v-for="media of mediasAvailable"
-              :key="media.id"
+              :key="media.key"
               :class="{ 'opacity-25': isMediaSelected(media.key) }"
             >
-              <img v-if="media.type === 'image'" class="w-full h-full" :src="media.uris.small" alt="">
+              <img v-if="media.kind === 'PHOTO'" class="w-full h-full" :src="media.urls.small" alt="">
               <video v-else preload="metadata">
-                <source :src="media.uris.original" type="video/mp4">
+                <source :src="media.urls.small" type="video/mp4">
               </video>
             </div>
           </div>
@@ -97,8 +97,7 @@
 </style>
 
 <script>
-import { get, post, put } from '../../../utils/axiosHelper'
-import errorHelper from '../../../utils/errorHelper'
+import { graphql } from '../../../utils/axiosHelper'
 
 import AdminLayout from '../../../components/layout/AdminLayout'
 import InputSimple from '../../../components/form/default/InputSimple'
@@ -135,14 +134,52 @@ export default {
   },
   async created () {
     try {
-      const { data } = await get(`/album/${this.$route.params.slug}`)
-      this.title = data.title
-      this.description = data.description
-      this.isPrivate = data.private
-      this.medias = data.medias
+      const queryAlbum = `
+        query {
+          album: album(input: {slug: "${this.$route.params.slug}"}) {
+            title
+            slug
+            description
+            author
+            creationDate
+            medias {
+              key
+              kind
+              favorite
+              author
+              urls {
+                small
+                medium
+                large
+              }
+            }
+          }
+        }
+      `
 
-      const res = await get('medias/folders')
-      this.folders = res.data
+      const { album } = await graphql(queryAlbum, 'v3')
+      this.title = album.title
+      this.description = album.description
+      this.isPrivate = album.private
+      this.medias = album.medias ?? []
+
+      const queryFolder = `
+        query {
+          folders: folders(input: {}){
+            name
+            medias {
+              key
+              kind
+              author
+              urls {
+                small
+              }
+            }
+          }
+        }
+      `
+      const { folders } = await graphql(queryFolder, 'v3')
+      this.folders = folders
     } catch (e) {
       this.$notify({ group: 'info', text: this.$t('admin.albumEdit.notify.albumDoesNotExist') })
 
@@ -152,29 +189,25 @@ export default {
   methods: {
     onSubmit () {
       this.formStatus.editAlbum = 'pending'
-      const data = {
-        title: this.title,
-        description: this.description,
-        private: !!this.isPrivate
-      }
 
-      post(`album/${this.$route.params.slug}`, data)
-        .then(({ data }) => {
+      const query = `
+        mutation {
+          album: updateAlbum(input: {title: "${this.title}", author: "${this.$store.state.token.name}", description: "${this.description}", private: ${!!this.isPrivate}, slug: "${this.$route.params.slug}"}) {
+            slug
+          }
+        }
+      `
+
+      graphql(query, 'v3')
+        .then(({ album }) => {
           this.$notify({ group: 'success', text: this.$t('admin.albumEdit.notify.editSuccess') })
 
-          if (data.slug !== this.$route.params.slug) {
-            this.$router.push({ name: 'admin_album_edit', params: { slug: data.slug } })
+          if (album.slug !== this.$route.params.slug) {
+            this.$router.push({ name: 'admin_album_edit', params: { slug: album.slug } })
           }
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
-          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
         })
         .finally(() => {
           this.formStatus.editAlbum = 'ready'
@@ -190,40 +223,53 @@ export default {
             return {
               key: media.key,
               author: media.author,
-              type: media.type
+              kind: media.kind
             }
           }
         }
       })
 
-      post(`album/${this.$route.params.slug}/medias/remove`, mediasObject)
-        .then(({ data }) => {
+      const query = `
+        mutation ($medias: [MediaAlbumInput!]!) {
+          album: updateAlbumMedias(input: {slug: "${this.$route.params.slug}", medias: $medias, action: REMOVE}) {
+            medias {
+              key
+              author
+              urls {
+                small
+              }
+              kind
+              favorite
+            }
+          }
+        }
+      `
+
+      const variables = {
+        medias: mediasObject
+      }
+
+      graphql(query, 'v3', variables)
+        .then(({ album: { medias } }) => {
           this.$notify({ group: 'success', text: this.$t('admin.albumEdit.notify.mediaRemoveSuccess') })
           this.$store.commit('resetMediaSelection')
-          this.medias = data.medias
+          this.medias = medias
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
-          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
         })
         .finally(() => {
           this.formStatus.removeFromAlbum = 'ready'
         })
     },
-    async selectFolder (folder) {
+    async selectFolder (folderName) {
       this.formStatus.loadingMediaAvailable = 'pending'
-      this.folderSelected = folder
+      this.folderSelected = folderName
       this.mediasAvailable = []
 
-      const { data } = await get(`medias/folder/${folder}`)
+      const folderSelected = this.folders.find(folder => folder.name === folderName)
 
-      this.mediasAvailable = data.filter(media => {
+      this.mediasAvailable = folderSelected.medias.filter(media => {
         for (let mediaAlbum of this.medias) {
           if (mediaAlbum.key === media.key) {
             return false
@@ -261,28 +307,40 @@ export default {
             return {
               key: media.key,
               author: media.author,
-              type: media.type
+              kind: media.kind
             }
           }
         }
       })
 
-      post(`album/${this.$route.params.slug}/medias/add`, mediasObject)
-        .then(({ data: { medias } }) => {
+      const query = `
+        mutation ($medias: [MediaAlbumInput!]!) {
+          album: updateAlbumMedias(input: {slug: "${this.$route.params.slug}", medias: $medias, action: ADD}) {
+            medias {
+              key
+              urls {
+                small
+              }
+              kind
+              favorite
+            }
+          }
+        }
+      `
+
+      const variables = {
+        medias: mediasObject
+      }
+
+      graphql(query, 'v3', variables)
+        .then(({ album: { medias } }) => {
           this.medias = medias
 
           this.$notify({ group: 'success', text: this.$t('admin.albumEdit.notify.mediaAddSuccess') })
           this.$store.commit('resetMediaSelection')
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
-          this.$notify({ group: 'success', text: this.$t(errorHelper(code)) })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
         })
         .finally(() => {
           this.formStatus.addToAlbum = 'ready'
@@ -299,9 +357,15 @@ export default {
         })
     },
     async onToggleFavorite (media) {
-      const url = media.favorite ? `album/${this.$route.params.slug}/favorite/remove` : `album/${this.$route.params.slug}/favorite/add`
+      const query = `
+        mutation {
+          updateAlbumFavorite(input: {slug: "${this.$route.params.slug}", mediaKey: "${media.key}"}) {
+            title
+          }
+        }
+      `
 
-      await put(url, { favorite: media.key })
+      await graphql(query, 'v3')
 
       this.medias.forEach(({ key }, index) => {
         if (key === media.key) {
@@ -319,7 +383,7 @@ export default {
         return this.folders
       }
 
-      return this.folders.filter(folder => folder.toUpperCase().includes(this.folderFilter.toUpperCase()))
+      return this.folders.filter(folder => folder.name.toUpperCase().includes(this.folderFilter.toUpperCase()))
     }
   }
 }
