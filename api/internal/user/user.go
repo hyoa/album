@@ -7,6 +7,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Role int
+
+const (
+	RoleUnidentified Role = iota
+	RoleNormal            = 1
+	RoleAdmin             = 9
+)
+
 type User struct {
 	Name       string `json:"name"`
 	Email      string `json:"email"`

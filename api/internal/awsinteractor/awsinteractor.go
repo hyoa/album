@@ -1,15 +1,49 @@
-package s3interactor
+package awsinteractor
 
 import (
 	"bytes"
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	awsCredential "github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
+	minioCredential "github.com/minio/minio-go/v7/pkg/credentials"
 )
+
+type DynamoDBInteractor struct {
+	Client *dynamodb.Client
+}
+
+func NewDynamoDBInteractor() (DynamoDBInteractor, error) {
+	if os.Getenv("DYNAMODB_ENDPOINT") != "" {
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{URL: os.Getenv("DYNAMODB_ENDPOINT"), PartitionID: "aws", SigningRegion: "eu-west-3"}, nil
+		})
+
+		cfg, errLoad := config.LoadDefaultConfig(
+			context.TODO(),
+			config.WithCredentialsProvider(awsCredential.NewStaticCredentialsProvider(os.Getenv("AKID"), os.Getenv("ASK"), "")),
+			config.WithRegion("eu-west-3"),
+			config.WithEndpointResolverWithOptions(customResolver),
+		)
+
+		return DynamoDBInteractor{Client: dynamodb.NewFromConfig(cfg)}, errLoad
+	}
+
+	cfg, errLoad := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithCredentialsProvider(awsCredential.NewStaticCredentialsProvider(os.Getenv("AKID"), os.Getenv("ASK"), "")),
+		config.WithRegion("eu-west-2"),
+	)
+
+	return DynamoDBInteractor{Client: dynamodb.NewFromConfig(cfg)}, errLoad
+}
 
 type S3Interactor interface {
 	GetJsonFile(fileName string) ([]byte, error)
@@ -23,9 +57,9 @@ type interactor struct {
 	client *minio.Client
 }
 
-func NewInteractor(endpoint, keyId, keySecret string) (S3Interactor, error) {
+func NewS3Interactor(endpoint, keyId, keySecret string) (S3Interactor, error) {
 	client, errNew := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(keyId, keySecret, ""),
+		Creds:  minioCredential.NewStaticV4(keyId, keySecret, ""),
 		Secure: true,
 	})
 

@@ -8,10 +8,10 @@ build:
 	go build -ldflags="-s -w" -o bin/api cmd/dev/main.go
 
 test-unit:
-	go test ./intenal/...
+	go test ./internal/...
 
 test-unit-verbose:
-	go test ./intenal/... -v
+	go test ./internal/... -v
 
 test-behat:
 	go test gherkin/api_test.go 

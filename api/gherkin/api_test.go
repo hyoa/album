@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cucumber/godog"
 	gherkin_context "github.com/hyoa/album/api/gherkin/context"
-	dynamodbinteractor "github.com/hyoa/album/api/internal/dynamodbInteractor"
+	"github.com/hyoa/album/api/internal/awsinteractor"
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 )
@@ -64,7 +64,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 }
 
 func setupDB() error {
-	db, _ := dynamodbinteractor.NewInteractor()
+	db, _ := awsinteractor.NewDynamoDBInteractor()
 
 	ouput, _ := db.Client.ListTables(context.Background(), &dynamodb.ListTablesInput{})
 
@@ -192,7 +192,7 @@ func purgeTable() error {
 }
 
 func deleteItemsForTable(key, tableName string) error {
-	db, _ := dynamodbinteractor.NewInteractor()
+	db, _ := awsinteractor.NewDynamoDBInteractor()
 
 	p := dynamodb.NewScanPaginator(db.Client, &dynamodb.ScanInput{
 		TableName: aws.String(tableName),
@@ -242,7 +242,7 @@ func loadUserFixture() error {
 
 	yaml.Unmarshal(yamlFile, &users)
 
-	db, _ := dynamodbinteractor.NewInteractor()
+	db, _ := awsinteractor.NewDynamoDBInteractor()
 
 	for _, u := range users {
 		data, _ := attributevalue.MarshalMap(u)
@@ -279,7 +279,7 @@ func loadAlbumFixture() error {
 
 	yaml.Unmarshal(yamlFile, &albums)
 
-	db, _ := dynamodbinteractor.NewInteractor()
+	db, _ := awsinteractor.NewDynamoDBInteractor()
 
 	for _, a := range albums {
 		data, _ := attributevalue.MarshalMap(a)
@@ -308,7 +308,7 @@ func loadMediaFixture() error {
 
 	yaml.Unmarshal(yamlFile, &medias)
 
-	db, _ := dynamodbinteractor.NewInteractor()
+	db, _ := awsinteractor.NewDynamoDBInteractor()
 
 	for _, m := range medias {
 		data, _ := attributevalue.MarshalMap(m)

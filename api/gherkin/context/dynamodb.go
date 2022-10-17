@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cucumber/godog"
-	dynamodbinteractor "github.com/hyoa/album/api/internal/dynamodbInteractor"
+	"github.com/hyoa/album/api/internal/awsinteractor"
 )
 
 type testDynamoDBKey struct{}
@@ -29,7 +29,7 @@ func IQueryTheDynamoDBTableAlbumtestuserWithKeys(ctx context.Context, tableName 
 		keys = append(keys, key{name: r.Cells[0].Value, value: r.Cells[1].Value})
 	}
 
-	db, _ := dynamodbinteractor.NewInteractor()
+	db, _ := awsinteractor.NewDynamoDBInteractor()
 
 	keysCondExp := make([]string, 0)
 	eav := make(map[string]types.AttributeValue)

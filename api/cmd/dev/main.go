@@ -7,10 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hyoa/album/api/controller"
 	"github.com/hyoa/album/api/internal/album"
+	"github.com/hyoa/album/api/internal/awsinteractor"
 	"github.com/hyoa/album/api/internal/mailer"
 	"github.com/hyoa/album/api/internal/media"
-	"github.com/hyoa/album/api/internal/media/impl"
-	"github.com/hyoa/album/api/internal/s3interactor"
 	"github.com/hyoa/album/api/internal/user"
 
 	"github.com/joho/godotenv"
@@ -35,9 +34,9 @@ func main() {
 	}
 
 	mailer := mailer.SendgridMailer{ApiKey: os.Getenv("MAILER_KEY")}
-	s3, _ := s3interactor.NewInteractor(os.Getenv("S3_ENDPOINT"), os.Getenv("AKID"), os.Getenv("ASK"))
+	s3, _ := awsinteractor.NewS3Interactor(os.Getenv("S3_ENDPOINT"), os.Getenv("AKID"), os.Getenv("ASK"))
 	s3Storage := media.NewS3Storage(s3)
-	converter := impl.NewCloudConvert()
+	converter := media.NewCloudConvert()
 
 	userManager := user.CreateUserManager(user.NewUserRepositoryDynamoDB(), &mailer)
 	albumManager := album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
