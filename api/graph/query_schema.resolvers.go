@@ -80,7 +80,7 @@ func (r *queryResolver) Albums(ctx context.Context, input model.GetAlbumsInput) 
 		includeNoMedias = *input.IncludeNoMedias
 	}
 
-	if input.Limit != nil {
+	if input.Limit != nil && *input.Limit != 0 {
 		limit = *input.Limit
 	}
 

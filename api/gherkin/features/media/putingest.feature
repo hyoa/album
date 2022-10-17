@@ -1,5 +1,6 @@
 Feature: ingest media
     Scenario: ingest media with valid data
+    Given I authenticate as an "admin"
     Given storage has key "key123"
     When I send a graphql request with payload:
     """

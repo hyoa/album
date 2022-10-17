@@ -3,7 +3,7 @@ Feature: create user
     When I send a graphql request with payload:
       """
       mutation createUser {
-        create(input: {  email: "toto", name: "toto", password: "123check", passwordCheck: "123check"}) {
+        createUser(input: {  email: "toto", name: "toto", password: "123check", passwordCheck: "123check"}) {
           name
         }
       }
@@ -13,7 +13,7 @@ Feature: create user
       """
       {
         "data": {
-          "create": {
+          "createUser": {
             "name": "toto"
           }
         }
@@ -35,7 +35,7 @@ Feature: create user
     When I send a graphql request with payload:
       """
       mutation createUser {
-        create(input: {  email: "john@email.com", name: "toto", password: "123check", passwordCheck: "123check"}) {
+        createUser(input: {  email: "john@email.com", name: "toto", password: "123check", passwordCheck: "123check"}) {
           name
         }
       }
@@ -48,7 +48,7 @@ Feature: create user
           {
             "message": "User already exist",
             "path": [
-              "create"
+              "createUser"
             ]
           }
         ],
@@ -71,7 +71,7 @@ Feature: create user
     When I send a graphql request with payload:
       """
       mutation createUser {
-        create(input: {  email: "toto@email.com", name: "toto", password: "123check", passwordCheck: "1213check"}) {
+        createUser(input: {  email: "toto@email.com", name: "toto", password: "123check", passwordCheck: "1213check"}) {
           name
         }
       }
@@ -84,7 +84,7 @@ Feature: create user
           {
             "message": "Password and passwordCheck does not match",
             "path": [
-              "create"
+              "createUser"
             ]
           }
         ],

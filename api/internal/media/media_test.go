@@ -6,20 +6,23 @@ import (
 	_media "github.com/hyoa/album/api/internal/media"
 	_mocks "github.com/hyoa/album/api/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type mocks struct {
-	mediaRepo *_mocks.MediaRepository
-	storage   *_mocks.Storage
+	mediaRepo      *_mocks.MediaRepository
+	storage        *_mocks.Storage
+	videoConverter *_mocks.VideoConverter
 }
 
 func getManagerWithMocks() (_media.MediaManager, mocks) {
 	list := mocks{
-		mediaRepo: new(_mocks.MediaRepository),
-		storage:   new(_mocks.Storage),
+		mediaRepo:      new(_mocks.MediaRepository),
+		storage:        new(_mocks.Storage),
+		videoConverter: new(_mocks.VideoConverter),
 	}
 
-	return _media.CreateMediaManager(list.mediaRepo, list.storage), list
+	return _media.CreateMediaManager(list.mediaRepo, list.storage, list.videoConverter), list
 }
 
 func TestItShouldGetMediaByFolders(t *testing.T) {
@@ -38,7 +41,7 @@ func TestItShouldGetFoldersNames(t *testing.T) {
 
 	mocks.mediaRepo.On("FindFoldersName", "").Return([]string{"foo"}, nil)
 
-	foldersNamesToAssert, err := manager.GetFoldersNames("")
+	foldersNamesToAssert, err := manager.GetFolders("")
 
 	assert.Len(t, foldersNamesToAssert, 1)
 	assert.Equal(t, "foo", foldersNamesToAssert[0])
@@ -64,9 +67,9 @@ func TestItShouldGetAllMedias(t *testing.T) {
 
 	media := _media.Media{Key: "1", Folder: "foo", Author: "author", Kind: _media.KindPhoto}
 
-	mocks.mediaRepo.On("FindAll").Return([]_media.Media{media}, nil)
+	mocks.mediaRepo.On("FindByFolder", "").Return([]_media.Media{media}, nil)
 
-	mediasToAssert, err := manager.GetAll()
+	mediasToAssert, err := manager.GetAll("")
 
 	assert.Len(t, mediasToAssert, 1)
 	assert.Nil(t, err)
@@ -110,8 +113,8 @@ func TestItShouldIngestMedia(t *testing.T) {
 	manager, mocks := getManagerWithMocks()
 
 	mocks.mediaRepo.On("FindByKey", "key").Return(_media.Media{}, nil)
-	mocks.storage.On("MediaExist", "key").Return(true, nil)
-	mocks.mediaRepo.On("Save", _media.Media{Key: "key", Author: "author", Kind: _media.KindPhoto, Folder: "folder"}).Return(nil)
+	mocks.storage.On("MediaExist", "key", "").Return(true, nil)
+	mocks.mediaRepo.On("Save", mock.AnythingOfType("media.Media")).Return(nil)
 
 	mediaToAssert, err := manager.Ingest("key", "author", "folder", _media.KindPhoto)
 
@@ -122,9 +125,9 @@ func TestItShouldIngestMedia(t *testing.T) {
 func TestItShouldReturnSignedUriForUpload(t *testing.T) {
 	manager, mocks := getManagerWithMocks()
 
-	mocks.storage.On("SignUploadUri", "key").Return("uri", nil)
+	mocks.storage.On("SignUploadUri", "key", "").Return("uri", nil)
 
-	uriToAssert, err := manager.GetUploadSignedUri("key")
+	uriToAssert, err := manager.GetUploadSignedUri("key", _media.KindPhoto)
 	assert.Equal(t, "uri", uriToAssert)
 	assert.Nil(t, err)
 }

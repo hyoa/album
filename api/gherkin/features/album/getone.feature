@@ -1,5 +1,6 @@
 Feature: get one album
     Scenario: Get an album
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     query get {

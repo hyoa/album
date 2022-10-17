@@ -1,5 +1,6 @@
 Feature: change medias folder
     Scenario: change medias folder with valid payload
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     mutation update {

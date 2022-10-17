@@ -56,10 +56,6 @@ body {
 </style>
 
 <script>
-import firebase from 'firebase/app'
-import 'firebase/messaging'
-import { post } from './utils/axiosHelper'
-
 export default {
   data () {
     return {
@@ -79,24 +75,6 @@ export default {
     document.addEventListener('swUpdated', function () {
       this.reloadApplication = true
     }.bind(this))
-
-    if (localStorage.getItem('declineNotification') === null) {
-      firebase.initializeApp({
-        messagingSenderId: process.env.VUE_APP_FIREBASE_SENDER_ID
-      })
-
-      if (Notification.permission === 'granted') {
-        const messaging = firebase.messaging()
-        await messaging.requestPermission()
-        const tokenMessaging = await messaging.getToken()
-
-        await post('notification/subscribe', { token: tokenMessaging, channel: 'album' })
-
-        if (this.$store.state.token.role === 9) {
-          await post('notification/subscribe', { token: tokenMessaging, channel: 'admin' })
-        }
-      }
-    }
   },
   watch: {
     token (newToken, oldToken) {

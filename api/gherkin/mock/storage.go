@@ -17,3 +17,7 @@ func (s *Storage) MediaExist(key, bucket string) (bool, error) {
 func (s *Storage) SignUploadUri(key, bucket string) (string, error) {
 	return "signeduri", nil
 }
+
+func (s *Storage) SignDownloadUri(key, bucket string) (string, error) {
+	return "signeduri", nil
+}

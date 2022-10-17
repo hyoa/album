@@ -27,4 +27,3 @@ jobs:
       env:
         CI: true
         VUE_APP_API_URI: 'https://g1510072bj.execute-api.eu-west-2.amazonaws.com/Prod/'
-        VUE_APP_FIREBASE_SENDER_ID: '826160709885'

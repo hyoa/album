@@ -1,5 +1,6 @@
 Feature: get many folders
     Scenario: get many folders
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     query get {

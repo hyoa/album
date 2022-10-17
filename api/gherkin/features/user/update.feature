@@ -1,9 +1,10 @@
 Feature: update
     Scenario: Update user with valid data
+        Given I authenticate as an "admin"
         When I send a graphql request with payload:
         """
         mutation update {
-            update(input: { email: "john@email.com", role: ADMIN }) {
+            updateUser(input: { email: "john@email.com", role: ADMIN }) {
                 name
                 role
                 email
@@ -15,7 +16,7 @@ Feature: update
         """
         {
             "data": {
-                "update": {
+                "updateUser": {
                 "name": "john",
                 "role": "ADMIN",
                 "email": "john@email.com"

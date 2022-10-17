@@ -1,9 +1,10 @@
 Feature: get ingest url
     Scenario: get ingest url
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     query get {
-        ingest(input: { medias: {type: "photo", key: "keynew"}}) {
+        ingest(input: { medias: {kind: PHOTO, key: "keynew"}}) {
             key
             signedUri
         }

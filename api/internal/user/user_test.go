@@ -80,7 +80,7 @@ func TestItShouldAuthIfEmailAndPasswordAreValid(t *testing.T) {
 
 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 
-	mocks.userRepo.On("FindByEmail", "email").Return(_user.User{Name: "name", Email: "email", Password: string(hashPassword)}, nil)
+	mocks.userRepo.On("FindByEmail", "email").Return(_user.User{Name: "name", Email: "email", Password: string(hashPassword), Role: _user.RoleNormal}, nil)
 
 	user, err := useCase.SignIn("email", "password")
 
@@ -170,7 +170,7 @@ func TestItShouldChangeTheRoleOfAnUser(t *testing.T) {
 	mocks.userRepo.On("Update", userExpected).Return(userExpected, nil)
 	mocks.userRepo.On("FindByEmail", "email").Return(user, nil)
 
-	err := useCase.ChangeRole("email", _user.RoleAdmin)
+	_, err := useCase.ChangeRole("email", _user.RoleAdmin)
 
 	assert.Nil(t, err)
 }
@@ -182,7 +182,7 @@ func TestItShouldNotUpdateRoleIfRoleIsInvalid(t *testing.T) {
 
 	mocks.userRepo.On("FindByEmail", "email").Return(user, nil)
 
-	err := useCase.ChangeRole("email", 100)
+	_, err := useCase.ChangeRole("email", 100)
 
 	assert.NotNil(t, err)
 }
@@ -207,7 +207,7 @@ func TestItShouldSendAnEmailToResetPassword(t *testing.T) {
 		mock.AnythingOfType("string"),
 	).Return(nil)
 
-	err := useCase.AskResetPassword("email", "localhost")
+	_, err := useCase.AskResetPassword("email", "localhost")
 
 	assert.Nil(t, err)
 }
@@ -217,7 +217,7 @@ func TestItShouldNotSendAnEmailIfUserGetFailed(t *testing.T) {
 
 	mocks.userRepo.On("FindByEmail", "email").Return(_user.User{}, errors.New("failed"))
 
-	err := useCase.AskResetPassword("email", "")
+	_, err := useCase.AskResetPassword("email", "")
 
 	assert.NotNil(t, err)
 }
@@ -227,7 +227,7 @@ func TestItShouldNotSendAnEmailIfUserDoesNotExist(t *testing.T) {
 
 	mocks.userRepo.On("FindByEmail", "email").Return(_user.User{}, nil)
 
-	err := useCase.AskResetPassword("email", "")
+	_, err := useCase.AskResetPassword("email", "")
 
 	assert.NotNil(t, err)
 	assert.Equal(t, "User does not exist", err.Error())
@@ -268,6 +268,6 @@ func TestItShouldResetThePassword(t *testing.T) {
 
 	jwt := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoibmFtZSIsIkVtYWlsIjoiZW1haWwiLCJSb2xlIjowLCJleHAiOjE5NTc3MjI5MTIsImlhdCI6MTY1NzcxOTMxMiwiaXNzIjoiYXBpdjIifQ.hsaebn8FSaiJMe3ZjoMQnGnVfPIe4Y99JzMPZ7dXEAU"
 
-	err := useCase.ResetPassword("password", "password", jwt)
+	_, err := useCase.ResetPassword("password", "password", jwt)
 	assert.Nil(t, err)
 }

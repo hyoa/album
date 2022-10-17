@@ -60,6 +60,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should have a mail that contain a password reset link for "([^"]*)" with subject "([^"]*)"$`, gherkin_context.IShouldHaveAMailThatContainAPasswordResetLinkForWithSubject)
 	ctx.Step(`^I should have a mail that contain an invitation link for "([^"]*)" with subject "([^"]*)"$`, gherkin_context.IShouldHaveAMailThatContainAnInvitationLinkForWithSubject)
 	ctx.Step(`^storage has key "([^"]*)"$`, gherkin_context.StorageHasKey)
+	ctx.Step(`^I authenticate as an "([^"]*)"$`, gherkin_context.IAuthenticateAsAn)
 }
 
 func setupDB() error {

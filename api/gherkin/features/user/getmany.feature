@@ -1,5 +1,6 @@
 Feature: get user
   Scenario: Get many user
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     query get {

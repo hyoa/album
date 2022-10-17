@@ -9,12 +9,10 @@ import (
 	"net/http/httptest"
 	"reflect"
 
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/cucumber/godog"
 	"github.com/gin-gonic/gin"
+	"github.com/hyoa/album/api/controller"
 	"github.com/hyoa/album/api/gherkin/mock"
-	"github.com/hyoa/album/api/graph"
-	"github.com/hyoa/album/api/graph/generated"
 	"github.com/hyoa/album/api/internal/album"
 	"github.com/hyoa/album/api/internal/media"
 	"github.com/hyoa/album/api/internal/user"
@@ -23,25 +21,17 @@ import (
 type testHttpKey struct{}
 
 func setUpRouter(storage *mock.Storage) *gin.Engine {
+	mailer := mock.Mailer{}
+	converter := mock.VideoConverter{}
+
+	userManager := user.CreateUserManager(user.NewUserRepositoryDynamoDB(), &mailer)
+	albumManager := album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
+	mediaManager := media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), storage, &converter)
+
 	router := gin.Default()
-	router.POST("/query", graphqlHandler(storage))
+	router.POST("/query", controller.GraphqlHandler(userManager, albumManager, mediaManager))
 
 	return router
-}
-
-func graphqlHandler(storage *mock.Storage) gin.HandlerFunc {
-	r := &graph.Resolver{}
-	mailer := mock.Mailer{}
-
-	r.UserManager = user.CreateUserManager(user.NewUserRepositoryDynamoDB(), &mailer)
-	r.AlbumManager = album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
-	r.MediaManager = media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), storage)
-
-	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: r}))
-
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
 }
 
 func StorageHasKey(ctx context.Context, key string) (context.Context, error) {
@@ -50,6 +40,7 @@ func StorageHasKey(ctx context.Context, key string) (context.Context, error) {
 
 func ISendAGraphqlRequestWithPayload(ctx context.Context, arg1 *godog.DocString) (context.Context, error) {
 	key, _ := ctx.Value(testHttpKey{}).(string)
+	jwt, okJwt := ctx.Value("AuthJwt").(string)
 
 	storageMock := &mock.Storage{Keys: append(make([]string, 0), key)}
 
@@ -64,6 +55,10 @@ func ISendAGraphqlRequestWithPayload(ctx context.Context, arg1 *godog.DocString)
 	jsonValue, _ := json.Marshal(jsonData)
 	req := httptest.NewRequest("POST", "/query", bytes.NewBuffer(jsonValue))
 	req.Header.Set("Content-Type", "application/json")
+
+	if okJwt {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	}
 
 	r := setUpRouter(storageMock)
 	w := httptest.NewRecorder()
@@ -133,4 +128,8 @@ func TheResponseShouldContainAnAuthToken(ctx context.Context, name, email string
 	}
 
 	return nil
+}
+
+func IAuthenticateAsAn(ctx context.Context, role string) (context.Context, error) {
+	return context.WithValue(ctx, "AuthJwt", "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJOYW1lIjoiY2hlY2siLCJFbWFpbCI6InRvdG9AdG90by5jb20iLCJSb2xlIjo5LCJleHAiOjE4MjMwMzI4MTEsImlhdCI6MTY2MjcyNTA3OCwiaXNzIjoiYXBpdjMifQ.WUAIpDnWW3DOgToq_VNGqxhZu3X6bhDKVMbChVhBbZFLdEEALxYIZmvPVo02fbtmAlaV_pAO8tLCJjd3qZUf7w"), nil
 }

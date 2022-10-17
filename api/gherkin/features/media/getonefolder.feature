@@ -1,5 +1,6 @@
 Feature: get one folder
     Scenario: get one folder
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     query get {

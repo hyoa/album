@@ -1,5 +1,6 @@
 Feature: sending an invitation
     Scenario: sending an invitation
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     mutation update {

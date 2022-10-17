@@ -1,5 +1,6 @@
 Feature: update favorite of an album
     Scenario: update favorite of an album with valid data
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     mutation update {

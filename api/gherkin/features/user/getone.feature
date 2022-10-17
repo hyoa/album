@@ -1,5 +1,6 @@
 Feature: get user
   Scenario: Get one user that exist
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     query get {
@@ -21,6 +22,7 @@ Feature: get user
       """
 
   Scenario: Get one user that does not exist
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     query get {

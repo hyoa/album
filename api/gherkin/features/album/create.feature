@@ -1,5 +1,6 @@
 Feature: create an album
     Scenario: create an album with valid data
+    Given I authenticate as an "admin"
     When I send a graphql request with payload:
     """
     mutation create {

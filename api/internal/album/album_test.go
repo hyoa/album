@@ -224,7 +224,7 @@ func TestItShouldGetAll(t *testing.T) {
 		{Slug: "slug2"},
 	}
 
-	mocks.albumRepo.On("FindAll").Return(albums, nil)
+	mocks.albumRepo.On("Search", true, true, 1000000, 0, "", "desc").Return(albums, nil)
 
 	albumsToAssert, err := manager.GetAll()
 

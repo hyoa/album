@@ -9,20 +9,20 @@ type Storage struct {
 	mock.Mock
 }
 
-// MediaExist provides a mock function with given fields: key
-func (_m *Storage) MediaExist(key string) (bool, error) {
-	ret := _m.Called(key)
+// MediaExist provides a mock function with given fields: key, bucket
+func (_m *Storage) MediaExist(key string, bucket string) (bool, error) {
+	ret := _m.Called(key, bucket)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(string) bool); ok {
-		r0 = rf(key)
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(key, bucket)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(key)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(key, bucket)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -30,20 +30,41 @@ func (_m *Storage) MediaExist(key string) (bool, error) {
 	return r0, r1
 }
 
-// SignUploadUri provides a mock function with given fields: key
-func (_m *Storage) SignUploadUri(key string) (string, error) {
-	ret := _m.Called(key)
+// SignDownloadUri provides a mock function with given fields: key, bucket
+func (_m *Storage) SignDownloadUri(key string, bucket string) (string, error) {
+	ret := _m.Called(key, bucket)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(key)
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(key, bucket)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(key)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(key, bucket)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SignUploadUri provides a mock function with given fields: key, bucket
+func (_m *Storage) SignUploadUri(key string, bucket string) (string, error) {
+	ret := _m.Called(key, bucket)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(key, bucket)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(key, bucket)
 	} else {
 		r1 = ret.Error(1)
 	}
