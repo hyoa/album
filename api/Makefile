@@ -7,11 +7,17 @@ deploy: clean build
 build:
 	go build -ldflags="-s -w" -o bin/api cmd/dev/main.go
 
-test:
-	go test ./...
+test-unit:
+	go test ./intenal/...
 
-test-verbose:
-	go test ./... -v
+test-unit-verbose:
+	go test ./intenal/... -v
+
+test-behat:
+	go test gherkin/api_test.go 
+
+test-behat-verbose:
+	go test -v gherkin/api_test.go 
 
 run:
 	air
