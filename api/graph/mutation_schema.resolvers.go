@@ -16,17 +16,17 @@ import (
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.CreateInput) (*model.User, error) {
-	user, errSign := r.UserManager.Create(input.Name, input.Email, input.Password, input.PasswordCheck)
+	u, err := r.UserManager.Create(input.Name, input.Email, input.Password, input.PasswordCheck)
 
-	if errSign != nil {
-		return &model.User{}, errSign
+	if err != nil {
+		return &model.User{}, HandleError(err, r.Translator)
 	}
 
 	return &model.User{
-		Name:       user.Name,
-		Email:      user.Email,
-		CreateDate: int(user.CreateDate),
-		Role:       model.RoleReverse[int(user.Role)],
+		Name:       u.Name,
+		Email:      u.Email,
+		CreateDate: int(u.CreateDate),
+		Role:       model.RoleReverse[int(u.Role)],
 	}, nil
 }
 
@@ -36,7 +36,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateInp
 		user, errUpdateRole := r.UserManager.ChangeRole(input.Email, user.Role(input.Role.Int()))
 
 		if errUpdateRole != nil {
-			return &model.User{}, errUpdateRole
+			return &model.User{}, HandleError(errUpdateRole, r.Translator)
 		}
 
 		return &model.User{
@@ -55,7 +55,7 @@ func (r *mutationResolver) ResetPassword(ctx context.Context, input *model.Reset
 	user, errReset := r.UserManager.ResetPassword(input.Password, input.PasswordCheck, input.TokenValidation)
 
 	if errReset != nil {
-		return &model.User{}, errReset
+		return &model.User{}, HandleError(errReset, r.Translator)
 	}
 
 	return &model.User{
@@ -71,7 +71,7 @@ func (r *mutationResolver) AskResetPassword(ctx context.Context, input model.Ask
 	user, err := r.UserManager.AskResetPassword(input.Email, "localhost:3118")
 
 	if err != nil {
-		return &model.User{}, err
+		return &model.User{}, HandleError(err, r.Translator)
 	}
 
 	return &model.User{
@@ -86,7 +86,11 @@ func (r *mutationResolver) AskResetPassword(ctx context.Context, input model.Ask
 func (r *mutationResolver) Invite(ctx context.Context, input *model.InviteInput) (*model.Invitation, error) {
 	err := r.UserManager.Invite(user.User{}, input.Email, "localhost:3118")
 
-	return &model.Invitation{Email: input.Email}, err
+	if err != nil {
+		return &model.Invitation{}, HandleError(err, r.Translator)
+	}
+
+	return &model.Invitation{Email: input.Email}, nil
 }
 
 // CreateAlbum is the resolver for the createAlbum field.
@@ -98,7 +102,7 @@ func (r *mutationResolver) CreateAlbum(ctx context.Context, input model.CreateAl
 	album, err := r.AlbumManager.Create(input.Title, input.Author, *input.Description, input.Private)
 
 	if err != nil {
-		return &model.Album{}, err
+		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
 	return model.HydrateAlbum(album), nil
@@ -109,7 +113,7 @@ func (r *mutationResolver) UpdateAlbum(ctx context.Context, input model.UpdateAl
 	album, err := r.AlbumManager.Edit(input.Title, input.Description, input.Slug, input.Private)
 
 	if err != nil {
-		return &model.Album{}, err
+		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
 	return model.HydrateAlbum(album), nil
@@ -122,9 +126,10 @@ func (r *mutationResolver) DeleteAlbum(ctx context.Context, input model.DeleteAl
 	res := true
 	if err != nil {
 		res = false
+		return &model.ActionResult{Success: &res}, HandleError(err, r.Translator)
 	}
 
-	return &model.ActionResult{Success: &res}, err
+	return &model.ActionResult{Success: &res}, nil
 }
 
 // UpdateAlbumMedias is the resolver for the updateAlbumMedias field.
@@ -144,7 +149,7 @@ func (r *mutationResolver) UpdateAlbumMedias(ctx context.Context, input model.Up
 	album, err := r.AlbumManager.UpdateMedias(input.Slug, medias, album.UpdateMediaKind(action))
 
 	if err != nil {
-		return &model.Album{}, err
+		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
 	return model.HydrateAlbum(album), nil
@@ -155,7 +160,7 @@ func (r *mutationResolver) UpdateAlbumFavorite(ctx context.Context, input model.
 	album, err := r.AlbumManager.ToggleFavorite(input.Slug, input.MediaKey)
 
 	if err != nil {
-		return &model.Album{}, err
+		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
 	return model.HydrateAlbum(album), nil
@@ -192,7 +197,7 @@ func (r *mutationResolver) ChangeMediasFolder(ctx context.Context, input *model.
 	medias, err := r.MediaManager.ChangeMediasFolder(input.Keys, input.FolderName)
 
 	if err != nil {
-		return &model.Folder{}, err
+		return &model.Folder{}, HandleError(err, r.Translator)
 	}
 
 	var mediasToReturn []*model.Media
@@ -212,7 +217,7 @@ func (r *mutationResolver) ChangeFolderName(ctx context.Context, input *model.Ch
 	medias, err := r.MediaManager.ChangeFolderName(input.OldName, input.NewName)
 
 	if err != nil {
-		return &model.Folder{}, err
+		return &model.Folder{}, HandleError(err, r.Translator)
 	}
 
 	var mediasToReturn []*model.Media

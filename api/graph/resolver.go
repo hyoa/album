@@ -5,6 +5,7 @@ package graph
 import (
 	"github.com/hyoa/album/api/internal/album"
 	"github.com/hyoa/album/api/internal/media"
+	"github.com/hyoa/album/api/internal/translator"
 	"github.com/hyoa/album/api/internal/user"
 )
 
@@ -16,4 +17,5 @@ type Resolver struct {
 	UserManager  user.UserManager
 	AlbumManager album.AlbumManager
 	MediaManager media.MediaManager
+	Translator   translator.Translator
 }

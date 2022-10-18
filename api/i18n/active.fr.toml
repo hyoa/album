@@ -1,0 +1,44 @@
+[CreateUserPasswordCheckError]
+description = "Password et passwordCheck ne sont pas égaux"
+one = "Les 2 mots de passes ne correspondent pas."
+other = "Les 2 mots de passes ne correspondent pas."
+
+[CreateUserAlreadyExist]
+description = "Email déjà utilisé"
+one = "L'email renseigné est déjà utilisé."
+other = "L'email renseigné est déjà utilisé."
+
+[CreateUserRoleUnidentified]
+description = "Non validé"
+one = "Votre compte n'a pas encore été validé par un administrateur."
+otheer = "Votre compte n'a pas encore été validé par un administrateur."
+
+[CreateUserAuthNotFoundError]
+description = "Email et/ou mot de passe incorrect"
+one = "L'email et/ou le mot de passe sont incorrect."
+other = "L'email et/ou le mot de passe sont incorrect."
+
+[MailSubjectInvite]
+description = "Sujet mail d'invitation"
+one = "Invitation {{.AppName}}"
+other = "Invitation {{.AppName}}"
+
+[MailBodyInvite]
+description = "Contenu mail d'invitation"
+one = "Bonjour, nous vous invitons à voir nos albums photo à l'adresse suivante : {{.Uri}}"
+other = "Bonjour, nous vous invitons à voir nos albums photo à l'adresse suivante : {{.Uri}}"
+
+[MailSubjectPasswordChange]
+description = "Sujet mail reset mot de passe"
+one = "Changement du mot de passe"
+other = "Changement du mot de passe"
+
+[MailBodyPasswordChange]
+description = "Contenu mail reset mot de passe"
+one = "Cliquer sur le lien suivant pour changer de mot de passe: {{.uri}}?token={{.token}}"
+other = "Cliquer sur le lien suivant pour changer de mot de passe: {{.uri}}?token={{.token}}"
+
+[InternalError]
+description = "Erreur interne lors de la création de l'utilisateur"
+one = "Une erreur interne est survenue, merci de réessayer ou de contacter l'administrateur du site."
+other = "Une erreur interne est survenue, merci de réessayer ou de contacter l'administrateur du site."

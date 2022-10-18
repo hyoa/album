@@ -17,7 +17,7 @@ func (r *queryResolver) User(ctx context.Context, input model.GetUserInput) (*mo
 	user, err := r.UserManager.GetUser(input.Email)
 
 	if err != nil {
-		return &model.User{}, err
+		return &model.User{}, HandleError(err, r.Translator)
 	}
 
 	return &model.User{
@@ -43,7 +43,11 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 		})
 	}
 
-	return usersModel, err
+	if err != nil {
+		return make([]*model.User, 0), HandleError(err, r.Translator)
+	}
+
+	return usersModel, nil
 }
 
 // Auth is the resolver for the auth field.
@@ -51,13 +55,13 @@ func (r *queryResolver) Auth(ctx context.Context, input *model.AuthInput) (*mode
 	user, errSign := r.UserManager.SignIn(input.Email, input.Password)
 
 	if errSign != nil {
-		return &model.Auth{}, errSign
+		return &model.Auth{}, HandleError(errSign, r.Translator)
 	}
 
 	jwt, errJwt := r.UserManager.CreateAuthJWT(user)
 
 	if errJwt != nil {
-		return &model.Auth{}, errJwt
+		return &model.Auth{}, HandleError(errJwt, r.Translator)
 	}
 
 	return &model.Auth{Token: jwt}, nil
@@ -106,7 +110,7 @@ func (r *queryResolver) Albums(ctx context.Context, input model.GetAlbumsInput) 
 	)
 
 	if err != nil {
-		return make([]*model.Album, 0), err
+		return make([]*model.Album, 0), HandleError(err, r.Translator)
 	}
 
 	var albumsModel []*model.Album
@@ -122,7 +126,7 @@ func (r *queryResolver) Album(ctx context.Context, input model.GetAlbumInput) (*
 	album, err := r.AlbumManager.GetBySlug(input.Slug)
 
 	if err != nil {
-		return &model.Album{}, err
+		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
 	return model.HydrateAlbum(album), nil
@@ -139,7 +143,7 @@ func (r *queryResolver) Folders(ctx context.Context, input model.GetFoldersInput
 	foldersName, err := r.MediaManager.GetFolders(name)
 
 	if err != nil {
-		return make([]*model.Folder, 0), err
+		return make([]*model.Folder, 0), HandleError(err, r.Translator)
 	}
 
 	var folders []*model.Folder
@@ -157,7 +161,11 @@ func (r *queryResolver) Folders(ctx context.Context, input model.GetFoldersInput
 		})
 	}
 
-	return folders, err
+	if err != nil {
+		return make([]*model.Folder, 0), HandleError(err, r.Translator)
+	}
+
+	return folders, nil
 }
 
 // Folder is the resolver for the folder field.
@@ -165,7 +173,7 @@ func (r *queryResolver) Folder(ctx context.Context, input model.GetFolderInput) 
 	medias, err := r.MediaManager.GetMediasByFolder(input.Name)
 
 	if err != nil {
-		return &model.Folder{}, err
+		return &model.Folder{}, HandleError(err, r.Translator)
 	}
 
 	var mediasModel []*model.Media

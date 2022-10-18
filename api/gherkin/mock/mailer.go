@@ -2,7 +2,10 @@ package mock
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+
+	"github.com/hyoa/album/api/internal/translator"
 )
 
 type mail struct {
@@ -11,10 +14,16 @@ type mail struct {
 	Body    string `json:"body"`
 }
 
-type Mailer struct{}
+type Mailer struct {
+	translator.Translator
+}
 
-func (m *Mailer) SendMail(email, subject, body string) error {
-	f, _ := json.Marshal(mail{Email: email, Subject: subject, Body: body})
+func (m *Mailer) SendMail(email, subjectKey, bodyKey string, bodyData map[string]interface{}) error {
+	subjectTranslated := m.Translator.Translate(subjectKey, bodyData)
+	bodyTranslated := m.Translator.Translate(bodyKey, bodyData)
+
+	fmt.Println(subjectTranslated, bodyTranslated)
+	f, _ := json.Marshal(mail{Email: email, Subject: subjectTranslated, Body: bodyTranslated})
 
 	return ioutil.WriteFile("/tmp/mail.json", f, 0644)
 }

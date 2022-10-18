@@ -10,6 +10,7 @@ import (
 	"github.com/hyoa/album/api/internal/awsinteractor"
 	"github.com/hyoa/album/api/internal/mailer"
 	"github.com/hyoa/album/api/internal/media"
+	"github.com/hyoa/album/api/internal/translator"
 	"github.com/hyoa/album/api/internal/user"
 
 	"github.com/joho/godotenv"
@@ -33,7 +34,8 @@ func main() {
 		panic(err)
 	}
 
-	mailer := mailer.SendgridMailer{ApiKey: os.Getenv("MAILER_KEY")}
+	translatorManager := *translator.CreateTranslator("./i18n/active.fr.toml")
+	mailer := mailer.SendgridMailer{ApiKey: os.Getenv("MAILER_KEY"), Translater: translatorManager}
 	s3, _ := awsinteractor.NewS3Interactor(os.Getenv("S3_ENDPOINT"), os.Getenv("AKID"), os.Getenv("ASK"))
 	s3Storage := media.NewS3Storage(s3)
 	converter := media.NewCloudConvert()
@@ -49,7 +51,7 @@ func main() {
 	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
 
 	r.Use(cors.New(config))
-	r.POST("/v3/graphql", controller.GraphqlHandler(userManager, albumManager, mediaManager))
+	r.POST("/v3/graphql", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
 	r.GET("/", playgroundHandler())
 
 	r.Run(":3118")

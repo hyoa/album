@@ -38,10 +38,11 @@ type UserManager struct {
 }
 
 type Mailer interface {
-	SendMail(email, subject, body string) error
+	SendMail(email, subjectKey, bodyKey string, bodyData map[string]interface{}) error
 }
 
 func CreateUserManager(ur UserRepo, m Mailer) UserManager {
+
 	return UserManager{
 		userRepo:       ur,
 		mailer:         m,
@@ -52,12 +53,12 @@ func CreateUserManager(ur UserRepo, m Mailer) UserManager {
 
 func (um *UserManager) Create(name, email, password, passwordCheck string) (User, error) {
 	if password != passwordCheck {
-		return User{}, &InvalidPasswordError{message: "Password and passwordCheck does not match"}
+		return User{}, &InvalidPasswordError{}
 	}
 
 	userMatch, errorFindUser := um.userRepo.FindByEmail(email)
 	if errorFindUser != nil && errorFindUser.Error() != "No user found" {
-		return User{}, fmt.Errorf("An error occured while fetching user %w", errorFindUser)
+		return User{}, &UserFetchError{message: errorFindUser.Error()}
 	}
 
 	if userMatch != (User{}) {
@@ -66,7 +67,7 @@ func (um *UserManager) Create(name, email, password, passwordCheck string) (User
 
 	hashPassword, errHash := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if errHash != nil {
-		return User{}, fmt.Errorf("Error while creating hash for password %w", errHash)
+		return User{}, &PasswordGenerationError{message: errHash.Error()}
 	}
 
 	user := User{
@@ -79,7 +80,7 @@ func (um *UserManager) Create(name, email, password, passwordCheck string) (User
 
 	errorSave := um.userRepo.Save(user)
 	if errorSave != nil {
-		return User{}, fmt.Errorf("Unable to create user %w", errorSave)
+		return User{}, &UserCreationError{message: errorSave.Error()}
 	}
 
 	return user, nil
@@ -88,11 +89,11 @@ func (um *UserManager) Create(name, email, password, passwordCheck string) (User
 func (um *UserManager) SignIn(email, password string) (User, error) {
 	user, errorFindUser := um.userRepo.FindByEmail(email)
 	if errorFindUser != nil {
-		return User{}, fmt.Errorf("An error occured while fetching user %w", errorFindUser)
+		return User{}, &UserFetchError{message: errorFindUser.Error()}
 	}
 
 	if user == (User{}) {
-		return User{}, &UserNotFoundError{}
+		return User{}, &AuthenticationNotFoundError{}
 	}
 
 	if user.Role == RoleUnidentified {
@@ -101,7 +102,7 @@ func (um *UserManager) SignIn(email, password string) (User, error) {
 
 	errCheck := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if errCheck != nil {
-		return User{}, &InvalidPasswordError{message: "Password is incorrect"}
+		return User{}, &InvalidPasswordError{}
 	}
 
 	return user, nil
@@ -110,12 +111,12 @@ func (um *UserManager) SignIn(email, password string) (User, error) {
 func (um *UserManager) CreateAuthJWT(u User) (string, error) {
 	token, errorCreateToken := um.authTokenizer.create(authTokenInput{u: u})
 	if errorCreateToken != nil {
-		return "", fmt.Errorf("Unable to create token %w", errorCreateToken)
+		return "", &CreateAuthJwtError{message: fmt.Sprintf("Unable to create token %s", errorCreateToken.Error())}
 	}
 
 	tokenAsString, errorStringify := um.authTokenizer.stringify(token)
 	if errorStringify != nil {
-		return "", fmt.Errorf("Unable to stringify token %w", errorStringify)
+		return "", &CreateAuthJwtError{message: fmt.Sprintf("Unable to stringify token %s", errorStringify.Error())}
 	}
 
 	return tokenAsString, nil
@@ -124,7 +125,7 @@ func (um *UserManager) CreateAuthJWT(u User) (string, error) {
 func (um *UserManager) Auth(jwt string) (User, error) {
 	token, errorDecode := um.authTokenizer.Decode(jwt)
 	if errorDecode != nil {
-		return User{}, fmt.Errorf("Unable to decode token %w", errorDecode)
+		return User{}, &AuthError{message: fmt.Sprintf("Unable to decode token %s", errorDecode.Error())}
 	}
 
 	return User{Name: token.Name, Email: token.Email}, nil
@@ -138,14 +139,14 @@ func (um *UserManager) ChangeRole(email string, r Role) (User, error) {
 	user, errFind := um.userRepo.FindByEmail(email)
 
 	if errFind != nil {
-		return User{}, fmt.Errorf("unable to find user %w", errFind)
+		return User{}, &UserFetchError{message: errFind.Error()}
 	}
 
 	user.Role = r
 	uUpdated, errUpdate := um.userRepo.Update(user)
 
 	if errUpdate != nil {
-		return User{}, fmt.Errorf("unable to update user %w", errUpdate)
+		return User{}, &UserUpdateError{message: fmt.Sprintf("unable to update user %s", errUpdate.Error())}
 	}
 
 	return uUpdated, nil
@@ -155,29 +156,31 @@ func (um *UserManager) AskResetPassword(email, appUri string) (User, error) {
 	resetToken, errCreate := um.resetTokenizer.create(resetTokenInput{email: email})
 
 	if errCreate != nil {
-		return User{}, fmt.Errorf("Unable to create reset token: %w", errCreate)
+		return User{}, &AskResetPasswordError{message: fmt.Sprintf("Unable to create reset token: %s", errCreate.Error())}
 	}
 
 	jwtReset, errStringify := um.resetTokenizer.stringify(resetToken)
 
 	if errStringify != nil {
-		return User{}, fmt.Errorf("Unable to stringify reset token: %w", errStringify)
+		return User{}, &AskResetPasswordError{message: fmt.Sprintf("Unable to stringify reset token: %s", errStringify.Error())}
 	}
 
 	u, errFind := um.userRepo.FindByEmail(email)
 
 	if errFind != nil {
-		return User{}, fmt.Errorf("Unable to find user: %w", errFind)
+		return User{}, &UserFetchError{message: errFind.Error()}
 	}
 
+	//We don't send the email, but we don't return any error. No need to tell anyone that the user does not exist
 	if u == (User{}) {
-		return User{}, &UserNotFoundError{}
+		return User{}, nil
 	}
 
 	errSend := um.mailer.SendMail(
 		u.Email,
-		"Changement du mot de passe",
-		fmt.Sprintf("Cliquer sur le lien suivant pour changer de mot de passe: %s?token=%s", appUri, jwtReset),
+		"MailSubjectPasswordChange",
+		"MailBodyPasswordChange",
+		map[string]interface{}{"uri": appUri, "token": jwtReset},
 	)
 
 	return u, errSend
@@ -194,8 +197,9 @@ func (um *UserManager) GetUser(email string) (User, error) {
 func (um *UserManager) Invite(u User, toInviteEmail, appUri string) error {
 	um.mailer.SendMail(
 		toInviteEmail,
-		"Invitation Pauline&Jules",
-		fmt.Sprintf("Bonjour, nous vous invitons à voir nos albums photo à l'adresse suivante : %s", appUri),
+		"MailSubjectInvite",
+		"MailBodyInvite",
+		map[string]interface{}{"Uri": appUri, "AppName": "Pauline&Jules"},
 	)
 
 	return nil
@@ -205,27 +209,30 @@ func (um *UserManager) ResetPassword(newPassword, newPasswordCheck, token string
 	resetToken, errDecode := um.resetTokenizer.Decode(token)
 
 	if errDecode != nil {
-		return User{}, fmt.Errorf("Unable to decode token: %w", errDecode)
+		return User{}, &ResetPasswordError{message: fmt.Sprintf("Unable to decode token: %s", errDecode.Error())}
 	}
 
 	if newPassword != newPasswordCheck {
-		return User{}, &InvalidPasswordError{message: "Password and passwordCheck does not match"}
+		return User{}, &InvalidPasswordError{}
 	}
 
 	user, errorGetUser := um.userRepo.FindByEmail(resetToken.Email)
 
 	if errorGetUser != nil {
-		return User{}, fmt.Errorf("Unable to fetch user: %w", errorGetUser)
+		return User{}, &UserFetchError{message: errorGetUser.Error()}
 	}
 
 	hashPassword, errHash := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if errHash != nil {
-		return User{}, fmt.Errorf("Error while creating hash for password %w", errHash)
+		return User{}, &ResetPasswordError{message: fmt.Sprintf("Error while creating hash for password %s", errHash.Error())}
 	}
 
 	user.Password = string(hashPassword)
 
 	_, errorUpdate := um.userRepo.Update(user)
 
-	return user, errorUpdate
+	if errorUpdate != nil {
+		return User{}, &UserUpdateError{message: errorUpdate.Error()}
+	}
+	return user, nil
 }

@@ -9,13 +9,13 @@ type Mailer struct {
 	mock.Mock
 }
 
-// SendMail provides a mock function with given fields: email, subject, body
-func (_m *Mailer) SendMail(email string, subject string, body string) error {
-	ret := _m.Called(email, subject, body)
+// SendMail provides a mock function with given fields: email, subjectKey, bodyKey, bodyData
+func (_m *Mailer) SendMail(email string, subjectKey string, bodyKey string, bodyData map[string]interface{}) error {
+	ret := _m.Called(email, subjectKey, bodyKey, bodyData)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(email, subject, body)
+	if rf, ok := ret.Get(0).(func(string, string, string, map[string]interface{}) error); ok {
+		r0 = rf(email, subjectKey, bodyKey, bodyData)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -15,13 +15,15 @@ import (
 	"github.com/hyoa/album/api/gherkin/mock"
 	"github.com/hyoa/album/api/internal/album"
 	"github.com/hyoa/album/api/internal/media"
+	"github.com/hyoa/album/api/internal/translator"
 	"github.com/hyoa/album/api/internal/user"
 )
 
 type testHttpKey struct{}
 
 func setUpRouter(storage *mock.Storage) *gin.Engine {
-	mailer := mock.Mailer{}
+	translatorManager := *translator.CreateTranslator("../i18n/active.fr.toml")
+	mailer := mock.Mailer{Translator: translatorManager}
 	converter := mock.VideoConverter{}
 
 	userManager := user.CreateUserManager(user.NewUserRepositoryDynamoDB(), &mailer)
@@ -29,7 +31,7 @@ func setUpRouter(storage *mock.Storage) *gin.Engine {
 	mediaManager := media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), storage, &converter)
 
 	router := gin.Default()
-	router.POST("/query", controller.GraphqlHandler(userManager, albumManager, mediaManager))
+	router.POST("/query", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
 
 	return router
 }

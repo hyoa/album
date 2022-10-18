@@ -203,8 +203,9 @@ func TestItShouldSendAnEmailToResetPassword(t *testing.T) {
 	mocks.mailer.On(
 		"SendMail",
 		user.Email,
-		"Changement du mot de passe",
-		mock.AnythingOfType("string"),
+		"MailSubjectPasswordChange",
+		"MailBodyPasswordChange",
+		mock.Anything,
 	).Return(nil)
 
 	_, err := useCase.AskResetPassword("email", "localhost")
@@ -227,10 +228,10 @@ func TestItShouldNotSendAnEmailIfUserDoesNotExist(t *testing.T) {
 
 	mocks.userRepo.On("FindByEmail", "email").Return(_user.User{}, nil)
 
-	_, err := useCase.AskResetPassword("email", "")
+	user, err := useCase.AskResetPassword("email", "")
 
-	assert.NotNil(t, err)
-	assert.Equal(t, "User does not exist", err.Error())
+	assert.Nil(t, err)
+	assert.Equal(t, "", user.Name)
 }
 
 /**
@@ -245,8 +246,9 @@ func TestItShouldSendAnInvitationToTheRequestedEmail(t *testing.T) {
 	mocks.mailer.On(
 		"SendMail",
 		"email@email.com",
-		"Invitation Pauline&Jules",
-		"Bonjour, nous vous invitons à voir nos albums photo à l'adresse suivante : localhost",
+		"MailSubjectInvite",
+		"MailBodyInvite",
+		mock.Anything,
 	).Return(nil)
 
 	err := useCase.Invite(_user.User{}, "email@email.com", "localhost")

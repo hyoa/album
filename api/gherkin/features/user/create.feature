@@ -46,7 +46,7 @@ Feature: create user
       {
         "errors": [
           {
-            "message": "User already exist",
+            "message": "L'email renseigné est déjà utilisé.",
             "path": [
               "createUser"
             ]
@@ -82,7 +82,7 @@ Feature: create user
       {
         "errors": [
           {
-            "message": "Password and passwordCheck does not match",
+            "message": "Les 2 mots de passes ne correspondent pas.",
             "path": [
               "createUser"
             ]
