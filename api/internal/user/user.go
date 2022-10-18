@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -199,7 +200,7 @@ func (um *UserManager) Invite(u User, toInviteEmail, appUri string) error {
 		toInviteEmail,
 		"MailSubjectInvite",
 		"MailBodyInvite",
-		map[string]interface{}{"Uri": appUri, "AppName": "Pauline&Jules"},
+		map[string]interface{}{"Uri": appUri, "AppName": os.Getenv("APP_NAME")},
 	)
 
 	return nil

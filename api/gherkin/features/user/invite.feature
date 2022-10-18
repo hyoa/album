@@ -21,4 +21,4 @@ Feature: sending an invitation
     }
     """
     When I check in the mailbox
-    Then I should have a mail that contain an invitation link for "toto@email.com" with subject "Invitation Pauline&Jules"
+    Then I should have a mail that contain an invitation link for "toto@email.com" with subject "Invitation MySuperAlbum"

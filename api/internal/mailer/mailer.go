@@ -1,6 +1,8 @@
 package mailer
 
 import (
+	"os"
+
 	"github.com/hyoa/album/api/internal/translator"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -12,7 +14,7 @@ type SendgridMailer struct {
 }
 
 func (sgm *SendgridMailer) SendMail(email, subjectKey, bodyKey string, bodyData map[string]interface{}) error {
-	from := mail.NewEmail("Pauline&Jules", "admin@pauline-jules.fr")
+	from := mail.NewEmail(os.Getenv("APP_NAME"), os.Getenv("ADMIN_EMAIL"))
 
 	to := mail.NewEmail(email, email)
 

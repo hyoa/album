@@ -124,7 +124,7 @@ func (*CloudConvert) Convert(key string) error {
 		return fmt.Errorf("unable to marshal cloudconvert job:%s ", errMarshal)
 	}
 
-	req, _ := http.NewRequest(http.MethodPost, "https://api.sandbox.cloudconvert.com/v2/jobs", bytes.NewBuffer(jsonData))
+	req, _ := http.NewRequest(http.MethodPost, os.Getenv("CLOUD_CONVERT_URI"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("CLOUD_CONVERT_TOKEN")))
 
