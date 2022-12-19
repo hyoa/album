@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"os"
 
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/hyoa/album/api/controller"
@@ -12,22 +16,12 @@ import (
 	"github.com/hyoa/album/api/internal/media"
 	"github.com/hyoa/album/api/internal/translator"
 	"github.com/hyoa/album/api/internal/user"
-
 	"github.com/joho/godotenv"
-
-	"github.com/99designs/gqlgen/graphql/playground"
 )
 
-// Defining the Playground handler
-func playgroundHandler() gin.HandlerFunc {
-	h := playground.Handler("GraphQL", "/query")
+var ginLambda *ginadapter.GinLambda
 
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
-func main() {
+func init() {
 	err := godotenv.Load(".env")
 
 	if err != nil {
@@ -54,8 +48,15 @@ func main() {
 
 	r.Use(cors.New(config))
 	r.POST("/v3/graphql", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
-	r.GET("/", playgroundHandler())
 	r.POST("/v3/video/acknowledge/cloudconvert", restController.AcknowledgeCloudconvertCall)
 
-	r.Run(":3118")
+	ginLambda = ginadapter.New(r)
+}
+
+func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return ginLambda.ProxyWithContext(ctx, req)
+}
+
+func main() {
+	lambda.Start(Handler)
 }

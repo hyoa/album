@@ -146,6 +146,22 @@ func (mm *MediaManager) GetUploadSignedUri(key string, kind MediaKind) (string, 
 	return mm.storage.SignUploadUri(key, getIngestBucketFromMediaKind(kind))
 }
 
+func (mm *MediaManager) AcknowledgeVideoConversion(key string) error {
+	m, errFind := mm.mediaRepo.FindByKey(key)
+
+	if m == (Media{}) {
+		return nil
+	}
+
+	if errFind != nil {
+		return errFind
+	}
+
+	m.Visible = true
+
+	return mm.mediaRepo.Save(m)
+}
+
 func getIngestBucketFromMediaKind(kind MediaKind) string {
 	if kind == KindPhoto {
 		return os.Getenv("BUCKET_IMAGE")

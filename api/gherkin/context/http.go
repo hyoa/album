@@ -30,8 +30,11 @@ func setUpRouter(storage *mock.Storage) *gin.Engine {
 	albumManager := album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
 	mediaManager := media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), storage, &converter)
 
+	restController := controller.CreateRestController(mediaManager)
+
 	router := gin.Default()
-	router.POST("/query", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
+	router.POST("/v3/query", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
+	router.POST("/v3/video/acknowledge/cloudconvert", restController.AcknowledgeCloudconvertCall)
 
 	return router
 }
@@ -55,7 +58,34 @@ func ISendAGraphqlRequestWithPayload(ctx context.Context, arg1 *godog.DocString)
 	}
 
 	jsonValue, _ := json.Marshal(jsonData)
-	req := httptest.NewRequest("POST", "/query", bytes.NewBuffer(jsonValue))
+	req := httptest.NewRequest("POST", "/v3/query", bytes.NewBuffer(jsonValue))
+	req.Header.Set("Content-Type", "application/json")
+
+	if okJwt {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	}
+
+	r := setUpRouter(storageMock)
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	return context.WithValue(ctx, testHttpKey{}, w), nil
+}
+
+func ISendARestRequestWithPayload(ctx context.Context, method, url string, payload *godog.DocString) (context.Context, error) {
+	key, _ := ctx.Value(testHttpKey{}).(string)
+	jwt, okJwt := ctx.Value("AuthJwt").(string)
+
+	storageMock := &mock.Storage{Keys: append(make([]string, 0), key)}
+
+	if payload.Content == "" {
+		return ctx, errors.New("no payload")
+	}
+
+	jsonStr := []byte(payload.Content)
+
+	req := httptest.NewRequest(method, url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Content-Type", "application/json")
 
 	if okJwt {

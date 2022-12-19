@@ -1,6 +1,7 @@
 package media_test
 
 import (
+	"errors"
 	"testing"
 
 	_media "github.com/hyoa/album/api/internal/media"
@@ -130,4 +131,46 @@ func TestItShouldReturnSignedUriForUpload(t *testing.T) {
 	uriToAssert, err := manager.GetUploadSignedUri("key", _media.KindPhoto)
 	assert.Equal(t, "uri", uriToAssert)
 	assert.Nil(t, err)
+}
+
+func TestItShouldAcknowledgeVideoConversionIfKeyExist(t *testing.T) {
+	manager, mocks := getManagerWithMocks()
+
+	mocks.mediaRepo.On("FindByKey", "akey").Return(_media.Media{Key: "akey", Visible: false}, nil)
+	mocks.mediaRepo.On("Save", _media.Media{Key: "akey", Visible: true}).Return(nil)
+
+	err := manager.AcknowledgeVideoConversion("akey")
+
+	assert.Nil(t, err)
+}
+
+func TestItShouldNotAcknowledgeVideoConversionIfKeyDoesNotExist(t *testing.T) {
+	manager, mocks := getManagerWithMocks()
+
+	mocks.mediaRepo.On("FindByKey", "akey").Return(_media.Media{}, nil)
+
+	err := manager.AcknowledgeVideoConversion("akey")
+
+	assert.Nil(t, err)
+}
+
+func TestItShouldNotAcknowledgeVideoConversionIfFindFail(t *testing.T) {
+	manager, mocks := getManagerWithMocks()
+
+	mocks.mediaRepo.On("FindByKey", "akey").Return(_media.Media{Key: "akey"}, errors.New("fail"))
+
+	err := manager.AcknowledgeVideoConversion("akey")
+
+	assert.NotNil(t, err)
+}
+
+func TestItShouldNotAcknowledgeVideoConversionIfSaveFail(t *testing.T) {
+	manager, mocks := getManagerWithMocks()
+
+	mocks.mediaRepo.On("FindByKey", "akey").Return(_media.Media{Key: "akey", Visible: false}, nil)
+	mocks.mediaRepo.On("Save", _media.Media{Key: "akey", Visible: true}).Return(errors.New("fail"))
+
+	err := manager.AcknowledgeVideoConversion("akey")
+
+	assert.NotNil(t, err)
 }

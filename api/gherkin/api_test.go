@@ -29,7 +29,7 @@ func TestFeatures(t *testing.T) {
 		ScenarioInitializer: InitializeScenario,
 		Options: &godog.Options{
 			Format:   "pretty",
-			Paths:    []string{"./features"},
+			Paths:    []string{"./features/media/acknowledgevideo.feature"},
 			TestingT: t,
 		},
 	}
@@ -61,6 +61,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should have a mail that contain an invitation link for "([^"]*)" with subject "([^"]*)"$`, gherkin_context.IShouldHaveAMailThatContainAnInvitationLinkForWithSubject)
 	ctx.Step(`^storage has key "([^"]*)"$`, gherkin_context.StorageHasKey)
 	ctx.Step(`^I authenticate as an "([^"]*)"$`, gherkin_context.IAuthenticateAsAn)
+	ctx.Step(`^I send a "([^"]*)" request to "([^"]*)" with payload:$`, gherkin_context.ISendARestRequestWithPayload)
 }
 
 func setupDB() error {

@@ -18,7 +18,6 @@ import (
 )
 
 func GraphqlHandler(userManager user.UserManager, albumManager album.AlbumManager, mediaManager media.MediaManager, translator *translator.Translator) gin.HandlerFunc {
-
 	r := &graph.Resolver{}
 	r.UserManager = userManager
 	r.AlbumManager = albumManager

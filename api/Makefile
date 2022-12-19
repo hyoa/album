@@ -2,10 +2,10 @@ clean:
 	rm -rf ./bin
 
 deploy: clean build
-	serverless deploy --verbose
+	serverless deploy --verbose --aws-profile serverless-deploy  
 
 build:
-	go build -ldflags="-s -w" -o bin/api cmd/dev/main.go
+	GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/api cmd/lambda/main.go
 
 test-unit:
 	go test ./internal/...
