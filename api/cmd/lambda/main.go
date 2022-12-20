@@ -43,6 +43,7 @@ func init() {
 
 	restController := controller.CreateRestController(mediaManager)
 
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	config := cors.DefaultConfig()

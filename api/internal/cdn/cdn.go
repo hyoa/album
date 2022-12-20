@@ -1,7 +1,6 @@
 package cdn
 
 import (
-	"context"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -45,8 +44,8 @@ type CDNData struct {
 }
 
 func NewCDNAWSInteractor(s3 awsinteractor.S3Interactor) (CDNInteractor, error) {
-	cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
-	return &AwsCdn{s3Interactor: s3, cache: cache}, nil
+	// cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+	return &AwsCdn{s3Interactor: s3}, nil
 }
 
 type CDNInteractor interface {
@@ -59,12 +58,12 @@ type AwsCdn struct {
 }
 
 func (c *AwsCdn) SignGetUri(key string, size MediaSize, kind MediaKind) string {
-	cacheKey := fmt.Sprintf("%s-%s", key, size)
-	entry, errGet := c.cache.Get(cacheKey)
+	// cacheKey := fmt.Sprintf("%s-%s", key, size)
+	// entry, errGet := c.cache.Get(cacheKey)
 
-	if errGet == nil && len(entry) != 0 {
-		return string(entry)
-	}
+	// if errGet == nil && len(entry) != 0 {
+	// 	return string(entry)
+	// }
 
 	if kind == KindPhoto {
 		pemString := fmt.Sprintf(`
@@ -111,12 +110,12 @@ func (c *AwsCdn) SignGetUri(key string, size MediaSize, kind MediaKind) string {
 		url := fmt.Sprintf("%s/%s", os.Getenv("CDN_HOST"), json64)
 		signedUrl, _ := signer.Sign(url, time.Now().Add(15*time.Minute))
 
-		c.cache.Set(cacheKey, []byte(signedUrl))
+		// c.cache.Set(cacheKey, []byte(signedUrl))
 		return signedUrl
 	}
 
 	signedUrl, _ := c.s3Interactor.SignGetUri(key, os.Getenv("BUCKET_VIDEO_FORMATTED"))
-	c.cache.Set(cacheKey, []byte(signedUrl))
+	// c.cache.Set(cacheKey, []byte(signedUrl))
 
 	return signedUrl
 }
