@@ -189,8 +189,10 @@ func (ard *AlbumRepositoryDynamoDB) Search(includePrivate, includeNoMedias bool,
 		return make([]Album, 0), nil
 	}
 
-	if len(output.Items) < limit {
+	if len(output.Items) < limit+offset {
 		limit = len(output.Items)
+	} else {
+		limit = limit + offset
 	}
 
 	itemsWithLimitOffset := output.Items[offset:limit]
