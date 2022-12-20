@@ -23,6 +23,10 @@ jobs:
         port: 9966
         cors: '*'
 
-    - name: Run test suite
+    - name: Run unit test
       run: make test-unit
+      working-directory: ./api
+
+    - name: Run functional test
+      run: make test-behat
       working-directory: ./api
