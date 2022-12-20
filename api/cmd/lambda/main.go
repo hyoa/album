@@ -12,6 +12,7 @@ import (
 	"github.com/hyoa/album/api/controller"
 	"github.com/hyoa/album/api/internal/album"
 	"github.com/hyoa/album/api/internal/awsinteractor"
+	"github.com/hyoa/album/api/internal/cdn"
 	"github.com/hyoa/album/api/internal/mailer"
 	"github.com/hyoa/album/api/internal/media"
 	"github.com/hyoa/album/api/internal/translator"
@@ -38,6 +39,8 @@ func init() {
 	albumManager := album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
 	mediaManager := media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), s3Storage, converter)
 
+	cdn, _ := cdn.NewCDNAWSInteractor(s3)
+
 	restController := controller.CreateRestController(mediaManager)
 
 	r := gin.Default()
@@ -47,7 +50,7 @@ func init() {
 	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
 
 	r.Use(cors.New(config))
-	r.POST("/v3/graphql", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
+	r.POST("/v3/graphql", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager, cdn))
 	r.POST("/v3/video/acknowledge/cloudconvert", restController.AcknowledgeCloudconvertCall)
 
 	ginLambda = ginadapter.New(r)

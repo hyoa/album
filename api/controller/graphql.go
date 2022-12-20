@@ -12,17 +12,19 @@ import (
 	"github.com/hyoa/album/api/graph/generated"
 	"github.com/hyoa/album/api/graph/model"
 	"github.com/hyoa/album/api/internal/album"
+	_cdn "github.com/hyoa/album/api/internal/cdn"
 	"github.com/hyoa/album/api/internal/media"
 	"github.com/hyoa/album/api/internal/translator"
 	"github.com/hyoa/album/api/internal/user"
 )
 
-func GraphqlHandler(userManager user.UserManager, albumManager album.AlbumManager, mediaManager media.MediaManager, translator *translator.Translator) gin.HandlerFunc {
+func GraphqlHandler(userManager user.UserManager, albumManager album.AlbumManager, mediaManager media.MediaManager, translator *translator.Translator, cdn _cdn.CDNInteractor) gin.HandlerFunc {
 	r := &graph.Resolver{}
 	r.UserManager = userManager
 	r.AlbumManager = albumManager
 	r.MediaManager = mediaManager
 	r.Translator = *translator
+	r.CDN = cdn
 
 	c := generated.Config{Resolvers: r}
 	c.Directives.HasRole = func(ctx context.Context, obj interface{}, next graphql.Resolver, role model.Role) (res interface{}, err error) {

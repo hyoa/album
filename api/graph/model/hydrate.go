@@ -2,11 +2,11 @@ package model
 
 import (
 	"github.com/hyoa/album/api/internal/album"
-	"github.com/hyoa/album/api/internal/cdn"
+	_cdn "github.com/hyoa/album/api/internal/cdn"
 	"github.com/hyoa/album/api/internal/media"
 )
 
-func HydrateAlbum(album album.Album) *Album {
+func HydrateAlbum(album album.Album, cdn _cdn.CDNInteractor) *Album {
 	var medias []*MediaAlbum
 
 	for j := range album.Medias {
@@ -16,9 +16,9 @@ func HydrateAlbum(album album.Album) *Album {
 			Favorite: &album.Medias[j].Favorite,
 			Kind:     MediaTypeReverse[string(album.Medias[j].Kind)],
 			Urls: &Urls{
-				Small:  cdn.SignGetUri(album.Medias[j].Key, cdn.SizeSmall, cdn.MediaKind(string(album.Medias[j].Kind))),
-				Medium: cdn.SignGetUri(album.Medias[j].Key, cdn.SizeMedium, cdn.MediaKind(string(album.Medias[j].Kind))),
-				Large:  cdn.SignGetUri(album.Medias[j].Key, cdn.SizeLarge, cdn.MediaKind(string(album.Medias[j].Kind))),
+				Small:  cdn.SignGetUri(album.Medias[j].Key, _cdn.SizeSmall, _cdn.MediaKind(string(album.Medias[j].Kind))),
+				Medium: cdn.SignGetUri(album.Medias[j].Key, _cdn.SizeMedium, _cdn.MediaKind(string(album.Medias[j].Kind))),
+				Large:  cdn.SignGetUri(album.Medias[j].Key, _cdn.SizeLarge, _cdn.MediaKind(string(album.Medias[j].Kind))),
 			},
 		})
 	}
@@ -35,15 +35,15 @@ func HydrateAlbum(album album.Album) *Album {
 	}
 }
 
-func HydrateMedia(media media.Media) *Media {
+func HydrateMedia(media media.Media, cdn _cdn.CDNInteractor) *Media {
 	return &Media{
 		Key:    media.Key,
 		Author: media.Author,
 		Kind:   MediaTypeReverse[string(media.Kind)],
 		Urls: &Urls{
-			Small:  cdn.SignGetUri(media.Key, cdn.SizeSmall, cdn.MediaKind(string(media.Kind))),
-			Medium: cdn.SignGetUri(media.Key, cdn.SizeMedium, cdn.MediaKind(string(media.Kind))),
-			Large:  cdn.SignGetUri(media.Key, cdn.SizeLarge, cdn.MediaKind(string(media.Kind))),
+			Small:  cdn.SignGetUri(media.Key, _cdn.SizeSmall, _cdn.MediaKind(string(media.Kind))),
+			Medium: cdn.SignGetUri(media.Key, _cdn.SizeMedium, _cdn.MediaKind(string(media.Kind))),
+			Large:  cdn.SignGetUri(media.Key, _cdn.SizeLarge, _cdn.MediaKind(string(media.Kind))),
 		},
 	}
 }

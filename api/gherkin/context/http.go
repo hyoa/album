@@ -33,7 +33,7 @@ func setUpRouter(storage *mock.Storage) *gin.Engine {
 	restController := controller.CreateRestController(mediaManager)
 
 	router := gin.Default()
-	router.POST("/v3/query", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
+	router.POST("/v3/query", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager, mock.CDN{}))
 	router.POST("/v3/video/acknowledge/cloudconvert", restController.AcknowledgeCloudconvertCall)
 
 	return router

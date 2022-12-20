@@ -1,17 +1,19 @@
 package cdn
 
 import (
-	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
+	"context"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
-	"errors"
+	"encoding/pem"
 	"fmt"
-	"io"
+	"log"
 	"os"
+	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/allegro/bigcache/v3"
+	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
+	"github.com/hyoa/album/api/internal/awsinteractor"
 )
 
 type MediaKind string
@@ -26,85 +28,95 @@ const (
 	SizeLarge  MediaSize = "large"
 )
 
-type mediaToken struct {
-	Key             string `json:"key"`
-	Kind            string `json:"type"`
-	Size            string `json:"size"`
-	ApplicationName string `json:"applicationName"`
+type Edits struct {
+	Rotate interface{} `json:"rotate"`
+	Resize Resize      `json:"resize"`
 }
 
-type mediaTokenCustomClaims struct {
-	mediaToken
-	jwt.StandardClaims
+type Resize struct {
+	Fit   string `json:"fit"`
+	Width int    `json:"width"`
 }
 
-func SignGetUri(key string, size MediaSize, kind MediaKind) string {
-	t := mediaToken{}
+type CDNData struct {
+	Bucket string `json:"bucket"`
+	Key    string `json:"key"`
+	Edits  Edits  `json:"edits"`
+}
 
-	// var path string
+func NewCDNAWSInteractor(s3 awsinteractor.S3Interactor) (CDNInteractor, error) {
+	cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+	return &AwsCdn{s3Interactor: s3, cache: cache}, nil
+}
+
+type CDNInteractor interface {
+	SignGetUri(key string, size MediaSize, kind MediaKind) string
+}
+
+type AwsCdn struct {
+	s3Interactor awsinteractor.S3Interactor
+	cache        *bigcache.BigCache
+}
+
+func (c *AwsCdn) SignGetUri(key string, size MediaSize, kind MediaKind) string {
+	cacheKey := fmt.Sprintf("%s-%s", key, size)
+	entry, errGet := c.cache.Get(cacheKey)
+
+	if errGet == nil && len(entry) != 0 {
+		return string(entry)
+	}
+
 	if kind == KindPhoto {
-		t.Size = string(size)
-		// path = fmt.Sprintf(os.Getenv("CDN_IMAGE_PATH"), string(size), key)
+		pemString := fmt.Sprintf(`
+-----BEGIN RSA PRIVATE KEY-----
+%s
+-----END RSA PRIVATE KEY-----`,
+			os.Getenv("AWS_PK"))
+
+		block, _ := pem.Decode([]byte(pemString))
+
+		pk, errParse := x509.ParsePKCS1PrivateKey((block.Bytes))
+
+		if errParse != nil {
+			log.Fatal(errParse)
+		}
+
+		signer := sign.NewURLSigner(os.Getenv("KEY_PAIR_ID"), pk)
+
+		var width int
+		switch size {
+		case SizeSmall:
+			width = 400
+		case SizeMedium:
+			width = 800
+		case SizeLarge:
+			width = 1024
+		}
+
+		data := CDNData{
+			Bucket: os.Getenv("BUCKET_IMAGE"),
+			Key:    key,
+			Edits: Edits{
+				Rotate: nil,
+				Resize: Resize{
+					Fit:   "cover",
+					Width: width,
+				},
+			},
+		}
+
+		json, _ := json.Marshal(data)
+		json64 := base64.StdEncoding.EncodeToString([]byte(json))
+
+		url := fmt.Sprintf("%s/%s", os.Getenv("CDN_HOST"), json64)
+		signedUrl, _ := signer.Sign(url, time.Now().Add(15*time.Minute))
+
+		c.cache.Set(cacheKey, []byte(signedUrl))
+		return signedUrl
 	}
-	// } else {
-	// 	// path = fmt.Sprintf(os.Getenv("CDN_VIDEO_PATH"), key)
-	// }
 
-	t.Key = key
-	t.Kind = string(kind)
-	t.ApplicationName = os.Getenv("APP_NAME")
+	signedUrl, _ := c.s3Interactor.SignGetUri(key, os.Getenv("BUCKET_VIDEO_FORMATTED"))
+	c.cache.Set(cacheKey, []byte(signedUrl))
 
-	// secret := []byte(os.Getenv("CDN_SECRET"))
-	// claims := mediaTokenCustomClaims{
-	// 	t,
-	// 	jwt.StandardClaims{
-	// 		ExpiresAt: time.Now().Unix() + 3600,
-	// 		IssuedAt:  time.Now().Unix(),
-	// 		Issuer:    os.Getenv("APPLICATION_NAME"),
-	// 	},
-	// }
-
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// jwtSigned, _ := token.SignedString(secret)
-
-	json, _ := json.Marshal(t)
-
-	return fmt.Sprintf("%s/%s", os.Getenv("CDN_HOST"), encrypt(json))
-}
-
-func encrypt(content []byte) string {
-	key := []byte("6368616e676520746869732070617373")
-
-	// Create the AES cipher
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-	plaintext, _ := pkcs7Pad(content, block.BlockSize())
-	// The IV needs to be unique, but not secure. Therefore it's common to
-	// include it at the beginning of the ciphertext.
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
-	iv := ciphertext[:aes.BlockSize]
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
-	}
-	bm := cipher.NewCBCEncrypter(block, iv)
-	bm.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
-
-	return fmt.Sprintf("%x", ciphertext)
-}
-
-func pkcs7Pad(b []byte, blocksize int) ([]byte, error) {
-	if blocksize <= 0 {
-		return nil, errors.New("invalid blocksize")
-	}
-	if len(b) == 0 {
-		return nil, errors.New("invalid PKCS7 data (empty or not padded)")
-	}
-	n := blocksize - (len(b) % blocksize)
-	pb := make([]byte, len(b)+n)
-	copy(pb, b)
-	copy(pb[len(b):], bytes.Repeat([]byte{byte(n)}, n))
-	return pb, nil
+	return signedUrl
 }

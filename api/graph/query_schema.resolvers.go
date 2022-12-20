@@ -115,7 +115,7 @@ func (r *queryResolver) Albums(ctx context.Context, input model.GetAlbumsInput) 
 
 	var albumsModel []*model.Album
 	for k := range albums {
-		albumsModel = append(albumsModel, model.HydrateAlbum(albums[k]))
+		albumsModel = append(albumsModel, model.HydrateAlbum(albums[k], r.CDN))
 	}
 
 	return albumsModel, nil
@@ -129,7 +129,7 @@ func (r *queryResolver) Album(ctx context.Context, input model.GetAlbumInput) (*
 		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
-	return model.HydrateAlbum(album), nil
+	return model.HydrateAlbum(album, r.CDN), nil
 }
 
 // Folders is the resolver for the folders field.
@@ -152,7 +152,7 @@ func (r *queryResolver) Folders(ctx context.Context, input model.GetFoldersInput
 
 		var mediasModel []*model.Media
 		for _, m := range medias {
-			mediasModel = append(mediasModel, model.HydrateMedia(m))
+			mediasModel = append(mediasModel, model.HydrateMedia(m, r.CDN))
 		}
 
 		folders = append(folders, &model.Folder{
@@ -185,9 +185,9 @@ func (r *queryResolver) Folder(ctx context.Context, input model.GetFolderInput) 
 			Kind:   model.MediaTypeReverse[string(m.Kind)],
 			Folder: m.Folder,
 			Urls: &model.Urls{
-				Small:  cdn.SignGetUri(m.Key, cdn.SizeSmall, cdn.MediaKind(string(m.Kind))),
-				Medium: cdn.SignGetUri(m.Key, cdn.SizeMedium, cdn.MediaKind(string(m.Kind))),
-				Large:  cdn.SignGetUri(m.Key, cdn.SizeLarge, cdn.MediaKind(string(m.Kind))),
+				Small:  r.CDN.SignGetUri(m.Key, cdn.SizeSmall, cdn.MediaKind(string(m.Kind))),
+				Medium: r.CDN.SignGetUri(m.Key, cdn.SizeMedium, cdn.MediaKind(string(m.Kind))),
+				Large:  r.CDN.SignGetUri(m.Key, cdn.SizeLarge, cdn.MediaKind(string(m.Kind))),
 			},
 		})
 	}

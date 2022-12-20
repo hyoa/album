@@ -101,7 +101,7 @@ func (i *interactor) SignPutUri(key, bucket string) (string, error) {
 }
 
 func (i *interactor) SignGetUri(key, bucket string) (string, error) {
-	u, err := i.client.PresignedGetObject(context.Background(), bucket, key, 5*time.Minute, url.Values{})
+	u, err := i.client.PresignedGetObject(context.Background(), bucket, key, 15*time.Minute, url.Values{})
 	return u.String(), err
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hyoa/album/api/controller"
 	"github.com/hyoa/album/api/internal/album"
 	"github.com/hyoa/album/api/internal/awsinteractor"
+	"github.com/hyoa/album/api/internal/cdn"
 	"github.com/hyoa/album/api/internal/mailer"
 	"github.com/hyoa/album/api/internal/media"
 	"github.com/hyoa/album/api/internal/translator"
@@ -39,6 +40,7 @@ func main() {
 	s3, _ := awsinteractor.NewS3Interactor(os.Getenv("S3_ENDPOINT"), os.Getenv("AKID"), os.Getenv("ASK"))
 	s3Storage := media.NewS3Storage(s3)
 	converter := media.NewCloudConvert()
+	cdn, _ := cdn.NewCDNAWSInteractor(s3)
 
 	userManager := user.CreateUserManager(user.NewUserRepositoryDynamoDB(), &mailer)
 	albumManager := album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
@@ -53,7 +55,7 @@ func main() {
 	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
 
 	r.Use(cors.New(config))
-	r.POST("/v3/graphql", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager))
+	r.POST("/v3/graphql", controller.GraphqlHandler(userManager, albumManager, mediaManager, &translatorManager, cdn))
 	r.GET("/", playgroundHandler())
 	r.POST("/v3/video/acknowledge/cloudconvert", restController.AcknowledgeCloudconvertCall)
 

@@ -105,7 +105,7 @@ func (r *mutationResolver) CreateAlbum(ctx context.Context, input model.CreateAl
 		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
-	return model.HydrateAlbum(album), nil
+	return model.HydrateAlbum(album, r.CDN), nil
 }
 
 // UpdateAlbum is the resolver for the updateAlbum field.
@@ -116,7 +116,7 @@ func (r *mutationResolver) UpdateAlbum(ctx context.Context, input model.UpdateAl
 		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
-	return model.HydrateAlbum(album), nil
+	return model.HydrateAlbum(album, r.CDN), nil
 }
 
 // DeleteAlbum is the resolver for the deleteAlbum field.
@@ -152,7 +152,7 @@ func (r *mutationResolver) UpdateAlbumMedias(ctx context.Context, input model.Up
 		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
-	return model.HydrateAlbum(album), nil
+	return model.HydrateAlbum(album, r.CDN), nil
 }
 
 // UpdateAlbumFavorite is the resolver for the updateAlbumFavorite field.
@@ -163,7 +163,7 @@ func (r *mutationResolver) UpdateAlbumFavorite(ctx context.Context, input model.
 		return &model.Album{}, HandleError(err, r.Translator)
 	}
 
-	return model.HydrateAlbum(album), nil
+	return model.HydrateAlbum(album, r.CDN), nil
 }
 
 // Ingest is the resolver for the ingest field.
@@ -203,7 +203,7 @@ func (r *mutationResolver) ChangeMediasFolder(ctx context.Context, input *model.
 	var mediasToReturn []*model.Media
 
 	for _, m := range medias {
-		mediasToReturn = append(mediasToReturn, model.HydrateMedia(m))
+		mediasToReturn = append(mediasToReturn, model.HydrateMedia(m, r.CDN))
 	}
 
 	return &model.Folder{
@@ -223,7 +223,7 @@ func (r *mutationResolver) ChangeFolderName(ctx context.Context, input *model.Ch
 	var mediasToReturn []*model.Media
 
 	for _, m := range medias {
-		mediasToReturn = append(mediasToReturn, model.HydrateMedia(m))
+		mediasToReturn = append(mediasToReturn, model.HydrateMedia(m, r.CDN))
 	}
 
 	return &model.Folder{
