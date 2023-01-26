@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -64,8 +65,7 @@ func (a authTokenizer) create(i authTokenInput) (authToken, error) {
 }
 
 func (a authTokenizer) stringify(token authToken) (string, error) {
-
-	key := []byte("secret")
+	key := []byte(os.Getenv("JWT_SECRET"))
 	claims := authTokenCustomClaims{
 		token,
 		jwt.StandardClaims{
@@ -83,7 +83,7 @@ func (a authTokenizer) stringify(token authToken) (string, error) {
 
 func (a authTokenizer) Decode(token string) (authToken, error) {
 	tokenParsed, errParse := jwt.ParseWithClaims(token, &authTokenCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret"), nil
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
 	if errParse != nil {
@@ -111,7 +111,7 @@ func (r resetTokenizer) create(i resetTokenInput) (resetToken, error) {
 
 func (r resetTokenizer) Decode(token string) (resetToken, error) {
 	tokenParsed, err := jwt.ParseWithClaims(token, &resetTokenCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret"), nil
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
 	if err != nil {
@@ -126,7 +126,7 @@ func (r resetTokenizer) Decode(token string) (resetToken, error) {
 }
 
 func (r resetTokenizer) stringify(token resetToken) (string, error) {
-	key := []byte("secret")
+	key := []byte(os.Getenv("JWT_SECRET"))
 	claims := resetTokenCustomClaims{
 		token,
 		jwt.StandardClaims{

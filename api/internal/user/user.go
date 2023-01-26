@@ -1,12 +1,52 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+type UserError struct {
+	i18nId string
+	err    error
+}
+
+func (e *UserError) Error() string {
+	return fmt.Sprintf("%v", e.err)
+}
+
+func (e *UserError) Unwrap() error {
+	return e.err
+}
+
+func (e *UserError) I18NID() string {
+	return e.i18nId
+}
+
+type userError string
+
+func (e userError) Error() string {
+	return string(e)
+}
+
+const ErrInvalidPassword = userError("password and passwordCheck does not match")
+const ErrUserAlreadyExist = userError("user already exists")
+const ErrUnauthorized = userError("role does not allow this action")
+const ErrAuthentication = userError("email and/or password is invalid")
+
+const ErrUserNotFound = userError("user does not exist")
+const ErrInvalidRole = userError("invalid role")
+const ErrPasswordGeneration = userError("password generation failed")
+const ErrGetUser = userError("cannot get user")
+const ErrSaveUSer = userError("cannot save user")
+const ErrCreateAuthJWT = userError("cannot create auth jwt")
+const ErrAuth = userError("auth failed")
+const ErrUpdateUser = userError("cannot update user")
+const ErrResetPassword = userError("cannot reset password")
+const ErrAskResetPassword = userError("cannot ask reset password")
 
 type Role int
 
@@ -54,21 +94,21 @@ func CreateUserManager(ur UserRepo, m Mailer) UserManager {
 
 func (um *UserManager) Create(name, email, password, passwordCheck string) (User, error) {
 	if password != passwordCheck {
-		return User{}, &InvalidPasswordError{}
+		return User{}, createErrorWithI18N(ErrInvalidPassword)
 	}
 
 	userMatch, errorFindUser := um.userRepo.FindByEmail(email)
 	if errorFindUser != nil && errorFindUser.Error() != "No user found" {
-		return User{}, &UserFetchError{message: errorFindUser.Error()}
+		return User{}, ErrGetUser
 	}
 
 	if userMatch != (User{}) {
-		return User{}, &UserAlreadyExistError{}
+		return User{}, createErrorWithI18N(ErrUserAlreadyExist)
 	}
 
 	hashPassword, errHash := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if errHash != nil {
-		return User{}, &PasswordGenerationError{message: errHash.Error()}
+		return User{}, ErrPasswordGeneration
 	}
 
 	user := User{
@@ -81,7 +121,7 @@ func (um *UserManager) Create(name, email, password, passwordCheck string) (User
 
 	errorSave := um.userRepo.Save(user)
 	if errorSave != nil {
-		return User{}, &UserCreationError{message: errorSave.Error()}
+		return User{}, ErrSaveUSer
 	}
 
 	return user, nil
@@ -90,20 +130,20 @@ func (um *UserManager) Create(name, email, password, passwordCheck string) (User
 func (um *UserManager) SignIn(email, password string) (User, error) {
 	user, errorFindUser := um.userRepo.FindByEmail(email)
 	if errorFindUser != nil {
-		return User{}, &UserFetchError{message: errorFindUser.Error()}
+		return User{}, ErrGetUser
 	}
 
 	if user == (User{}) {
-		return User{}, &AuthenticationNotFoundError{}
+		return User{}, createErrorWithI18N(ErrAuthentication)
 	}
 
 	if user.Role == RoleUnidentified {
-		return User{}, &UnauthorizedRoleError{}
+		return User{}, createErrorWithI18N(ErrUnauthorized)
 	}
 
 	errCheck := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if errCheck != nil {
-		return User{}, &InvalidPasswordError{}
+		return User{}, createErrorWithI18N(ErrInvalidPassword)
 	}
 
 	return user, nil
@@ -112,12 +152,12 @@ func (um *UserManager) SignIn(email, password string) (User, error) {
 func (um *UserManager) CreateAuthJWT(u User) (string, error) {
 	token, errorCreateToken := um.authTokenizer.create(authTokenInput{u: u})
 	if errorCreateToken != nil {
-		return "", &CreateAuthJwtError{message: fmt.Sprintf("Unable to create token %s", errorCreateToken.Error())}
+		return "", ErrCreateAuthJWT
 	}
 
 	tokenAsString, errorStringify := um.authTokenizer.stringify(token)
 	if errorStringify != nil {
-		return "", &CreateAuthJwtError{message: fmt.Sprintf("Unable to stringify token %s", errorStringify.Error())}
+		return "", ErrCreateAuthJWT
 	}
 
 	return tokenAsString, nil
@@ -126,7 +166,7 @@ func (um *UserManager) CreateAuthJWT(u User) (string, error) {
 func (um *UserManager) Auth(jwt string) (User, error) {
 	token, errorDecode := um.authTokenizer.Decode(jwt)
 	if errorDecode != nil {
-		return User{}, &AuthError{message: fmt.Sprintf("Unable to decode token %s", errorDecode.Error())}
+		return User{}, ErrAuth
 	}
 
 	return User{Name: token.Name, Email: token.Email}, nil
@@ -134,20 +174,20 @@ func (um *UserManager) Auth(jwt string) (User, error) {
 
 func (um *UserManager) ChangeRole(email string, r Role) (User, error) {
 	if r != RoleUnidentified && r != RoleAdmin && r != RoleNormal {
-		return User{}, &InvalidRoleError{}
+		return User{}, ErrInvalidRole
 	}
 
 	user, errFind := um.userRepo.FindByEmail(email)
 
 	if errFind != nil {
-		return User{}, &UserFetchError{message: errFind.Error()}
+		return User{}, ErrGetUser
 	}
 
 	user.Role = r
 	uUpdated, errUpdate := um.userRepo.Update(user)
 
 	if errUpdate != nil {
-		return User{}, &UserUpdateError{message: fmt.Sprintf("unable to update user %s", errUpdate.Error())}
+		return User{}, ErrUpdateUser
 	}
 
 	return uUpdated, nil
@@ -157,19 +197,19 @@ func (um *UserManager) AskResetPassword(email, appUri string) (User, error) {
 	resetToken, errCreate := um.resetTokenizer.create(resetTokenInput{email: email})
 
 	if errCreate != nil {
-		return User{}, &AskResetPasswordError{message: fmt.Sprintf("Unable to create reset token: %s", errCreate.Error())}
+		return User{}, ErrAskResetPassword
 	}
 
 	jwtReset, errStringify := um.resetTokenizer.stringify(resetToken)
 
 	if errStringify != nil {
-		return User{}, &AskResetPasswordError{message: fmt.Sprintf("Unable to stringify reset token: %s", errStringify.Error())}
+		return User{}, ErrAskResetPassword
 	}
 
 	u, errFind := um.userRepo.FindByEmail(email)
 
 	if errFind != nil {
-		return User{}, &UserFetchError{message: errFind.Error()}
+		return User{}, ErrGetUser
 	}
 
 	//We don't send the email, but we don't return any error. No need to tell anyone that the user does not exist
@@ -210,22 +250,22 @@ func (um *UserManager) ResetPassword(newPassword, newPasswordCheck, token string
 	resetToken, errDecode := um.resetTokenizer.Decode(token)
 
 	if errDecode != nil {
-		return User{}, &ResetPasswordError{message: fmt.Sprintf("Unable to decode token: %s", errDecode.Error())}
+		return User{}, ErrResetPassword
 	}
 
 	if newPassword != newPasswordCheck {
-		return User{}, &InvalidPasswordError{}
+		return User{}, createErrorWithI18N(ErrInvalidPassword)
 	}
 
 	user, errorGetUser := um.userRepo.FindByEmail(resetToken.Email)
 
 	if errorGetUser != nil {
-		return User{}, &UserFetchError{message: errorGetUser.Error()}
+		return User{}, ErrGetUser
 	}
 
 	hashPassword, errHash := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if errHash != nil {
-		return User{}, &ResetPasswordError{message: fmt.Sprintf("Error while creating hash for password %s", errHash.Error())}
+		return User{}, ErrResetPassword
 	}
 
 	user.Password = string(hashPassword)
@@ -233,7 +273,22 @@ func (um *UserManager) ResetPassword(newPassword, newPasswordCheck, token string
 	_, errorUpdate := um.userRepo.Update(user)
 
 	if errorUpdate != nil {
-		return User{}, &UserUpdateError{message: errorUpdate.Error()}
+		return User{}, ErrUpdateUser
 	}
 	return user, nil
+}
+
+func createErrorWithI18N(err error) error {
+	var key string
+	if errors.Is(err, ErrInvalidPassword) {
+		key = "CreateUserPasswordCheckError"
+	} else if errors.Is(err, ErrUserAlreadyExist) {
+		key = "CreateUserAlreadyExist"
+	} else if errors.Is(err, ErrUnauthorized) {
+		key = "CreateUserRoleUnidentified"
+	} else if errors.Is(err, ErrAuthentication) {
+		key = "CreateUserAuthNotFoundError"
+	}
+
+	return &UserError{i18nId: key, err: err}
 }

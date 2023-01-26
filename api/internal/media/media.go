@@ -29,6 +29,18 @@ type MediaManager struct {
 	bucketVideoRaw, bucketVideoFormatted, bucketImage string
 }
 
+type mediaError string
+
+func (e mediaError) Error() string {
+	return string(e)
+}
+
+const ErrGetByFolder = mediaError("cannot get medias by folder")
+const ErrGetByKey = mediaError("cannot get media by key")
+const ErrCheckStorage = mediaError("cannot check if media is in storage")
+const ErrSaveMedia = mediaError("cannot save media")
+const ErrConvert = mediaError("cannot convert media")
+
 func CreateMediaManager(mediaRepo MediaRepository, storage Storage, videoConverter VideoConverter) MediaManager {
 	return MediaManager{
 		mediaRepo:            mediaRepo,
@@ -52,7 +64,7 @@ func (mm *MediaManager) DeleteFolder(name string) error {
 	medias, errFind := mm.mediaRepo.FindByFolder(name)
 
 	if errFind != nil {
-		return fmt.Errorf("Unable to get medias by folder: %w", errFind)
+		return fmt.Errorf("%w", ErrGetByFolder)
 	}
 
 	for _, m := range medias {
@@ -71,7 +83,7 @@ func (mm *MediaManager) ChangeMediasFolder(keys []string, newFolder string) ([]M
 	medias, errFind := mm.mediaRepo.FindManyByKeys(keys)
 
 	if errFind != nil {
-		return make([]Media, 0), fmt.Errorf("Unable to get medias by keys: %w", errFind)
+		return make([]Media, 0), fmt.Errorf("%w", ErrGetByKey)
 	}
 
 	for k := range medias {
@@ -86,7 +98,7 @@ func (mm *MediaManager) ChangeFolderName(folderToRename, newFolder string) ([]Me
 	medias, errFind := mm.mediaRepo.FindByFolder(folderToRename)
 
 	if errFind != nil {
-		return make([]Media, 0), fmt.Errorf("Unable to get medias by folder: %w", errFind)
+		return make([]Media, 0), fmt.Errorf("%w", ErrGetByFolder)
 	}
 
 	for k := range medias {
@@ -101,7 +113,7 @@ func (mm *MediaManager) Ingest(key, author, folder string, kind MediaKind) (Medi
 	mediaWithKey, errFind := mm.mediaRepo.FindByKey(key)
 
 	if errFind != nil {
-		return Media{}, fmt.Errorf("unable to fetch media with key %s: %w", key, errFind)
+		return Media{}, fmt.Errorf("%w", ErrGetByKey)
 	}
 
 	if mediaWithKey != (Media{}) {
@@ -111,11 +123,11 @@ func (mm *MediaManager) Ingest(key, author, folder string, kind MediaKind) (Medi
 	mediaInStorage, errCheckStorage := mm.storage.MediaExist(key, getIngestBucketFromMediaKind(kind))
 
 	if errCheckStorage != nil {
-		return Media{}, fmt.Errorf("unable to check if media %s exist in storage: %w", key, errFind)
+		return Media{}, fmt.Errorf("%w", ErrCheckStorage)
 	}
 
 	if !mediaInStorage {
-		return Media{}, fmt.Errorf("media %s does not exist in storage", key)
+		return Media{}, nil
 	}
 
 	visible := false
@@ -128,14 +140,14 @@ func (mm *MediaManager) Ingest(key, author, folder string, kind MediaKind) (Medi
 	errSave := mm.mediaRepo.Save(media)
 
 	if errSave != nil {
-		return Media{}, fmt.Errorf("unable to save media %s: %w", key, errFind)
+		return Media{}, fmt.Errorf("%w", ErrSaveMedia)
 	}
 
 	if kind == KindVideo {
 		errConvert := mm.videoConverter.Convert(key)
 
 		if errConvert != nil {
-			return Media{}, errConvert
+			return Media{}, fmt.Errorf("%w", ErrConvert)
 		}
 	}
 
@@ -154,7 +166,7 @@ func (mm *MediaManager) AcknowledgeVideoConversion(key string) error {
 	}
 
 	if errFind != nil {
-		return errFind
+		return fmt.Errorf("%w", ErrGetByKey)
 	}
 
 	m.Visible = true

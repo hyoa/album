@@ -2,14 +2,30 @@ package user_test
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	_user "github.com/hyoa/album/api/internal/user"
 	_mocks "github.com/hyoa/album/api/mocks"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
 )
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup() {
+	err := godotenv.Load("../../.env.test")
+
+	if err != nil {
+		panic("unable to get .env.test")
+	}
+}
 
 /**
 *
@@ -53,7 +69,7 @@ func TestItShouldNotCreateAnUserIfPasswordDoesNotMatch(t *testing.T) {
 	user, err := useCase.Create("name", "email", "password", "password2")
 
 	assert.NotNil(t, err)
-	assert.IsType(t, &_user.InvalidPasswordError{}, err)
+	assert.True(t, errors.Is(err, _user.ErrInvalidPassword))
 	assert.Equal(t, _user.User{}, user)
 }
 
@@ -65,7 +81,7 @@ func TestItShouldNotCreateAnUserIfTheEmailAlreadyExist(t *testing.T) {
 	user, err := useCase.Create("name", "email", "password", "password")
 
 	assert.NotNil(t, err)
-	assert.IsType(t, &_user.UserAlreadyExistError{}, err)
+	assert.True(t, errors.Is(err, _user.ErrUserAlreadyExist))
 	assert.Equal(t, _user.User{}, user)
 }
 

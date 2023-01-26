@@ -57,6 +57,15 @@ type interactor struct {
 	client *minio.Client
 }
 
+type interactorError string
+
+func (e interactorError) Error() string {
+	return string(e)
+}
+
+const ErrCreateClient = interactorError("unable to create client")
+const ErrGetFile = interactorError("unable to get file")
+
 func NewS3Interactor(endpoint, keyId, keySecret string) (S3Interactor, error) {
 	client, errNew := minio.New(endpoint, &minio.Options{
 		Creds:  minioCredential.NewStaticV4(keyId, keySecret, ""),
@@ -64,7 +73,7 @@ func NewS3Interactor(endpoint, keyId, keySecret string) (S3Interactor, error) {
 	})
 
 	if errNew != nil {
-		return &interactor{}, fmt.Errorf("Unable to create client: %w", errNew)
+		return &interactor{}, fmt.Errorf("%w", ErrCreateClient)
 	}
 
 	return &interactor{
@@ -77,7 +86,7 @@ func (i *interactor) GetJsonFile(fileName string) ([]byte, error) {
 	obj, errGet := i.client.GetObject(ctxt, "current", fileName, minio.GetObjectOptions{})
 
 	if errGet != nil {
-		return make([]byte, 0), fmt.Errorf("Unable to get file %w", errGet)
+		return make([]byte, 0), fmt.Errorf("%w", ErrGetFile)
 	}
 
 	buf := new(bytes.Buffer)

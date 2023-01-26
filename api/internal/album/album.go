@@ -1,7 +1,6 @@
 package album
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -47,12 +46,21 @@ func CreateAlbumManager(repo AlbumRepository) AlbumManager {
 	}
 }
 
+type albumError string
+
+func (e albumError) Error() string {
+	return string(e)
+}
+
+const ErrGetAlbum = albumError("Cannot get album")
+const ErrSaveAlbum = albumError("Cannot save album")
+
 func (am *AlbumManager) Create(title, author, description string, private bool) (Album, error) {
 	slugV := slug.MakeLang(title, "fr")
 	albumExist, errFind := am.repository.FindBySlug(slugV)
 
 	if errFind != nil {
-		return Album{}, fmt.Errorf("Unable to find by slug: %w", errFind)
+		return Album{}, fmt.Errorf("%w", ErrGetAlbum)
 	}
 
 	if albumExist.Slug != "" {
@@ -73,7 +81,7 @@ func (am *AlbumManager) Create(title, author, description string, private bool) 
 	errSave := am.repository.Save(albumToSave)
 
 	if errSave != nil {
-		return Album{}, fmt.Errorf("Unable to save album: %w", errSave)
+		return Album{}, fmt.Errorf(" %w", ErrSaveAlbum)
 	}
 
 	return albumToSave, nil
@@ -87,7 +95,7 @@ func (am *AlbumManager) Edit(title, description, slug string, private bool) (Alb
 	}
 
 	if albumFound.Slug == "" {
-		return Album{}, &AlbumNotFoundError{message: fmt.Sprintf("Cannot find album with slug %s", slug)}
+		return Album{}, fmt.Errorf("cannot get album for slug %s: %w", slug, ErrSaveAlbum)
 	}
 
 	albumFound.Title = title
@@ -97,7 +105,7 @@ func (am *AlbumManager) Edit(title, description, slug string, private bool) (Alb
 	errSave := am.repository.Save(albumFound)
 
 	if errSave != nil {
-		return Album{}, &AlbumSaveError{message: fmt.Sprintf("Cannot save album: %s", errSave.Error())}
+		return Album{}, fmt.Errorf("cannot save album with slug %s: %w", slug, ErrSaveAlbum)
 	}
 
 	return albumFound, nil
@@ -107,11 +115,11 @@ func (am *AlbumManager) UpdateMedias(slug string, medias []Media, updateKind Upd
 	a, errFind := am.repository.FindBySlug(slug)
 
 	if errFind != nil {
-		return Album{}, fmt.Errorf("Unable to get album: %w", errFind)
+		return Album{}, fmt.Errorf("%w", ErrGetAlbum)
 	}
 
 	if a.Slug == "" {
-		return Album{}, errors.New(fmt.Sprintf("No album with slug %s", slug))
+		return Album{}, nil
 	}
 
 	if updateKind == UpdateMediaAdd {
@@ -123,7 +131,7 @@ func (am *AlbumManager) UpdateMedias(slug string, medias []Media, updateKind Upd
 	errSave := am.repository.Save(a)
 
 	if errSave != nil {
-		return Album{}, fmt.Errorf("Unable to save album: %w", errFind)
+		return Album{}, fmt.Errorf("%w", ErrSaveAlbum)
 	}
 
 	return a, nil
@@ -177,11 +185,11 @@ func (am *AlbumManager) ToggleFavorite(slug, mediaKey string) (Album, error) {
 	album, errFind := am.repository.FindBySlug(slug)
 
 	if errFind != nil {
-		return Album{}, fmt.Errorf("Unable to get album: %w", errFind)
+		return Album{}, fmt.Errorf("%w", ErrGetAlbum)
 	}
 
 	if album.Slug == "" {
-		return Album{}, errors.New(fmt.Sprintf("No album with slug %s", slug))
+		return Album{}, nil
 	}
 
 	for k, m := range album.Medias {
@@ -194,7 +202,7 @@ func (am *AlbumManager) ToggleFavorite(slug, mediaKey string) (Album, error) {
 	errSave := am.repository.Save(album)
 
 	if errSave != nil {
-		return Album{}, fmt.Errorf("Unable to save album: %w", errFind)
+		return Album{}, fmt.Errorf("%w", ErrSaveAlbum)
 	}
 
 	return album, nil

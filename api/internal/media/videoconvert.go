@@ -3,7 +3,6 @@ package media
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -68,6 +67,15 @@ func NewCloudConvert() VideoConverter {
 	return &CloudConvert{}
 }
 
+type convertError string
+
+func (e convertError) Error() string {
+	return string(e)
+}
+
+const ErrMarshalJob = convertError("cannot marshal data")
+const ErrCreateJob = convertError("cannot create jobs")
+
 func (*CloudConvert) Convert(key string) error {
 	importTask := ImportTask{
 		Operation:       "import/s3",
@@ -121,7 +129,7 @@ func (*CloudConvert) Convert(key string) error {
 	jsonData, errMarshal := json.Marshal(job)
 
 	if errMarshal != nil {
-		return fmt.Errorf("unable to marshal cloudconvert job:%s ", errMarshal)
+		return fmt.Errorf("%w", ErrMarshalJob)
 	}
 
 	req, _ := http.NewRequest(http.MethodPost, os.Getenv("CLOUD_CONVERT_URI"), bytes.NewBuffer(jsonData))
@@ -131,7 +139,7 @@ func (*CloudConvert) Convert(key string) error {
 	res, errPost := http.DefaultClient.Do(req)
 
 	if res.StatusCode != 200 || errPost != nil {
-		return errors.New("unable to create jobs on cloudconvert")
+		return fmt.Errorf("%w", ErrConvert)
 	}
 
 	return nil

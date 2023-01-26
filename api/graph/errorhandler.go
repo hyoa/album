@@ -10,10 +10,15 @@ import (
 func HandleError(err error, translator translator.Translator) error {
 	var messageId string
 	data := make(map[string]interface{})
-	switch e := err.(type) {
-	case user.ErrorWithTranslation:
-		messageId = e.ID()
-	default:
+
+	var (
+		userError *user.UserError
+	)
+
+	if errors.As(err, &userError) {
+		errI18N := err.(*user.UserError)
+		messageId = errI18N.I18NID()
+	} else {
 		messageId = "InternalError"
 	}
 
