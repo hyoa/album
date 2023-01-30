@@ -16,7 +16,7 @@
         </button>
       </div>
       <p data-e2e="album-informations" class="mt-2 text-grey-700 text-sm">
-        <span>{{ $t('album.createAtBy', { date: album.creationDate, author: album.author }) }}</span>
+        <span>{{ $t('album.createAtBy', { date: getCreationDate(album.creationDate), author: album.author }) }}</span>
       </p>
     </div>
     <Grid :medias="album.medias" :editable="false" :can-delete-media="false" />
@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { get } from '../utils/axiosHelper'
+import { graphql } from '../utils/axiosHelper'
 
 import Layout from '../components/layout/LayoutGrid'
 import Grid from '../components/grid/Grid'
@@ -39,9 +39,30 @@ export default {
   },
   async created () {
     try {
-      const res = await get(`album/${this.$route.params.slug}`)
+      const query = `
+      query {
+        album: album(input: {slug: "${this.$route.params.slug}"}) {
+          title
+          slug
+          description
+          author
+          creationDate
+          medias {
+            key
+            kind
+            urls {
+              small
+              medium
+              large
+            }
+          }
+        }
+      }
+      `
 
-      this.album = res.data
+      const res = await graphql(query, 'v3')
+
+      this.album = res.album
     } catch ({ response: { status } }) {
       if (status === 401) {
         this.$store.commit('setFlashMessage', 'auth.alert.disconnect.message')
@@ -57,6 +78,14 @@ export default {
       }
 
       return true
+    }
+  },
+  methods: {
+    getCreationDate (date) {
+      if (date) {
+        const dtf = new Intl.DateTimeFormat()
+        return dtf.format(date * 1000)
+      }
     }
   }
 }

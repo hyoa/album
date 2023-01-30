@@ -1,0 +1,73 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+enum MediaType {
+  PHOTO, VIDEO
+}
+
+type Media {
+  key: String!
+  author: String!
+  kind: MediaType!
+  folder: String!
+  urls: Urls!
+}
+
+
+type Folder {
+  name: String!
+  medias: [Media!]!
+}
+
+input GetIngestMediaInput {
+  kind: MediaType!
+  key: String!
+}
+
+input GetIngestInput {
+  medias: [GetIngestMediaInput!]!
+}
+
+input PutIngestMediaInput {
+  key: String!
+  author: String!
+  kind: MediaType!
+  folder: String!
+}
+
+input PutIngestInput {
+  medias: [PutIngestMediaInput!]!
+}
+
+enum PutIngestMediaStatus {
+  SUCCESS, ALREADY_EXIST, FAILED
+} 
+
+type PutIngestMediaOutput {
+  key: String!
+  status: PutIngestMediaStatus!
+}
+
+input GetFolderInput {
+  name: String!
+}
+
+input GetFoldersInput {
+  name: String
+}
+
+type GetIngestMediaOutput {
+  key: String!
+  signedUri: String!
+}
+
+input ChangeMediasFolderInput {
+  keys: [String!]!
+  folderName: String!
+}
+
+input ChangeFolderNameInput {
+  oldName: String!
+  newName: String!
+}

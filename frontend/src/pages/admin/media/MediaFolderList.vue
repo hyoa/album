@@ -4,13 +4,13 @@
       <PageTitle :title="$t('admin.mediaFolderList.title')" icon="regular/plus-square" color="bg-green-500"/>
     </template>
     <ul>
-      <ListItem :key="folder" v-for="folder of folders" :to="{ name: 'admin_medias_folder', params: { folder } }" :title="folder" />
+      <ListItem :key="folder.name" v-for="folder of folders" :to="{ name: 'admin_medias_folder', params: { folder: folder.name } }" :title="folder.name" />
     </ul>
   </AdminLayout>
 </template>
 
 <script>
-import { get, deleteMethod } from '../../../utils/axiosHelper'
+import { graphql } from '../../../utils/axiosHelper'
 
 import AdminLayout from '../../../components/layout/AdminLayout'
 import ListItem from '../../../components/admin/ListItem'
@@ -24,18 +24,16 @@ export default {
     }
   },
   async created () {
-    const res = await get('medias/folders')
-    this.folders = res.data
-  },
-  methods: {
-    onDelete (folderName) {
-      deleteMethod(`medias/folder/${folderName}`)
-        .then(() => {
-          this.folders = this.folders.filter(folder => {
-            return folder !== folderName
-          })
-        })
-    }
+    const query = `
+      query {
+        folders: folders(input: {}){
+          name
+        }
+      }
+    `
+
+    const { folders } = await graphql(query, 'v3')
+    this.folders = folders
   }
 }
 </script>

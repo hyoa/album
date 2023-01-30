@@ -26,7 +26,7 @@
             <button
               class="bg-transparent hover:bg-blue text-blue-dark font-semibold hover:text-white py-1 px-2 border border-blue hover:border-transparent rounded"
               @click.stop="onActivate(user.email)"
-              v-if="user.role === 0"
+              v-if="user.role === 'UNIDENTIFIED'"
             >
               {{ $t('admin.userList.sectionList.table.activate') }}
             </button>
@@ -39,8 +39,7 @@
 </template>
 
 <script>
-import { get, post } from '../../../utils/axiosHelper'
-import errorHelper from '../../../utils/errorHelper'
+import { graphql } from '../../../utils/axiosHelper'
 import AdminLayout from '../../../components/layout/AdminLayout'
 import InputForm from '../../../components/form/default/InputSimple'
 import ButtonForm from '../../../components/form/button/SimpleAnimateButton'
@@ -64,46 +63,58 @@ export default {
     }
   },
   async created () {
-    const res = await get('users')
-    this.users = res.data
+    const query = `
+      query {
+        users: users {
+          name
+          email
+          role
+        }
+      }
+    `
+
+    const { users } = await graphql(query, 'v3')
+    this.users = users
   },
   methods: {
     onActivate (email) {
-      post('user/activate', { email, role: 1 })
+      const query = `
+        mutation {
+          updateUser(input: { email: "${email}", role:  NORMAL}) {
+            role
+          }
+        }
+      `
+
+      graphql(query, 'v3')
         .then(() => {
           this.$notify({ group: 'success', text: this.$t('admin.userList.notify.accountActivate') })
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
-          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
         })
     },
     onInvite () {
+      const query = `
+        mutation {
+          invite(input: {email: "${this.emailsToInvite}"}) {
+            email
+          }
+        }
+      `
+
       this.formStatus.invite = 'pending'
 
       if (this.emailsToInvite === '') {
         return
       }
 
-      post('users/invite', { emails: this.emailsToInvite })
+      graphql(query, 'v3')
         .then(() => {
           this.$notify({ group: 'success', text: this.$t('admin.userList.notify.invitationSend') })
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
-          this.$notify({ group: 'error', text: this.$t(errorHelper(code)) })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
         })
         .finally(() => {
           this.formStatus.invite = 'ready'

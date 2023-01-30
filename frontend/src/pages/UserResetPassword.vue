@@ -1,6 +1,6 @@
 <template>
   <div class="flex w-screen h-screen justify-center items-center">
-    <div class="rounded w-1/3 shadow-md">
+    <div class="rounded shadow-md">
       <div class="px-8 pt-6 pb-8 mb-4">
         <h1>{{ $t('userResetPassword.title') }}</h1>
         <Alert v-if="alert.type" :type="alert.type" :message="alert.message" :title="alert.title" />
@@ -18,7 +18,7 @@
             <input v-model="checkPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight focus:outline-none focus:shadow-outline" id="passwordCheck" type="password" placeholder="******************">
           </div>
           <div class="flex items-center justify-between">
-            <button class="bg-blue hover:bg-blue-dark text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+            <button class="bg-primary hover:bg-blue-dark text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
               {{ $t('userResetPassword.form.submit') }}
             </button>
           </div>
@@ -29,8 +29,7 @@
 </template>
 
 <script>
-import { post } from '../utils/axiosHelper'
-import errorHelper from '../utils/errorHelper'
+import { graphql } from '../utils/axiosHelper'
 import Alert from '../components/alerts/Alert'
 
 export default {
@@ -55,13 +54,15 @@ export default {
     onUpdatePassword () {
       this.alert.type = null
 
-      const data = {
-        'password': this.password,
-        'passwordCheck': this.checkPassword,
-        'token': this.token
-      }
+      const query = `
+        mutation {
+          resetPassword(input: {password: "${this.password}", passwordCheck: "${this.checkPassword}", tokenValidation: "${this.token}"}) {
+            email
+          }
+        }
+      `
 
-      post('user/reset-password', data)
+      graphql(query, 'v3')
         .then(() => {
           this.alert = {
             type: 'success',
@@ -73,18 +74,11 @@ export default {
             this.$router.push({ name: 'auth' })
           }, 10000)
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
+        .catch(message => {
           this.alert = {
             type: 'error',
             title: 'Oups',
-            message: errorHelper(code)
+            message
           }
         })
     }

@@ -42,9 +42,9 @@
       <hr class="border-4 mb-8">
     </div>
     <form @submit.prevent="uploadMedias" v-show="upload.state !== 'running'">
-      <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" endpoint="medias/folders/autocomplete" :allow-no-call="true"/>
+      <AutoComplete v-model="folder" id="folder" placeholder="Un super dossier !" :label="$t('admin.mediaAdd.form.folder')" type="text" entity="folder" :allow-no-call="true"/>
       <CheckboxSimple v-model="linkToAlbum" :label="$t('admin.mediaAdd.form.linkToAlbum')" />
-      <AutoComplete v-if="linkToAlbum" v-model="album" id="album" placeholder="Un album" :label="$t('admin.mediaAdd.form.album')" type="text" endpoint="albums/autocomplete" :allow-no-call="true"/>
+      <AutoComplete v-if="linkToAlbum" v-model="album" id="album" placeholder="Un album" :label="$t('admin.mediaAdd.form.album')" type="text" entity="album" :allow-no-call="true"/>
       <div class="mb-3" v-if="folder.trim() !== ''">
         <label for="files">{{ $t('admin.mediaAdd.form.media') }}</label>
         <div
@@ -83,7 +83,7 @@
 import axios from 'axios'
 import prettyMs from 'pretty-ms'
 import NoSleep from 'nosleep.js'
-import { post } from '../../../utils/axiosHelper'
+import { graphql } from '../../../utils/axiosHelper'
 import AdminLayout from '../../../components/layout/AdminLayout'
 import AutoComplete from '../../../components/form/default/AutoComplete'
 import CheckboxSimple from '../../../components/form/default/CheckboxSimple'
@@ -139,20 +139,14 @@ export default {
       let totalSize = 0
 
       let mediasConfigToUpload = []
+      const author = this.$store.state.token.name
+      const folder = this.folder.replace('new|', '').replace(/[^a-zA-Z0-9. ]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
       for (let media of this.medias) {
         totalSize += media.size
         const key = media.name.replace(/[^a-zA-Z0-9.]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        const metadata = {
-          author: this.$store.state.token.name,
-          folder: this.folder.replace(/[^a-zA-Z0-9. ]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        }
 
-        if (this.album) {
-          metadata.album = this.album.replace(/[^a-zA-Z0-9. ]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        }
-
-        this.upload.medias.push({ key, progress: 0, uploadedSize: 0, status: 'uploading' })
+        this.upload.medias.push({ key, progress: 0, uploadedSize: 0, status: 'uploading', kind: media.type.includes('video') ? 'VIDEO' : 'PHOTO' })
 
         const putConfig = {
           onUploadProgress: progressEvent => {
@@ -173,29 +167,32 @@ export default {
         mediasConfigToUpload.push({
           key,
           media,
-          putConfig,
-          metadata
+          putConfig
         })
       }
 
-      const payload = {
-        medias: mediasConfigToUpload.map(({ key, media: { type }, metadata }) => { return { type, file: key, metadata } })
-      }
-
-      if (this.album) {
-        payload.album = {
-          title: this.album,
-          author: this.$store.state.token.name
+      const querySignedUri = `
+        query($medias: [GetIngestMediaInput!]!) {
+          medias: ingest (input: {medias: $medias}) {
+            key
+            signedUri
+          }
         }
+      `
+
+      const variablesSignedUri = {
+        medias: mediasConfigToUpload.map(({ key, media: { type } }) => {
+          return { kind: type.includes('video') ? 'VIDEO' : 'PHOTO', key: key }
+        })
       }
 
-      const signedUrisResponse = await post('medias/ingest', payload, {}, 'v2')
+      const signedUrisResponse = await graphql(querySignedUri, 'v3', variablesSignedUri)
 
-      for (let signedUri of signedUrisResponse.data) {
+      for (let media of signedUrisResponse.medias) {
         for (let config of mediasConfigToUpload) {
-          if (config.key === signedUri.key) {
+          if (config.key === media.key) {
             const req = axios
-              .put(signedUri.uri, config.media, config.putConfig)
+              .put(media.signedUri, config.media, config.putConfig)
               .then(() => {
                 this.upload.uploaded++
                 const index = this.upload.medias.findIndex(m => {
@@ -250,18 +247,80 @@ export default {
         }
       }, 1000)
 
-      Promise.all(promises).then(() => {
+      Promise.all(promises).then(async () => {
         this.medias = []
+        try {
+          if (this.upload.uploaded > 0) {
+            const queryIngest = `
+              mutation($medias: [PutIngestMediaInput!]!) {
+                ingest(input: {medias: $medias}) {
+                  key
+                  status
+                }
+              }
+            `
 
-        if (this.upload.failed === 0 && this.upload.uploaded > 0) {
-          this.$notify({ group: 'success', text: this.$t('admin.mediaAdd.notify.uploadSuccess') })
+            const mediasUploaded = this.upload.medias.filter(media => media.status === 'success').map(media => { return { author, folder, key: media.key, kind: media.kind } })
+            const variablesIngest = {
+              medias: mediasUploaded
+            }
 
-          this.upload.state = 'end'
-          this.upload = uploadData()
-        } else if (this.upload.failed > 0 && this.upload.uploaded > 0) {
-          this.upload.state = 'error'
-          this.$notify({ group: 'warning', text: this.$t('admin.mediaAdd.notify.uploadPartial') })
-        } else {
+            await graphql(queryIngest, 'v3', variablesIngest)
+
+            if (this.album) {
+              let slug = this.album
+              if (slug.includes('new|')) {
+                const albumName = slug.replace('new|', '')
+                const queryCreate = `
+                  mutation {
+                    album: createAlbum(input: {title: "${albumName}", author: "${this.$store.state.token.name}", description: "", private: true}) {
+                      title
+                      slug
+                    }
+                  }
+                `
+
+                const { album } = await graphql(queryCreate, 'v3')
+                slug = album.slug
+              }
+
+              const queryAdd = `
+                mutation ($medias: [MediaAlbumInput!]!) {
+                  album: updateAlbumMedias(input: {slug: "${slug}", medias: $medias, action: ADD}) {
+                    medias {
+                      key
+                      urls {
+                        small
+                      }
+                      kind
+                      favorite
+                    }
+                  }
+                }
+              `
+
+              const variablesAdd = {
+                medias: mediasUploaded.map(({ key, author, kind }) => { return { key, author, kind } })
+              }
+
+              await graphql(queryAdd, 'v3', variablesAdd)
+            }
+          }
+
+          if (this.upload.failed === 0 && this.upload.uploaded > 0) {
+            this.$notify({ group: 'success', text: this.$t('admin.mediaAdd.notify.uploadSuccess') })
+
+            this.upload.state = 'end'
+            this.upload = uploadData()
+          } else if (this.upload.failed > 0 && this.upload.uploaded > 0) {
+            this.upload.state = 'error'
+            this.$notify({ group: 'warning', text: this.$t('admin.mediaAdd.notify.uploadPartial') })
+          } else {
+            this.upload.state = 'error'
+            this.$notify({ group: 'error', text: this.$t('admin.mediaAdd.notify.uploadFailed') })
+          }
+        } catch (e) {
+          console.log(e)
           this.upload.state = 'error'
           this.$notify({ group: 'error', text: this.$t('admin.mediaAdd.notify.uploadFailed') })
         }

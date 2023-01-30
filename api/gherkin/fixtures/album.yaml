@@ -1,0 +1,31 @@
+- slug: album-1
+  title: album 1
+  author: me
+  creationDate: 1623064652
+  description: a short description for album 1
+  isPrivate: false
+  medias:
+    - author: me
+      favorite: false
+      mediaKey: key1
+      mediaType: 1
+
+- slug: album-2
+  title: album 2
+  author: me
+  creationDate: 1623064652
+  description: a short description for album 2
+  isPrivate: true
+  medias:
+    - author: me
+      favorite: true
+      mediaKey: key1
+      mediaType: 1
+
+- slug: album-3
+  title: album 3
+  author: me
+  creationDate: 1623064652
+  description: a short description for album 3
+  isPrivate: false
+  medias: []

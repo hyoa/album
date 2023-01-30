@@ -1,0 +1,82 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+enum ActionUpdateAlbumMedias {
+  ADD, REMOVE
+}
+
+type Album {
+  title: String!
+  description: String
+  private: Boolean
+  author: String!
+  creationDate: Int!
+  id: String!
+  slug: String!
+  medias: [MediaAlbum!]
+}
+
+
+type MediaAlbum {
+  key: String!
+  author: String!
+  kind: MediaType!
+  urls: Urls!
+  favorite: Boolean
+}
+
+input MediaAlbumInput {
+  key: String!
+  author: String!
+  kind: MediaType!
+}
+
+type Urls {
+  small: String!
+  medium: String!
+  large: String!
+}
+
+input GetAlbumInput {
+  slug: String!
+}
+
+input GetAlbumsInput {
+  includePrivate: Boolean
+  includeNoMedias: Boolean
+  limit: Int
+  offset: Int
+  term: String
+  order: String
+}
+
+input CreateAlbumInput {
+  title: String!
+  author: String!
+  description: String
+  private: Boolean!
+}
+
+input UpdateAlbumInput {
+  slug: String!
+  title: String!
+  author: String!
+  description: String!
+  private: Boolean!
+}
+
+input DeleteAlbumInput {
+  slug: String!
+}
+
+input UpdateAlbumMediasInput {
+  slug: String!
+  medias: [MediaAlbumInput!]!
+  action: ActionUpdateAlbumMedias
+}
+
+input UpdateAlbumFavoriteInput {
+  slug: String!
+  mediaKey: String!
+}

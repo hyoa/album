@@ -15,8 +15,7 @@
 </template>
 
 <script>
-import { post } from '../../../utils/axiosHelper'
-import errorHelper from '../../../utils/errorHelper'
+import { graphql } from '../../../utils/axiosHelper'
 
 import AdminLayout from '../../../components/layout/AdminLayout'
 import InputSimple from '../../../components/form/default/InputSimple'
@@ -45,25 +44,20 @@ export default {
       }
       this.formStatus.add = 'pending'
 
-      const data = {
-        title: this.title,
-        description: this.description,
-        private: !!this.isPrivate
-      }
+      const query = `
+        mutation {
+          createAlbum(input: {title: "${this.title}", author: "${this.$store.state.token.name}", description: "${this.description}", private: ${!!this.isPrivate}}) {
+            title
+          }
+        }
+      `
 
-      post(`album`, data)
+      graphql(query, 'v3')
         .then(() => {
           this.$notify({ group: 'success', text: 'L\'album a été créé avec succès' })
         })
-        .catch(({ response }) => {
-          let code = null
-          try {
-            code = response.data.code
-          } catch (e) {
-            code = 999
-          }
-
-          this.$notify({ group: 'error', text: errorHelper(code) })
+        .catch(message => {
+          this.$notify({ group: 'error', text: message })
         })
         .finally(() => {
           this.formStatus.add = 'ready'
