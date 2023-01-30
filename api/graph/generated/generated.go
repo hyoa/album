@@ -36,6 +36,8 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Media() MediaResolver
+	MediaAlbum() MediaAlbumResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -140,6 +142,12 @@ type ComplexityRoot struct {
 	}
 }
 
+type MediaResolver interface {
+	Urls(ctx context.Context, obj *model.Media) (*model.Urls, error)
+}
+type MediaAlbumResolver interface {
+	Urls(ctx context.Context, obj *model.MediaAlbum) (*model.Urls, error)
+}
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input model.CreateInput) (*model.User, error)
 	UpdateUser(ctx context.Context, input model.UpdateInput) (*model.User, error)
@@ -920,7 +928,8 @@ input ChangeMediasFolderInput {
 input ChangeFolderNameInput {
   oldName: String!
   newName: String!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../mutation_schema.graphqls", Input: `type Mutation {
   # USER
   createUser(input: CreateInput!): User!
@@ -953,7 +962,8 @@ type Query {
   folders(input: GetFoldersInput!): [Folder]! @hasRole(role: ADMIN)
   folder(input: GetFolderInput!): Folder @hasRole(role: ADMIN)
   ingest(input: GetIngestInput!): [GetIngestMediaOutput!]! @hasRole(role: ADMIN)
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../role_schema.graphqls", Input: `directive @hasRole(role: Role!) on FIELD_DEFINITION
 
 enum Role {
@@ -2250,7 +2260,7 @@ func (ec *executionContext) _Media_urls(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Urls, nil
+		return ec.resolvers.Media().Urls(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2271,8 +2281,8 @@ func (ec *executionContext) fieldContext_Media_urls(ctx context.Context, field g
 	fc = &graphql.FieldContext{
 		Object:     "Media",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "small":
@@ -2434,7 +2444,7 @@ func (ec *executionContext) _MediaAlbum_urls(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Urls, nil
+		return ec.resolvers.MediaAlbum().Urls(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2455,8 +2465,8 @@ func (ec *executionContext) fieldContext_MediaAlbum_urls(ctx context.Context, fi
 	fc = &graphql.FieldContext{
 		Object:     "MediaAlbum",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "small":
@@ -7699,36 +7709,49 @@ func (ec *executionContext) _Media(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Media_key(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "author":
 
 			out.Values[i] = ec._Media_author(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "kind":
 
 			out.Values[i] = ec._Media_kind(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "folder":
 
 			out.Values[i] = ec._Media_folder(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "urls":
+			field := field
 
-			out.Values[i] = ec._Media_urls(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Media_urls(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7755,29 +7778,42 @@ func (ec *executionContext) _MediaAlbum(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._MediaAlbum_key(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "author":
 
 			out.Values[i] = ec._MediaAlbum_author(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "kind":
 
 			out.Values[i] = ec._MediaAlbum_kind(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "urls":
+			field := field
 
-			out.Values[i] = ec._MediaAlbum_urls(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MediaAlbum_urls(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "favorite":
 
 			out.Values[i] = ec._MediaAlbum_favorite(ctx, field, obj)
@@ -9160,6 +9196,10 @@ func (ec *executionContext) unmarshalNUpdateAlbumMediasInput2githubᚗcomᚋhyoa
 func (ec *executionContext) unmarshalNUpdateInput2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐUpdateInput(ctx context.Context, v interface{}) (model.UpdateInput, error) {
 	res, err := ec.unmarshalInputUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUrls2githubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐUrls(ctx context.Context, sel ast.SelectionSet, v model.Urls) graphql.Marshaler {
+	return ec._Urls(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUrls2ᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐUrls(ctx context.Context, sel ast.SelectionSet, v *model.Urls) graphql.Marshaler {
