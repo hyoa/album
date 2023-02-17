@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <div v-waypoint="{ active: true, callback: onWaypoint, options: intersectionOptions }"></div>
+    <div v-waypoint="{ active: true, callback: onWaypoint, options: intersectionOptions }" class="h-5"></div>
     <div
       class="text-center absolute pin-y w-full mt-10 z-0"
       :class="{ 'opacity-100': !isVisible, 'opacity-0': isVisible }"
@@ -96,7 +96,7 @@ export default {
       intersectionOptions: {
         root: null,
         rootMargin: '0px 0px 0px 0px',
-        threshold: [0, 1]
+        threshold: 0 // [0.25, 0.75] if you want a 25% offset!
       },
       mediasIndex: 0
     }
