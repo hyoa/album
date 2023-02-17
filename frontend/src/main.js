@@ -11,6 +11,7 @@ import Notifications from 'vue-notification'
 import VueI18n from 'vue-i18n'
 import messages from './i18n/fr'
 import { VueMasonryPlugin } from 'vue-masonry'
+import VueWaypoint from 'vue-waypoint'
 import './assets/styles/index.css'
 
 Vue.component('v-icon', Icon)
@@ -21,6 +22,7 @@ Vue.use(VueLazyload, {
 
 Vue.use(VueMasonryPlugin)
 Vue.use(Notifications)
+Vue.use(VueWaypoint)
 
 Vue.config.productionTip = false
 
