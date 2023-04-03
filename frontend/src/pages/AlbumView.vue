@@ -19,7 +19,7 @@
         <span>{{ $t('album.createAtBy', { date: getCreationDate(album.creationDate), author: album.author }) }}</span>
       </p>
     </div>
-    <Grid :medias="album.medias" :editable="false" :can-delete-media="false" />
+    <Grid v-if="album.medias" :medias="album.medias" :editable="false" :can-delete-media="false" />
   </Layout>
 </template>
 
@@ -27,7 +27,7 @@
 import { graphql } from '../utils/axiosHelper'
 
 import Layout from '../components/layout/LayoutGrid'
-import Grid from '../components/grid/Grid'
+import Grid from '../components/grid/Grid2'
 export default {
   name: 'AlbumView',
   components: { Grid, Layout },
