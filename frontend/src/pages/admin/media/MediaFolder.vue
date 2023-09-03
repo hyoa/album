@@ -29,7 +29,9 @@
         </div>
       </div>
     </div>
-    <Grid :editable="true" :can-delete-media="true" :medias="medias" />
+    <div class="relative">
+        <Grid v-if="medias.length > 0" :editable="true" :can-delete-media="true" :medias="medias" />
+    </div>
   </AdminLayout>
 </template>
 
@@ -37,7 +39,7 @@
 import { graphql } from '../../../utils/axiosHelper'
 
 import AdminLayout from '../../../components/layout/AdminLayout'
-import Grid from '../../../components/grid/Grid'
+import Grid from '../../../components/grid/Grid2'
 import InputSimple from '../../../components/form/default/InputSimple'
 import FormButton from '../../../components/form/default/FormButton'
 import PageTitle from '../../../components/admin/PageTitle'

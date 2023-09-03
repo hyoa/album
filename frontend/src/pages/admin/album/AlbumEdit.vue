@@ -79,7 +79,7 @@
       </div>
     </div>
     <div class="relative">
-    <Grid :medias="medias" :editable="true" :canStar="true" @toggleFavorite="onToggleFavorite" />
+        <Grid v-if="medias.length > 0"  :medias="medias" :editable="true" :canStar="true" @toggleFavorite="onToggleFavorite" />
     </div>
   </AdminLayout>
 </template>
@@ -103,7 +103,7 @@ import AdminLayout from '../../../components/layout/AdminLayout'
 import InputSimple from '../../../components/form/default/InputSimple'
 import TextareaSimple from '../../../components/form/default/TextareaSimple'
 import CheckboxSimple from '../../../components/form/default/CheckboxSimple'
-import Grid from '../../../components/grid/Grid'
+import Grid from '../../../components/grid/Grid2'
 import PageTitle from '../../../components/admin/PageTitle'
 import FormButton from '../../../components/form/default/FormButton'
 import SimpleAnimateButton from '../../../components/form/button/SimpleAnimateButton'
