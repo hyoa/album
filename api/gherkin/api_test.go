@@ -23,7 +23,11 @@ import (
 func TestFeatures(t *testing.T) {
 	godotenv.Load("../.env.test")
 
-	setupDB()
+	err := setupDB()
+
+	if err != nil {
+		t.Fatal("unable to start db", err)
+	}
 
 	suite := godog.TestSuite{
 		ScenarioInitializer: InitializeScenario,
@@ -67,7 +71,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 func setupDB() error {
 	db, _ := awsinteractor.NewDynamoDBInteractor()
 
-	ouput, _ := db.Client.ListTables(context.Background(), &dynamodb.ListTablesInput{})
+	ouput, err := db.Client.ListTables(context.Background(), &dynamodb.ListTablesInput{})
+
+	if err != nil {
+		return err
+	}
 
 	userTableExist := false
 	albumTableExist := false
