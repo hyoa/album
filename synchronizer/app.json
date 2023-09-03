@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "synchronizer",
+    "slug": "synchronizer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon_2.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash_2.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon_2.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.hyoa.synchronizer"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2f0dcfe0-0c92-404f-8f85-602a9c0e8612"
+      }
+    }
+  }
+}
