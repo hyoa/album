@@ -2,14 +2,14 @@
   <div data-e2e="medias-grid" class="relative">
     <div
       v-masonry="masonryId"
-      transition-duration="0.3s"
+      transition-duration="0.5s"
       item-selector=".mediaTile"
       :class="{ 'opacity-100': isVisible, 'opacity-0': !isVisible }"
     >
-      <lazy-component
+      <div
         v-masonry-tile="masonryId"
         class="mediaTile w-1/2"
-        v-for="(media, index) in medias"
+        v-for="(media, index) in mediasToDisplay"
         :key="index"
         @show="onShow"
       >
@@ -47,8 +47,9 @@
             Your browser does not support the video tag.
           </video>
         </div>
-      </lazy-component>
+      </div>
     </div>
+    <div v-waypoint="{ active: true, callback: onWaypoint, options: intersectionOptions }" class="h-5"></div>
     <div
       class="text-center absolute pin-y w-full mt-10 z-0"
       :class="{ 'opacity-100': !isVisible, 'opacity-0': isVisible }"
@@ -91,16 +92,17 @@ export default {
       isVisible: this.isMobile(),
       indexGallery: null,
       masonry: null,
-      masonryId: 'mediasTiles'
+      masonryId: 'mediasTiles',
+      intersectionOptions: {
+        root: null,
+        rootMargin: '0px 0px 0px 0px',
+        threshold: 0 // [0.25, 0.75] if you want a 25% offset!
+      },
+      mediasIndex: 0
     }
   },
   components: { VueGallery },
   props: ['medias', 'editable', 'canDeleteMedia', 'canStar'],
-  mounted () {
-    setTimeout(() => {
-      this.updateGrid()
-    }, 4000)
-  },
   methods: {
     updateGrid () {
       this.$redrawVueMasonry(this.masonryId)
@@ -126,6 +128,12 @@ export default {
       if (!this.editable) {
         this.indexGallery = index
       }
+    },
+    onWaypoint (e) {
+      if (e.going === 'in' && this.medias.length > this.mediasToDisplay.length) {
+        this.mediasIndex += 10
+        this.updateGrid()
+      }
     }
   },
   computed: {
@@ -139,6 +147,13 @@ export default {
             type: media.kind === 'VIDEO' ? 'video/mp4' : 'image/jpg'
           }
         })
+      }
+
+      return []
+    },
+    mediasToDisplay () {
+      if (this.medias) {
+        return this.medias.slice(0, this.mediasIndex)
       }
 
       return []
