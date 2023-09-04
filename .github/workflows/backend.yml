@@ -6,8 +6,12 @@ on:
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
+    services:
+      dynamodb:
+        image: docker.io/amazon/dynamodb-local:1.20.0
+        ports:
+          - 9967:8000
 
     steps:
     - uses: actions/checkout@v2
@@ -16,13 +20,7 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: 1.19
-    
-    - name: Setup DynamoDB Local
-      uses: rrainn/dynamodb-action@v2.0.0
-      with:
-        port: 9966
-        cors: '*'
-
+  
     - name: Run unit test
       run: make test-unit
       working-directory: ./api

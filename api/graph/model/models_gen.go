@@ -9,18 +9,18 @@ import (
 )
 
 type ActionResult struct {
-	Success *bool `json:"success"`
+	Success *bool `json:"success,omitempty"`
 }
 
 type Album struct {
 	Title        string        `json:"title"`
-	Description  *string       `json:"description"`
-	Private      *bool         `json:"private"`
+	Description  *string       `json:"description,omitempty"`
+	Private      *bool         `json:"private,omitempty"`
 	Author       string        `json:"author"`
 	CreationDate int           `json:"creationDate"`
 	ID           string        `json:"id"`
 	Slug         string        `json:"slug"`
-	Medias       []*MediaAlbum `json:"medias"`
+	Medias       []*MediaAlbum `json:"medias,omitempty"`
 }
 
 type AskResetPasswordInput struct {
@@ -49,7 +49,7 @@ type ChangeMediasFolderInput struct {
 type CreateAlbumInput struct {
 	Title       string  `json:"title"`
 	Author      string  `json:"author"`
-	Description *string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	Private     bool    `json:"private"`
 }
 
@@ -74,12 +74,12 @@ type GetAlbumInput struct {
 }
 
 type GetAlbumsInput struct {
-	IncludePrivate  *bool   `json:"includePrivate"`
-	IncludeNoMedias *bool   `json:"includeNoMedias"`
-	Limit           *int    `json:"limit"`
-	Offset          *int    `json:"offset"`
-	Term            *string `json:"term"`
-	Order           *string `json:"order"`
+	IncludePrivate  *bool   `json:"includePrivate,omitempty"`
+	IncludeNoMedias *bool   `json:"includeNoMedias,omitempty"`
+	Limit           *int    `json:"limit,omitempty"`
+	Offset          *int    `json:"offset,omitempty"`
+	Term            *string `json:"term,omitempty"`
+	Order           *string `json:"order,omitempty"`
 }
 
 type GetFolderInput struct {
@@ -87,7 +87,7 @@ type GetFolderInput struct {
 }
 
 type GetFoldersInput struct {
-	Name *string `json:"name"`
+	Name *string `json:"name,omitempty"`
 }
 
 type GetIngestInput struct {
@@ -129,7 +129,7 @@ type MediaAlbum struct {
 	Author   string    `json:"author"`
 	Kind     MediaType `json:"kind"`
 	Urls     *Urls     `json:"urls"`
-	Favorite *bool     `json:"favorite"`
+	Favorite *bool     `json:"favorite,omitempty"`
 }
 
 type MediaAlbumInput struct {
@@ -176,12 +176,12 @@ type UpdateAlbumInput struct {
 type UpdateAlbumMediasInput struct {
 	Slug   string                   `json:"slug"`
 	Medias []*MediaAlbumInput       `json:"medias"`
-	Action *ActionUpdateAlbumMedias `json:"action"`
+	Action *ActionUpdateAlbumMedias `json:"action,omitempty"`
 }
 
 type UpdateInput struct {
 	Email string `json:"email"`
-	Role  *Role  `json:"role"`
+	Role  *Role  `json:"role,omitempty"`
 }
 
 type Urls struct {
