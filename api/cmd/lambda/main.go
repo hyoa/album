@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -18,6 +20,7 @@ import (
 	"github.com/hyoa/album/api/internal/translator"
 	"github.com/hyoa/album/api/internal/user"
 	"github.com/joho/godotenv"
+	"github.com/patrickmn/go-cache"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -39,7 +42,15 @@ func init() {
 	albumManager := album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
 	mediaManager := media.CreateMediaManager(media.NewMediaRepositoryDynamoDB(), s3Storage, converter)
 
-	cdn, _ := cdn.NewCDNAWSInteractor(s3)
+	cache := cache.New(5*time.Minute, 10*time.Minute)
+
+	secret, err := base64.StdEncoding.DecodeString(os.Getenv("CDN_SECRET"))
+
+	if err != nil {
+		panic(err)
+	}
+
+	cdn, _ := cdn.NewCDNAWSInteractor(s3, *cache, string(secret))
 
 	restController := controller.CreateRestController(mediaManager)
 

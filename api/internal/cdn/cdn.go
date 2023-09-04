@@ -1,18 +1,17 @@
 package cdn
 
 import (
-	"context"
-	"crypto/x509"
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
-	"github.com/allegro/bigcache/v3"
-	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
+	"github.com/patrickmn/go-cache"
+
 	"github.com/hyoa/album/api/internal/awsinteractor"
 )
 
@@ -44,9 +43,8 @@ type CDNData struct {
 	Edits  Edits  `json:"edits"`
 }
 
-func NewCDNAWSInteractor(s3 awsinteractor.S3Interactor) (CDNInteractor, error) {
-	cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
-	return &AwsCdn{s3Interactor: s3, cache: cache}, nil
+func NewCDNAWSInteractor(s3 awsinteractor.S3Interactor, cache cache.Cache, secret string) (CDNInteractor, error) {
+	return &AwsCdn{s3Interactor: s3, cache: cache, secret: secret}, nil
 }
 
 type CDNInteractor interface {
@@ -55,34 +53,19 @@ type CDNInteractor interface {
 
 type AwsCdn struct {
 	s3Interactor awsinteractor.S3Interactor
-	cache        *bigcache.BigCache
+	cache        cache.Cache
+	secret       string
 }
 
 func (c *AwsCdn) SignGetUri(key string, size MediaSize, kind MediaKind) string {
 	cacheKey := fmt.Sprintf("%s-%s", key, size)
-	entry, errGet := c.cache.Get(cacheKey)
+	entry, exist := c.cache.Get(cacheKey)
 
-	if errGet == nil && len(entry) != 0 {
-		return string(entry)
+	if exist {
+		return entry.(string)
 	}
 
 	if kind == KindPhoto {
-		pemString := fmt.Sprintf(`
------BEGIN RSA PRIVATE KEY-----
-%s
------END RSA PRIVATE KEY-----`,
-			os.Getenv("AWS_PK"))
-
-		block, _ := pem.Decode([]byte(pemString))
-
-		pk, errParse := x509.ParsePKCS1PrivateKey((block.Bytes))
-
-		if errParse != nil {
-			log.Fatal(errParse)
-		}
-
-		signer := sign.NewURLSigner(os.Getenv("KEY_PAIR_ID"), pk)
-
 		var width int
 		switch size {
 		case SizeSmall:
@@ -108,15 +91,21 @@ func (c *AwsCdn) SignGetUri(key string, size MediaSize, kind MediaKind) string {
 		json, _ := json.Marshal(data)
 		json64 := base64.StdEncoding.EncodeToString([]byte(json))
 
-		url := fmt.Sprintf("%s/%s", os.Getenv("CDN_HOST"), json64)
-		signedUrl, _ := signer.Sign(url, time.Now().Add(15*time.Minute))
+		path := fmt.Sprintf("/%s", json64)
 
-		c.cache.Set(cacheKey, []byte(signedUrl))
+		h := hmac.New(sha256.New, []byte(c.secret))
+		h.Write([]byte(path))
+		signature := hex.EncodeToString(h.Sum(nil))
+
+		signedUrl := fmt.Sprintf("%s/%s?signature=%s", os.Getenv("CDN_HOST"), json64, signature)
+
+		c.cache.Set(cacheKey, signedUrl, time.Minute*10)
+
 		return signedUrl
 	}
 
 	signedUrl, _ := c.s3Interactor.SignGetUri(key, os.Getenv("BUCKET_VIDEO_FORMATTED"))
-	c.cache.Set(cacheKey, []byte(signedUrl))
+	c.cache.Set(cacheKey, signedUrl, time.Minute*10)
 
 	return signedUrl
 }

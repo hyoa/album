@@ -195,16 +195,25 @@ func (ard *AlbumRepositoryDynamoDB) Search(includePrivate, includeNoMedias bool,
 		limit = limit + offset
 	}
 
-	itemsWithLimitOffset := output.Items[offset:limit]
 	var items []albumModel
-	errUnmarshal := attributevalue.UnmarshalListOfMaps(itemsWithLimitOffset, &items)
+	errUnmarshal := attributevalue.UnmarshalListOfMaps(output.Items, &items)
 
 	if errUnmarshal != nil {
 		return make([]Album, 0), errUnmarshal
 	}
 
+	sort.SliceStable(items, func(i, j int) bool {
+		if order == "asc" {
+			return items[i].CreationDate < items[j].CreationDate
+		} else {
+			return items[i].CreationDate > items[j].CreationDate
+		}
+	})
+
+	itemsWithOffset := items[offset:limit]
+
 	var albums []Album
-	for _, item := range items {
+	for _, item := range itemsWithOffset {
 		var medias []Media
 
 		for _, media := range item.Medias {
@@ -233,14 +242,6 @@ func (ard *AlbumRepositoryDynamoDB) Search(includePrivate, includeNoMedias bool,
 			Medias:       medias,
 		})
 	}
-
-	sort.SliceStable(albums, func(i, j int) bool {
-		if order == "asc" {
-			return albums[i].CreationDate < albums[j].CreationDate
-		} else {
-			return albums[i].CreationDate > albums[j].CreationDate
-		}
-	})
 
 	return albums, nil
 }

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/base64"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,7 @@ import (
 	"github.com/hyoa/album/api/internal/media"
 	"github.com/hyoa/album/api/internal/translator"
 	"github.com/hyoa/album/api/internal/user"
+	"github.com/patrickmn/go-cache"
 
 	"github.com/joho/godotenv"
 
@@ -40,7 +43,16 @@ func main() {
 	s3, _ := awsinteractor.NewS3Interactor(os.Getenv("S3_ENDPOINT"), os.Getenv("AKID"), os.Getenv("ASK"))
 	s3Storage := media.NewS3Storage(s3)
 	converter := media.NewCloudConvert()
-	cdn, _ := cdn.NewCDNAWSInteractor(s3)
+
+	cache := cache.New(5*time.Minute, 10*time.Minute)
+
+	secret, err := base64.StdEncoding.DecodeString(os.Getenv("CDN_SECRET"))
+
+	if err != nil {
+		panic(err)
+	}
+
+	cdn, _ := cdn.NewCDNAWSInteractor(s3, *cache, string(secret))
 
 	userManager := user.CreateUserManager(user.NewUserRepositoryDynamoDB(), &mailer)
 	albumManager := album.CreateAlbumManager(album.NewAlbumRepositoryDynamoDB())
