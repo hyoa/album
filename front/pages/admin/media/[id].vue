@@ -42,13 +42,14 @@
         <section class="px-4">
             <div class="flex flex-wrap">
                 <div
-                    v-for="(media, index) in folder.medias"
+                    v-for="(media, index) in mediasToShow"
                     :key="index"
                     class="w-1/3 p-1"
                     @click="selectMedia(media)"
                     :class="{'border-4 border-blue-500': isSelected(media)}"
                 >
-                    <img :src="media.urls.small" alt="">
+                    <img v-if="media.kind === 'PHOTO'" :src="media.urls.small">
+                    <video v-else-if="media.kind === 'VIDEO'" :src="media.urls.small"></video>
                 </div>
             </div>
         </section>
@@ -61,8 +62,6 @@
 <script>
 export default {
     name: "MediaUpdate",
-    components: {
-    },
     data() {
         return {
             folder: null,
@@ -72,7 +71,9 @@ export default {
             notify: {
                 message: '',
                 type: null
-            }
+            },
+            mediasToShow: [],
+            indexDisplay: 0
         }
     },
     async created() {
@@ -101,11 +102,15 @@ export default {
         try {
             const { data: { _rawValue: { folder } } } = await useAsyncQuery(queryFolder)
             this.folder = folder
+            this.mediasToShow = folder.medias.slice(0, 20)
         } catch (e) {
             
         }
 
         this.actionInProgress = false
+    },
+    mounted() {
+        this.scroll()
     },
     methods: {
         selectMedia (media) {
@@ -195,7 +200,32 @@ export default {
             }
 
             this.actionInProgress = false
-        }
+        },
+        load() {
+            if (this.folder === null) {
+                return
+            }
+
+            if (this.indexDisplay >= this.folder.medias.length) {
+                return
+            }
+
+            this.indexDisplay += 20
+
+            // merge new medias
+            this.mediasToShow = this.mediasToShow.concat(this.folder.medias.slice(this.indexDisplay, this.indexDisplay + 20))
+
+            return 
+        },
+        scroll () {
+            window.onscroll = () => {
+                let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight === document.documentElement.offsetHeight
+
+                if (bottomOfWindow) {
+                    this.load()
+                }
+            }
+        },
     },
 }
 

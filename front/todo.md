@@ -1,3 +1,1 @@
-* error popup
-* video tag
-* lazy load
+* pwa

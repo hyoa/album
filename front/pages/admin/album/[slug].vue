@@ -43,12 +43,15 @@
                         :class="{'border-2 border-primary': isSelected(media.key, 'remove')}"
                     >
                         <div v-if="media.favorite">
-                            <Icon @click="onToggleFavorite(media)" name="teenyicons:star-solid" class="text-2xl m-2 absolute z-20" />
+                            <Icon @click="onToggleFavorite(media)" name="teenyicons:star-solid" class="text-2xl m-2 absolute z-10" />
                         </div>
                         <div v-else>
-                            <Icon @click="onToggleFavorite(media)" name="teenyicons:star-outline" class="text-2xl m-2 absolute z-20" />
+                            <Icon @click="onToggleFavorite(media)" name="teenyicons:star-outline" class="text-2xl m-2 absolute z-10" />
                         </div>
-                        <img @click="selectMedia(media.key, 'remove')" :src="media.urls.small">
+                        <div @click="selectMedia(media.key, 'remove')">
+                            <img v-if="media.kind === 'PHOTO'" :src="media.urls.small">
+                            <video v-else-if="media.kind === 'VIDEO'" :src="media.urls.small"></video>
+                        </div>
                     </div>
                 </div>
                 <div
@@ -63,7 +66,7 @@
                     </div>
                 </div>
             </div>
-            <div class="drawer-side">
+            <div class="drawer-side z-20" id="drawer-side-modal">
                 <label for="my-drawer-4" class="drawer-overlay"></label>
                 <div class="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                     <div>
@@ -84,7 +87,8 @@
                             :key="index"
                             :class="{'border-2 border-primary': isSelected(media.key, 'add')}"
                         >
-                            <img :src="media.urls.small">
+                            <img v-if="media.kind === 'PHOTO'" :src="media.urls.small">
+                            <video v-else-if="media.kind === 'VIDEO'" :src="media.urls.small"></video>
                         </div>
                     </div>
                 </div>
@@ -371,7 +375,7 @@ export default {
                     type: 'error'
                 }
             }
-        }
+        },
     },
     computed: {
         filteredFolder () {

@@ -4,7 +4,8 @@
         <div class="carousel carousel-center max-w-md p-4 space-x-4 bg-slate-900 h-4/6 w-ful">
           <div v-for="(album) in albums" :key="album.slug" class="carousel-item w-full">
             <NuxtLink :to="`/album/${album.slug}`" class="block">
-              <img :src="album.favorites[0].urls.medium" class="h-full w-full">
+              <img v-if="album.favorites[0].kind === 'PHOTO'" :src="album.favorites[0].urls.medium" class="h-full w-full">
+              <video autoplay loop muted v-else-if="album.favorites[0].kind === 'VIDEO'" :src="album.favorites[0].urls.medium" class="h-full w-full"></video>
             </NuxtLink>
           </div>
         </div>

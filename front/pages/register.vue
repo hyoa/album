@@ -54,7 +54,7 @@
 
 <script setup>
 definePageMeta({
-  layout: "auth",
+  layout: "none",
 });
 </script>
 

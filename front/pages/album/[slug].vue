@@ -23,8 +23,12 @@
         </section>
         <section class="mt-8">
             <div w-full class="bg-slate-900">
-                <div v-for="(media, index) in album.medias" :key="index" class="mt-2">
+                <div v-for="(media, index) in mediasToShow" :key="index" class="mt-2">
                     <img v-if="media.kind === 'PHOTO'" loading="lazy" :src="media.urls.large">
+                    <video v-else-if="media.kind === 'VIDEO'" controls preload="metadata">
+                        <source :src="media.urls.large" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
             </div>
         </section>
@@ -42,7 +46,9 @@ export default {
     data() {
         return {
             album: null,
-            readMore: false
+            readMore: false,
+            mediasToShow: [],
+            indexDisplay: 0,
         }
     },
     async created() {
@@ -70,10 +76,14 @@ export default {
         try {
             const { data: { _rawValue: { album } } } = await useAsyncQuery(query, variables)
             this.album = album
+            this.mediasToShow = album.medias.slice(0, 10)
         } catch (e) {
             console.log(e)
             this.errorMessage = e;
         }
+    },
+    mounted () {
+        this.scroll()
     },
     computed: {
         readMoreLabel () {
@@ -90,7 +100,32 @@ export default {
                 const dtf = new Intl.DateTimeFormat()
                 return dtf.format(date * 1000)
             }
-        }
+        },
+        load() {
+            if (this.album === null) {
+                return
+            }
+
+            if (this.indexDisplay >= this.album.medias.length) {
+                return
+            }
+
+            this.indexDisplay += 10
+
+            // merge new medias
+            this.mediasToShow = this.mediasToShow.concat(this.album.medias.slice(this.indexDisplay, this.indexDisplay + 10))
+
+            return 
+        },
+        scroll () {
+            window.onscroll = () => {
+                let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight === document.documentElement.offsetHeight
+
+                if (bottomOfWindow) {
+                    this.load()
+                }
+            }
+        },
     }
 }
 </script>
