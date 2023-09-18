@@ -55,6 +55,7 @@ type ComplexityRoot struct {
 		Author       func(childComplexity int) int
 		CreationDate func(childComplexity int) int
 		Description  func(childComplexity int) int
+		Favorites    func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Medias       func(childComplexity int) int
 		Private      func(childComplexity int) int
@@ -216,6 +217,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Album.Description(childComplexity), true
+
+	case "Album.favorites":
+		if e.complexity.Album.Favorites == nil {
+			break
+		}
+
+		return e.complexity.Album.Favorites(childComplexity), true
 
 	case "Album.id":
 		if e.complexity.Album.ID == nil {
@@ -819,6 +827,7 @@ type Album {
   id: String!
   slug: String!
   medias: [MediaAlbum!]
+  favorites: [MediaAlbum!]
 }
 
 
@@ -1807,6 +1816,59 @@ func (ec *executionContext) _Album_medias(ctx context.Context, field graphql.Col
 }
 
 func (ec *executionContext) fieldContext_Album_medias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Album",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_MediaAlbum_key(ctx, field)
+			case "author":
+				return ec.fieldContext_MediaAlbum_author(ctx, field)
+			case "kind":
+				return ec.fieldContext_MediaAlbum_kind(ctx, field)
+			case "urls":
+				return ec.fieldContext_MediaAlbum_urls(ctx, field)
+			case "favorite":
+				return ec.fieldContext_MediaAlbum_favorite(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MediaAlbum", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Album_favorites(ctx context.Context, field graphql.CollectedField, obj *model.Album) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Album_favorites(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Favorites, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.MediaAlbum)
+	fc.Result = res
+	return ec.marshalOMediaAlbum2ᚕᚖgithubᚗcomᚋhyoaᚋalbumᚋapiᚋgraphᚋmodelᚐMediaAlbumᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Album_favorites(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Album",
 		Field:      field,
@@ -3003,6 +3065,8 @@ func (ec *executionContext) fieldContext_Mutation_createAlbum(ctx context.Contex
 				return ec.fieldContext_Album_slug(ctx, field)
 			case "medias":
 				return ec.fieldContext_Album_medias(ctx, field)
+			case "favorites":
+				return ec.fieldContext_Album_favorites(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Album", field.Name)
 		},
@@ -3100,6 +3164,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlbum(ctx context.Contex
 				return ec.fieldContext_Album_slug(ctx, field)
 			case "medias":
 				return ec.fieldContext_Album_medias(ctx, field)
+			case "favorites":
+				return ec.fieldContext_Album_favorites(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Album", field.Name)
 		},
@@ -3280,6 +3346,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlbumMedias(ctx context.
 				return ec.fieldContext_Album_slug(ctx, field)
 			case "medias":
 				return ec.fieldContext_Album_medias(ctx, field)
+			case "favorites":
+				return ec.fieldContext_Album_favorites(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Album", field.Name)
 		},
@@ -3377,6 +3445,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAlbumFavorite(ctx contex
 				return ec.fieldContext_Album_slug(ctx, field)
 			case "medias":
 				return ec.fieldContext_Album_medias(ctx, field)
+			case "favorites":
+				return ec.fieldContext_Album_favorites(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Album", field.Name)
 		},
@@ -4043,6 +4113,8 @@ func (ec *executionContext) fieldContext_Query_albums(ctx context.Context, field
 				return ec.fieldContext_Album_slug(ctx, field)
 			case "medias":
 				return ec.fieldContext_Album_medias(ctx, field)
+			case "favorites":
+				return ec.fieldContext_Album_favorites(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Album", field.Name)
 		},
@@ -4140,6 +4212,8 @@ func (ec *executionContext) fieldContext_Query_album(ctx context.Context, field 
 				return ec.fieldContext_Album_slug(ctx, field)
 			case "medias":
 				return ec.fieldContext_Album_medias(ctx, field)
+			case "favorites":
+				return ec.fieldContext_Album_favorites(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Album", field.Name)
 		},
@@ -7643,6 +7717,8 @@ func (ec *executionContext) _Album(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "medias":
 			out.Values[i] = ec._Album_medias(ctx, field, obj)
+		case "favorites":
+			out.Values[i] = ec._Album_favorites(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
