@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const GRAPHQL_URI = process.env.VUE_APP_GRAPHQL_URI || 'http://127.0.0.1:3118'
+const GRAPHQL_URI = process.env.API_URI
 
 const getConfig = (headers = {}) => {
     const defaultHeaders = {
