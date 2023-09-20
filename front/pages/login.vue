@@ -68,7 +68,7 @@ export default {
             this.actionInProgress = true;
 
             this.errorMessage = '';
-            let query = `
+            let query = gql`
             query {
                 auth: auth(input: {email: "${this.email}", password: "${this.password}"}) {
                 token
@@ -77,8 +77,8 @@ export default {
             `
 
             try {
-                const res = await graphql(query, 'v3');
-                await onLogin(res.auth.token)
+                const { data: { _rawValue: { auth } } } = await useAsyncQuery(query)
+                await onLogin(auth.token)
 
                 navigateTo('/')
             } catch (e) {
