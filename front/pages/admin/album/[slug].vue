@@ -12,7 +12,7 @@
         <div class="drawer drawer-end">
             <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
             <div class="px-4 drawer-content">
-                <div @click="notify.type = null" v-if="notify.type" class="bg-red-400 p-4 rounded-md" :class="[ notify.type === 'error'  ? 'bg-red-400' : 'bg-green-400']">
+                <div @click="notify.type = null" v-if="notify.type" class="p-4 rounded-md" :class="[ notify.type === 'error'  ? 'bg-red-400' : 'bg-green-400']">
                     {{ notify.message }}
                 </div>
                 <div class="form-control w-full max-w-xs">
