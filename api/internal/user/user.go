@@ -221,7 +221,7 @@ func (um *UserManager) AskResetPassword(email, appUri string) (User, error) {
 		u.Email,
 		"MailSubjectPasswordChange",
 		"MailBodyPasswordChange",
-		map[string]interface{}{"uri": appUri, "token": jwtReset},
+		map[string]interface{}{"uri": fmt.Sprintf("%s/%s", appUri, "resetPassword"), "token": jwtReset},
 	)
 
 	return u, errSend

@@ -2,8 +2,7 @@ package mock
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/hyoa/album/api/internal/translator"
 )
@@ -22,8 +21,7 @@ func (m *Mailer) SendMail(email, subjectKey, bodyKey string, bodyData map[string
 	subjectTranslated := m.Translator.Translate(subjectKey, bodyData)
 	bodyTranslated := m.Translator.Translate(bodyKey, bodyData)
 
-	fmt.Println(subjectTranslated, bodyTranslated)
 	f, _ := json.Marshal(mail{Email: email, Subject: subjectTranslated, Body: bodyTranslated})
 
-	return ioutil.WriteFile("/tmp/mail.json", f, 0644)
+	return os.WriteFile("/tmp/mail.json", f, 0644)
 }

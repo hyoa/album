@@ -15,6 +15,7 @@ type Album {
   id: String!
   slug: String!
   medias: [MediaAlbum!]
+  favorites: [MediaAlbum!]
 }
 
 

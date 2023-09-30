@@ -21,6 +21,7 @@ type Album struct {
 	ID           string        `json:"id"`
 	Slug         string        `json:"slug"`
 	Medias       []*MediaAlbum `json:"medias,omitempty"`
+	Favorites    []*MediaAlbum `json:"favorites,omitempty"`
 }
 
 type AskResetPasswordInput struct {

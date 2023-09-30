@@ -18,6 +18,18 @@ func HydrateAlbum(album album.Album, cdn _cdn.CDNInteractor) *Album {
 		})
 	}
 
+	var favorites []*MediaAlbum
+
+	for _, m := range medias {
+		if m.Favorite != nil && *m.Favorite {
+			favorites = append(favorites, m)
+		}
+	}
+
+	if len(favorites) == 0 && len(medias) > 0 {
+		favorites = append(favorites, medias[0])
+	}
+
 	return &Album{
 		Title:        album.Title,
 		Description:  &album.Description,
@@ -27,6 +39,7 @@ func HydrateAlbum(album album.Album, cdn _cdn.CDNInteractor) *Album {
 		ID:           album.Id,
 		Slug:         album.Slug,
 		Medias:       medias,
+		Favorites:    favorites,
 	}
 }
 

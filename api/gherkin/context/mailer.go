@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"regexp"
 
@@ -31,8 +30,7 @@ func ICheckInTheMailbox(ctx context.Context) (context.Context, error) {
 func IShouldHaveAMailThatContainAPasswordResetLinkForWithSubject(ctx context.Context, email, subject string) error {
 	res, _ := ctx.Value(testMailerKey{}).(mail)
 
-	fmt.Println(res)
-	var re = regexp.MustCompile(`[\w]+:[\d]+\?token=(?P<token>[\w=_\.-]+)`)
+	var re = regexp.MustCompile(`[\w]+:[\d]+\/resetPassword\?token=(?P<token>[\w=_\.-]+)`)
 	matches := re.FindStringSubmatch(res.Body)
 
 	if len(matches) != 2 {
