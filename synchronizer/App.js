@@ -237,9 +237,7 @@ function HomeScreen() {
 
     const authToken = await SecureStore.getItemAsync('authToken')
 
-    try {
-      console.log("ingest")
-      
+    try {      
       const resp = await axios.post(
         `${API_HOST}/v3/graphql`,
         {
