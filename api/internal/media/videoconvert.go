@@ -80,7 +80,7 @@ func (*CloudConvert) Convert(key string) error {
 	importTask := ImportTask{
 		Operation:       "import/s3",
 		Bucket:          os.Getenv("BUCKET_VIDEO_RAW"),
-		Endpoint:        os.Getenv("S3_ENDPOINT"),
+		Endpoint:        fmt.Sprintf("https://%s", os.Getenv("S3_ENDPOINT")),
 		Region:          os.Getenv("S3_REGION"),
 		Key:             key,
 		AccessKeyId:     os.Getenv("AKID"),
@@ -90,7 +90,7 @@ func (*CloudConvert) Convert(key string) error {
 	exportTask := ExportTask{
 		Operation:       "export/s3",
 		Bucket:          os.Getenv("BUCKET_VIDEO_FORMATTED"),
-		Endpoint:        os.Getenv("S3_ENDPOINT"),
+		Endpoint:        fmt.Sprintf("https://%s", os.Getenv("S3_ENDPOINT")),
 		Region:          os.Getenv("S3_REGION"),
 		Key:             key,
 		AccessKeyId:     os.Getenv("AKID"),
