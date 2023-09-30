@@ -3,6 +3,11 @@ export default defineNuxtConfig({
   ssr: false,
   devtools: { enabled: true },
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/apollo', 'nuxt-icon', '@vite-pwa/nuxt'],
+  app: {
+    head: {
+      title: 'Pauline & Jules',
+    }
+  },
   apollo: {
     clients: {
       default: {
