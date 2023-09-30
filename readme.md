@@ -4,13 +4,22 @@ This project aim to propose an album to store and share photos and videos.
 
 Photos and videos are stored into folders and then can be used to be displayed in albums (either public or private).
 
-## FRONTEND
+## FRONT
 
-It is powered by VueJS, CSS is created with TailwindCSS.
+It provides an administration panel to manage medias, albums and user and a vue for user to see albums.
+It also provides a view to see created albums
 
-There is an administration panel to manager medias, albums and user and a vue for user to see albums.
+Tech: by Nuxt 3, CSS is created with TailwindCSS.
 
 
 ## API
 
-It is build in GO and provide a GraphQL api to manage albums, medias and user.
+It provides a GraphQL api in GO to manages albums, medias and users
+
+Tech: GO
+
+## SYNCHRONIZER
+
+It provides a mobile app to upload medias to the platform
+
+Tech: ReactJS
