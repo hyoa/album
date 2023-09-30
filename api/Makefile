@@ -8,7 +8,7 @@ deploy-prod: clean build-lambda
 	serverless deploy --stage prod --config serverless-prod.yml --verbose --aws-profile serverless-deploy
 
 build-lambda:
-	GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/api cmd/lambda/main.go
+	GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bootstrap cmd/lambda/main.go
 
 build:
 	go build -ldflags="-s -w" -o bin/api cmd/dev/main.go

@@ -5,3 +5,4 @@ serverless.yml
 serverless-*.yml
 .serverless
 .env.local
+bootstrap
