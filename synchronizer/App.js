@@ -237,7 +237,7 @@ function HomeScreen() {
 
     const authToken = await SecureStore.getItemAsync('authToken')
 
-    try {
+    try {      
       const resp = await axios.post(
         `${API_HOST}/v3/graphql`,
         {
@@ -256,17 +256,32 @@ function HomeScreen() {
       // Create a new array with the medias to upload
 
       const limit = pLimit(5)
+
       for (let media of resp.data.data.medias) {
+          let item = items.find(({filename}) => {
+            return formatFileName(filename) === media.key
+          })
+
           const conf = mediasConfig.find(({ key }) => key === media.key)
 
-          let picture = await fetch(conf.uri)
+          let picture
+          try {
+            picture = await fetch(conf.uri)
+          } catch (e) {
+            let item = items.find(({filename}) => {
+              return formatFileName(filename) === media.key
+            })
+
+            setItems({type: 'setSyncStatus', id: item.id, 'status': 'failed'})
+
+            continue
+          }
+
           picture = await picture.blob()
 
           const mimeType = mime.lookup(media.key)
 
-          let item = items.find(({filename}) => {
-            return formatFileName(filename) === media.key
-          })
+
           setItems({type: 'setSyncStatus', id: item.id, 'status': 'inprogress'})
           
           const req = fetch(
@@ -302,7 +317,6 @@ function HomeScreen() {
       }
 
       setGlobalSyncStatusText('Envoi des médias sur le serveur')
-
 
       // Wait for all the medias to be uploaded
       // Then, create the folder and ingest the medias
@@ -381,7 +395,6 @@ function HomeScreen() {
       })
 
     } catch(e) {
-      console.log(e)
       setGlobalSyncStatus(STATUS_READY)
     }
   }
