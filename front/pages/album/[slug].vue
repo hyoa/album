@@ -49,6 +49,7 @@ export default {
             readMore: false,
             mediasToShow: [],
             indexDisplay: 0,
+            loadingMore: false,
         }
     },
     async created() {
@@ -119,10 +120,12 @@ export default {
         },
         scroll () {
             window.onscroll = () => {
-                let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight === document.documentElement.offsetHeight
+                let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= document.documentElement.offsetHeight - 200
 
-                if (bottomOfWindow) {
+                if (bottomOfWindow && !this.loadingMore) {
+                    this.loadingMore = true
                     this.load()
+                    this.loadingMore = false
                 }
             }
         },
